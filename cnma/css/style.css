@@ -307,12 +307,21 @@ body {
 }
 
 .sidebar {
-    width: 230px;
-    height: 100vh;
-    background-color: #0b6b3a;
+   
+     background: linear-gradient(180deg, #1d8f1d, #064e3b);
     color: white;
     position: fixed;
-    padding: 20px;
+    
+    top: 0; left: 0;
+    width: 240px;
+    height: 100vh; 
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: auto;
+    z-index: 100;
+     font-size: 15px;
+    transition: 0.2s;
 }
 
 .sidebar h2 {

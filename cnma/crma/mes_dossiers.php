@@ -1,6 +1,9 @@
 <?php
 include('../includes/config.php');
 session_start();
+$id_user = $_SESSION['id_user'];
+$role = $_SESSION['role'];
+$id_agence = $_SESSION['id_agence'];
 ?>
 
 <!DOCTYPE html>
@@ -21,44 +24,124 @@ session_start();
     <h2>Mes dossiers</h2>
 
 <?php
-$sql = "SELECT 
-d.id_dossier,
-d.numero_dossier,
-d.date_creation,
-d.delai_declaration,
+if($role == 'CNMA'){
 
-p.nom AS nom_assure,
-p.prenom AS prenom_assure,
+    $sql = "SELECT 
+    d.id_dossier,
+    d.numero_dossier,
+    d.date_creation,
+    d.delai_declaration,
 
-pt.nom AS nom_tiers,
-pt.prenom AS prenom_tiers,
-t.compagnie_assurance,
-t.responsable,
+    p.nom AS nom_assure,
+    p.prenom AS prenom_assure,
 
-ed.nom_etat,
-d.id_etat,
+    pt.nom AS nom_tiers,
+    pt.prenom AS prenom_tiers,
+    t.compagnie_assurance,
+    t.responsable,
 
-(SELECT IFNULL(SUM(montant),0) 
- FROM reserve r 
- WHERE r.id_dossier = d.id_dossier) AS total_reserve,
+    ed.nom_etat,
+    d.id_etat,
 
-(SELECT IFNULL(SUM(montant),0) 
- FROM reglement r 
- WHERE r.id_dossier = d.id_dossier) AS total_regle
+    (SELECT IFNULL(SUM(montant),0) 
+     FROM reserve r 
+     WHERE r.id_dossier = d.id_dossier) AS total_reserve,
 
-FROM dossier d
+    (SELECT IFNULL(SUM(montant),0) 
+     FROM reglement r 
+     WHERE r.id_dossier = d.id_dossier) AS total_regle
 
-LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
-LEFT JOIN assure ass ON c.id_assure = ass.id_assure
-LEFT JOIN personne p ON ass.id_personne = p.id_personne
+    FROM dossier d
+    LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
+    LEFT JOIN assure ass ON c.id_assure = ass.id_assure
+    LEFT JOIN personne p ON ass.id_personne = p.id_personne
+    LEFT JOIN tiers t ON d.id_tiers = t.id_tiers
+    LEFT JOIN personne pt ON t.id_personne = pt.id_personne
+    LEFT JOIN etat_dossier ed ON d.id_etat = ed.id_etat
 
-LEFT JOIN tiers t ON d.id_tiers = t.id_tiers
-LEFT JOIN personne pt ON t.id_personne = pt.id_personne
+    ORDER BY d.id_dossier DESC";
+}
+else if($role == 'CRMA'){
 
-LEFT JOIN etat_dossier ed ON d.id_etat = ed.id_etat
+    $sql = "SELECT 
+    d.id_dossier,
+    d.numero_dossier,
+    d.date_creation,
+    d.delai_declaration,
 
-ORDER BY d.id_dossier DESC";
+    p.nom AS nom_assure,
+    p.prenom AS prenom_assure,
 
+    pt.nom AS nom_tiers,
+    pt.prenom AS prenom_tiers,
+    t.compagnie_assurance,
+    t.responsable,
+
+    ed.nom_etat,
+    d.id_etat,
+
+    (SELECT IFNULL(SUM(montant),0) 
+     FROM reserve r 
+     WHERE r.id_dossier = d.id_dossier) AS total_reserve,
+
+    (SELECT IFNULL(SUM(montant),0) 
+     FROM reglement r 
+     WHERE r.id_dossier = d.id_dossier) AS total_regle
+
+    FROM dossier d
+    LEFT JOIN utilisateur u ON d.cree_par = u.id_user
+    LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
+    LEFT JOIN assure ass ON c.id_assure = ass.id_assure
+    LEFT JOIN personne p ON ass.id_personne = p.id_personne
+    LEFT JOIN tiers t ON d.id_tiers = t.id_tiers
+    LEFT JOIN personne pt ON t.id_personne = pt.id_personne
+    LEFT JOIN etat_dossier ed ON d.id_etat = ed.id_etat
+
+    WHERE u.id_agence = '$id_agence'
+
+    ORDER BY d.id_dossier DESC";
+}
+else if($role == 'ASSURE'){
+
+    $sql = "SELECT 
+    d.id_dossier,
+    d.numero_dossier,
+    d.date_creation,
+    d.delai_declaration,
+
+    p.nom AS nom_assure,
+    p.prenom AS prenom_assure,
+
+    pt.nom AS nom_tiers,
+    pt.prenom AS prenom_tiers,
+    t.compagnie_assurance,
+    t.responsable,
+
+    ed.nom_etat,
+    d.id_etat,
+
+    (SELECT IFNULL(SUM(montant),0) 
+     FROM reserve r 
+     WHERE r.id_dossier = d.id_dossier) AS total_reserve,
+
+    (SELECT IFNULL(SUM(montant),0) 
+     FROM reglement r 
+     WHERE r.id_dossier = d.id_dossier) AS total_regle
+
+    FROM dossier d
+    LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
+    LEFT JOIN assure ass ON c.id_assure = ass.id_assure
+    LEFT JOIN personne p ON ass.id_personne = p.id_personne
+    LEFT JOIN tiers t ON d.id_tiers = t.id_tiers
+    LEFT JOIN personne pt ON t.id_personne = pt.id_personne
+    LEFT JOIN etat_dossier ed ON d.id_etat = ed.id_etat
+
+    WHERE ass.id_personne = (
+        SELECT id_personne FROM utilisateur WHERE id_user = '$id_user'
+    )
+
+    ORDER BY d.id_dossier DESC";
+}
 $result = mysqli_query($conn, $sql);
 ?>
 

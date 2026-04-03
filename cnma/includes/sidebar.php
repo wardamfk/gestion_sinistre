@@ -1,4 +1,5 @@
 <div class="sidebar">
+    <?php if(!isset($nb_notifs)) { $nb_notifs = 0; } ?>
     <h2>CNMA</h2>
 <p class="role">Espace CRMA</p>
 
@@ -38,6 +39,18 @@
         <i class="fa fa-folder-open"></i> Mes dossiers
     </a>
 
+    <!-- NOTIFICATIONS avec badge -->
+    <a href="/PfeCnma/cnma/crma/notifications.php" style="position:relative;">
+        <i class="fa fa-bell"></i> Notifications
+        <?php if($nb_notifs > 0): ?>
+        <span style="
+            position:absolute; right:12px; top:50%; transform:translateY(-50%);
+            background:#ef5350; color:white; border-radius:10px;
+            padding:1px 7px; font-size:11px; font-weight:bold;">
+            <?php echo $nb_notifs; ?>
+        </span>
+        <?php endif; ?>
+    </a>
     <a href="/PfeCnma/cnma/pages/logout.php" class="logout">
         Déconnexion
     </a>
