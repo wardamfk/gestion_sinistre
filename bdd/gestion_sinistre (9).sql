@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 02 avr. 2026 à 13:07
+-- Généré le : ven. 03 avr. 2026 à 03:11
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.0.30
 
@@ -151,7 +151,9 @@ INSERT INTO `document` (`id_document`, `id_dossier`, `nom_fichier`, `date_upload
 (11, 8, 'BDAU9862.JPG', '2026-04-01', 9, 1),
 (12, 9, 'BDAU9862.JPG', '2026-04-02', 9, 1),
 (13, 10, 'BDAU9862.JPG', '2026-04-02', 9, 3),
-(14, 11, 'DING2023.JPG', '2026-04-02', 9, 1);
+(14, 11, 'DING2023.JPG', '2026-04-02', 9, 1),
+(15, 7, 'BDAU9862.JPG', '2026-04-02', 2, 1),
+(16, 6, 'BDAU9862.JPG', '2026-04-03', 2, 1);
 
 -- --------------------------------------------------------
 
@@ -177,6 +179,9 @@ CREATE TABLE `dossier` (
   `total_reserve` decimal(10,2) DEFAULT NULL,
   `statut_validation` enum('non_soumis','en_attente','valide','refuse') DEFAULT 'non_soumis',
   `date_validation` date DEFAULT NULL,
+  `date_refus` date DEFAULT NULL,
+  `date_cloture` date DEFAULT NULL,
+  `commentaire_cnma` text DEFAULT NULL,
   `valide_par` int(11) DEFAULT NULL,
   `id_expert` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -185,15 +190,15 @@ CREATE TABLE `dossier` (
 -- Déchargement des données de la table `dossier`
 --
 
-INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_par`, `date_transmission`, `transmis_par`, `info_complementaire`, `id_etat`, `id_contrat`, `id_tiers`, `date_sinistre`, `lieu_sinistre`, `description`, `delai_declaration`, `total_reserve`, `statut_validation`, `date_validation`, `valide_par`, `id_expert`) VALUES
-(4, 'DOS-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 8, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-01', NULL, 2),
-(5, 'DOS-2026-0002', '2026-03-30', 9, NULL, NULL, 'HKJ', 2, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, '', NULL, NULL, NULL),
-(6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-01', 9, '', 3, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 600777.00, 'en_attente', NULL, NULL, 1),
-(7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 3, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, '', NULL, NULL, 1),
-(8, 'DOS-2026-0005', '2026-03-31', 9, NULL, NULL, '', 8, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, 2),
-(9, 'DOS-2026-0006', '2026-04-02', 9, NULL, NULL, '', 2, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 55.00, 'valide', NULL, NULL, 2),
-(10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 2, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'non_soumis', NULL, NULL, 3),
-(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 7, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, 5);
+INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_par`, `date_transmission`, `transmis_par`, `info_complementaire`, `id_etat`, `id_contrat`, `id_tiers`, `date_sinistre`, `lieu_sinistre`, `description`, `delai_declaration`, `total_reserve`, `statut_validation`, `date_validation`, `date_refus`, `date_cloture`, `commentaire_cnma`, `valide_par`, `id_expert`) VALUES
+(4, 'DOS-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 14, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-01', NULL, '2026-04-03', NULL, NULL, 2),
+(5, 'DOS-2026-0002', '2026-03-30', 9, NULL, NULL, 'HKJ', 2, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, '', NULL, NULL, NULL, NULL, NULL, NULL),
+(6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-02', 2, '', 2, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 600867.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
+(7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 4, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
+(8, 'DOS-2026-0005', '2026-03-31', 9, NULL, NULL, '', 8, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
+(9, 'DOS-2026-0006', '2026-04-02', 9, NULL, NULL, '', 2, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 55.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
+(10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 2, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
+(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 7, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, NULL, NULL, NULL, 5);
 
 -- --------------------------------------------------------
 
@@ -230,7 +235,7 @@ INSERT INTO `etat_dossier` (`id_etat`, `nom_etat`) VALUES
 (3, 'Transmis CNMA'),
 (4, 'Valide CNMA'),
 (5, 'Refuse CNMA'),
-(6, 'regle difinitive judiciaire'),
+(6, 'Complément demandé'),
 (7, 'reglement partiel'),
 (8, 'reglement total'),
 (9, 'en cours dexpertise'),
@@ -238,7 +243,7 @@ INSERT INTO `etat_dossier` (`id_etat`, `nom_etat`) VALUES
 (11, 'clasee sans suite'),
 (12, 'clasee apres rejet'),
 (13, 'clasee en attente recours'),
-(14, 'Regle');
+(14, 'Clôturé');
 
 -- --------------------------------------------------------
 
@@ -390,6 +395,7 @@ CREATE TABLE `historique` (
   `fait_par` int(11) DEFAULT NULL,
   `ancien_etat` int(11) DEFAULT NULL,
   `nouvel_etat` int(11) DEFAULT NULL,
+  `commentaire` text DEFAULT NULL,
   `id_motif` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -397,67 +403,72 @@ CREATE TABLE `historique` (
 -- Déchargement des données de la table `historique`
 --
 
-INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`, `fait_par`, `ancien_etat`, `nouvel_etat`, `id_motif`) VALUES
-(8, 4, 'Création dossier', '2026-03-30 18:42:41', 9, NULL, 2, NULL),
-(9, 5, 'Création dossier', '2026-03-30 20:47:42', 9, NULL, 2, NULL),
-(10, 5, 'Ajout réserve: 34 DA', '2026-03-30 00:00:00', 9, NULL, NULL, NULL),
-(11, 5, 'Ajout réserve: 899 DA', '2026-03-30 00:00:00', 9, NULL, NULL, NULL),
-(12, 6, 'Création dossier', '2026-03-30 22:53:42', 9, NULL, 2, NULL),
-(14, 5, 'Ajout réserve: 345 DA', '2026-03-31 11:42:25', 9, NULL, NULL, NULL),
-(15, 5, 'Ajout règlement: 555 DA', '2026-03-31 11:42:55', 9, NULL, NULL, NULL),
-(16, 5, 'Validation automatique CRMA', '2026-03-31 12:49:37', 9, NULL, NULL, NULL),
-(17, 5, 'Ajout réserve: 100 DA', '2026-03-31 12:49:37', 9, NULL, NULL, NULL),
-(20, 6, 'Expertise + Transmission CNMA', '2026-03-31 16:15:04', 9, NULL, NULL, NULL),
-(21, 7, 'Création dossier', '2026-03-31 16:41:17', 9, NULL, 2, NULL),
-(22, 8, 'Création dossier', '2026-03-31 17:09:37', 9, NULL, 1, NULL),
-(23, 8, 'Affectation expert', '2026-03-31 17:09:37', 9, NULL, 2, NULL),
-(24, 8, 'Expertise + Transmission CNMA', '2026-03-31 17:10:59', 9, NULL, NULL, NULL),
-(25, 8, 'Expertise validée CRMA', '2026-03-31 19:38:37', 9, NULL, NULL, NULL),
-(26, 8, 'Règlement partiel', '2026-03-31 20:09:39', 9, NULL, 7, NULL),
-(27, 8, 'Règlement partiel', '2026-03-31 23:10:04', 9, NULL, 7, NULL),
-(28, 8, 'Ajout réserve', '2026-03-31 23:24:01', 9, 7, 7, NULL),
-(29, 8, 'Ajout réserve', '2026-03-31 23:27:35', 9, 7, 7, NULL),
-(30, 8, 'Ajout réserve', '2026-03-31 23:27:53', 9, 7, 7, NULL),
-(31, 8, 'Ajout réserve', '2026-03-31 23:31:29', 9, 7, 7, NULL),
-(32, 8, 'Ajout réserve', '2026-03-31 23:32:29', 9, 7, 7, NULL),
-(33, 8, 'Ajout réserve', '2026-03-31 23:32:51', 9, 7, 7, NULL),
-(34, 8, 'Ajout réserve', '2026-03-31 23:33:23', 9, 7, 7, NULL),
-(35, 8, 'Ajout réserve', '2026-03-31 23:35:58', 9, 7, 7, NULL),
-(36, 8, 'Ajout réserve', '2026-03-31 23:37:00', 9, 7, 7, NULL),
-(37, 8, 'Ajout réserve', '2026-03-31 23:37:48', 9, 7, 7, NULL),
-(38, 8, 'Ajout réserve', '2026-03-31 23:38:08', 9, 7, 7, NULL),
-(39, 8, 'Ajout réserve', '2026-03-31 23:38:48', 9, 7, 7, NULL),
-(40, 8, 'Ajout réserve', '2026-03-31 23:58:06', 9, 7, 7, NULL),
-(41, 8, 'Ajout réserve', '2026-04-01 00:08:36', 9, 7, 7, NULL),
-(42, 8, 'Ajout réserve', '2026-04-01 00:08:50', 9, 7, 7, NULL),
-(43, 8, 'Ajout réserve', '2026-04-01 00:12:11', 9, 7, 7, NULL),
-(45, 8, 'Ajout réserve', '2026-04-01 00:25:25', 9, 7, 7, NULL),
-(46, 8, 'Modification expertise', '2026-04-01 00:55:52', 9, NULL, NULL, NULL),
-(47, 8, 'Modification règlement', '2026-04-01 00:58:55', 9, NULL, NULL, NULL),
-(48, 8, 'Ajout réserve', '2026-04-01 12:10:40', 9, 7, 7, NULL),
-(49, 8, 'Modification réserve', '2026-04-01 12:10:55', 9, NULL, NULL, NULL),
-(50, 8, 'Expertise validée CRMA', '2026-04-01 12:12:13', 9, NULL, NULL, NULL),
-(51, 8, 'Expertise validée CRMA', '2026-04-01 13:06:31', 9, NULL, NULL, NULL),
-(52, 8, 'Modification réserve', '2026-04-01 13:07:21', 9, NULL, NULL, NULL),
-(53, 8, 'Ajout réserve', '2026-04-01 13:08:17', 9, 2, 2, NULL),
-(54, 8, 'Règlement partiel', '2026-04-01 13:16:31', 9, NULL, 7, NULL),
-(55, 7, 'Expertise + Transmission CNMA', '2026-04-01 13:19:11', 9, NULL, NULL, NULL),
-(56, 8, 'Règlement total', '2026-04-01 20:56:09', 9, NULL, 8, NULL),
-(57, 4, 'Expertise validée CRMA', '2026-04-01 22:44:30', 9, NULL, NULL, NULL),
-(58, 4, 'Règlement total', '2026-04-01 22:59:28', 9, NULL, 8, NULL),
-(59, 4, 'Expertise validée CRMA', '2026-04-01 23:40:33', 9, NULL, NULL, NULL),
-(60, 4, 'Règlement total', '2026-04-01 23:44:13', 9, NULL, 8, NULL),
-(61, 6, 'Transmission CNMA - Dépassement seuil', '2026-04-01 23:50:05', 9, 2, 3, NULL),
-(62, 9, 'Création dossier', '2026-04-02 00:32:19', 9, NULL, 2, NULL),
-(63, 9, 'Affectation expert', '2026-04-02 00:32:19', 9, NULL, 2, NULL),
-(64, 9, 'Expertise validée CRMA', '2026-04-02 00:32:58', 9, 2, 2, NULL),
-(66, 10, 'Création dossier', '2026-04-02 00:50:54', 9, NULL, 2, NULL),
-(67, 10, 'Affectation expert', '2026-04-02 00:50:54', 9, NULL, 2, NULL),
-(68, 11, 'Création dossier', '2026-04-02 12:02:08', 9, NULL, 2, NULL),
-(69, 11, 'Affectation expert', '2026-04-02 12:02:08', 9, 2, 9, NULL),
-(70, 11, 'Expertise validée CRMA', '2026-04-02 12:02:57', 9, 9, 2, NULL),
-(71, 11, 'Ajout réserve', '2026-04-02 12:03:19', 9, 2, 2, NULL),
-(72, 11, 'Règlement partiel', '2026-04-02 12:03:44', 9, 2, 7, NULL);
+INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`, `fait_par`, `ancien_etat`, `nouvel_etat`, `commentaire`, `id_motif`) VALUES
+(8, 4, 'Création dossier', '2026-03-30 18:42:41', 9, NULL, 2, NULL, NULL),
+(9, 5, 'Création dossier', '2026-03-30 20:47:42', 9, NULL, 2, NULL, NULL),
+(10, 5, 'Ajout réserve: 34 DA', '2026-03-30 00:00:00', 9, NULL, NULL, NULL, NULL),
+(11, 5, 'Ajout réserve: 899 DA', '2026-03-30 00:00:00', 9, NULL, NULL, NULL, NULL),
+(12, 6, 'Création dossier', '2026-03-30 22:53:42', 9, NULL, 2, NULL, NULL),
+(14, 5, 'Ajout réserve: 345 DA', '2026-03-31 11:42:25', 9, NULL, NULL, NULL, NULL),
+(15, 5, 'Ajout règlement: 555 DA', '2026-03-31 11:42:55', 9, NULL, NULL, NULL, NULL),
+(16, 5, 'Validation automatique CRMA', '2026-03-31 12:49:37', 9, NULL, NULL, NULL, NULL),
+(17, 5, 'Ajout réserve: 100 DA', '2026-03-31 12:49:37', 9, NULL, NULL, NULL, NULL),
+(20, 6, 'Expertise + Transmission CNMA', '2026-03-31 16:15:04', 9, NULL, NULL, NULL, NULL),
+(21, 7, 'Création dossier', '2026-03-31 16:41:17', 9, NULL, 2, NULL, NULL),
+(22, 8, 'Création dossier', '2026-03-31 17:09:37', 9, NULL, 1, NULL, NULL),
+(23, 8, 'Affectation expert', '2026-03-31 17:09:37', 9, NULL, 2, NULL, NULL),
+(24, 8, 'Expertise + Transmission CNMA', '2026-03-31 17:10:59', 9, NULL, NULL, NULL, NULL),
+(25, 8, 'Expertise validée CRMA', '2026-03-31 19:38:37', 9, NULL, NULL, NULL, NULL),
+(26, 8, 'Règlement partiel', '2026-03-31 20:09:39', 9, NULL, 7, NULL, NULL),
+(27, 8, 'Règlement partiel', '2026-03-31 23:10:04', 9, NULL, 7, NULL, NULL),
+(28, 8, 'Ajout réserve', '2026-03-31 23:24:01', 9, 7, 7, NULL, NULL),
+(29, 8, 'Ajout réserve', '2026-03-31 23:27:35', 9, 7, 7, NULL, NULL),
+(30, 8, 'Ajout réserve', '2026-03-31 23:27:53', 9, 7, 7, NULL, NULL),
+(31, 8, 'Ajout réserve', '2026-03-31 23:31:29', 9, 7, 7, NULL, NULL),
+(32, 8, 'Ajout réserve', '2026-03-31 23:32:29', 9, 7, 7, NULL, NULL),
+(33, 8, 'Ajout réserve', '2026-03-31 23:32:51', 9, 7, 7, NULL, NULL),
+(34, 8, 'Ajout réserve', '2026-03-31 23:33:23', 9, 7, 7, NULL, NULL),
+(35, 8, 'Ajout réserve', '2026-03-31 23:35:58', 9, 7, 7, NULL, NULL),
+(36, 8, 'Ajout réserve', '2026-03-31 23:37:00', 9, 7, 7, NULL, NULL),
+(37, 8, 'Ajout réserve', '2026-03-31 23:37:48', 9, 7, 7, NULL, NULL),
+(38, 8, 'Ajout réserve', '2026-03-31 23:38:08', 9, 7, 7, NULL, NULL),
+(39, 8, 'Ajout réserve', '2026-03-31 23:38:48', 9, 7, 7, NULL, NULL),
+(40, 8, 'Ajout réserve', '2026-03-31 23:58:06', 9, 7, 7, NULL, NULL),
+(41, 8, 'Ajout réserve', '2026-04-01 00:08:36', 9, 7, 7, NULL, NULL),
+(42, 8, 'Ajout réserve', '2026-04-01 00:08:50', 9, 7, 7, NULL, NULL),
+(43, 8, 'Ajout réserve', '2026-04-01 00:12:11', 9, 7, 7, NULL, NULL),
+(45, 8, 'Ajout réserve', '2026-04-01 00:25:25', 9, 7, 7, NULL, NULL),
+(46, 8, 'Modification expertise', '2026-04-01 00:55:52', 9, NULL, NULL, NULL, NULL),
+(47, 8, 'Modification règlement', '2026-04-01 00:58:55', 9, NULL, NULL, NULL, NULL),
+(48, 8, 'Ajout réserve', '2026-04-01 12:10:40', 9, 7, 7, NULL, NULL),
+(49, 8, 'Modification réserve', '2026-04-01 12:10:55', 9, NULL, NULL, NULL, NULL),
+(50, 8, 'Expertise validée CRMA', '2026-04-01 12:12:13', 9, NULL, NULL, NULL, NULL),
+(51, 8, 'Expertise validée CRMA', '2026-04-01 13:06:31', 9, NULL, NULL, NULL, NULL),
+(52, 8, 'Modification réserve', '2026-04-01 13:07:21', 9, NULL, NULL, NULL, NULL),
+(53, 8, 'Ajout réserve', '2026-04-01 13:08:17', 9, 2, 2, NULL, NULL),
+(54, 8, 'Règlement partiel', '2026-04-01 13:16:31', 9, NULL, 7, NULL, NULL),
+(55, 7, 'Expertise + Transmission CNMA', '2026-04-01 13:19:11', 9, NULL, NULL, NULL, NULL),
+(56, 8, 'Règlement total', '2026-04-01 20:56:09', 9, NULL, 8, NULL, NULL),
+(57, 4, 'Expertise validée CRMA', '2026-04-01 22:44:30', 9, NULL, NULL, NULL, NULL),
+(58, 4, 'Règlement total', '2026-04-01 22:59:28', 9, NULL, 8, NULL, NULL),
+(59, 4, 'Expertise validée CRMA', '2026-04-01 23:40:33', 9, NULL, NULL, NULL, NULL),
+(60, 4, 'Règlement total', '2026-04-01 23:44:13', 9, NULL, 8, NULL, NULL),
+(61, 6, 'Transmission CNMA - Dépassement seuil', '2026-04-01 23:50:05', 9, 2, 3, NULL, NULL),
+(62, 9, 'Création dossier', '2026-04-02 00:32:19', 9, NULL, 2, NULL, NULL),
+(63, 9, 'Affectation expert', '2026-04-02 00:32:19', 9, NULL, 2, NULL, NULL),
+(64, 9, 'Expertise validée CRMA', '2026-04-02 00:32:58', 9, 2, 2, NULL, NULL),
+(66, 10, 'Création dossier', '2026-04-02 00:50:54', 9, NULL, 2, NULL, NULL),
+(67, 10, 'Affectation expert', '2026-04-02 00:50:54', 9, NULL, 2, NULL, NULL),
+(68, 11, 'Création dossier', '2026-04-02 12:02:08', 9, NULL, 2, NULL, NULL),
+(69, 11, 'Affectation expert', '2026-04-02 12:02:08', 9, 2, 9, NULL, NULL),
+(70, 11, 'Expertise validée CRMA', '2026-04-02 12:02:57', 9, 9, 2, NULL, NULL),
+(71, 11, 'Ajout réserve', '2026-04-02 12:03:19', 9, 2, 2, NULL, NULL),
+(72, 11, 'Règlement partiel', '2026-04-02 12:03:44', 9, 2, 7, NULL, NULL),
+(75, 7, 'Validation CNMA', '2026-04-02 20:39:20', 2, 3, 4, NULL, NULL),
+(76, 6, 'Demande de complément CNMA', '2026-04-02 20:40:11', 2, 3, 2, NULL, NULL),
+(77, 6, 'Transmission CNMA - Dépassement seuil', '2026-04-02 21:13:27', 2, 2, 3, NULL, NULL),
+(78, 6, 'Demande de complément CNMA', '2026-04-03 00:40:45', 2, 3, 2, 'Dossier renvoyé au CRMA pour complément de documents', NULL),
+(80, 4, 'Clôture dossier CNMA', '2026-04-03 00:50:06', 2, 8, 14, 'Dossier clôturé définitivement par la CNMA', NULL);
 
 -- --------------------------------------------------------
 
@@ -470,6 +481,31 @@ CREATE TABLE `motif` (
   `id_etat` int(11) DEFAULT NULL,
   `nom_motif` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `notification`
+--
+
+CREATE TABLE `notification` (
+  `id_notification` int(11) NOT NULL,
+  `id_dossier` int(11) NOT NULL,
+  `id_expediteur` int(11) NOT NULL,
+  `id_destinataire` int(11) NOT NULL,
+  `type` enum('validation','refus','complement','reglement','cloture') NOT NULL,
+  `message` text NOT NULL,
+  `date_notification` datetime DEFAULT current_timestamp(),
+  `lu` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `notification`
+--
+
+INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `id_destinataire`, `type`, `message`, `date_notification`, `lu`) VALUES
+(1, 6, 2, 9, 'complement', 'Complément demandé pour le dossier DOS-2026-0003. Veuillez compléter les documents manquants et re-transmettre.', '2026-04-03 00:40:45', 1),
+(2, 4, 2, 9, 'cloture', 'Le dossier DOS-2026-0001 a été clôturé définitivement par la CNMA.', '2026-04-03 00:50:06', 1);
 
 -- --------------------------------------------------------
 
@@ -622,7 +658,8 @@ INSERT INTO `reserve` (`id_reserve`, `id_dossier`, `id_garantie`, `montant`, `da
 (43, 9, 1, 45.00, '2026-04-02', 'expertise', 9, '2026-04-02', 'Réserve après expertise', 'actif'),
 (44, 11, 1, 400.00, '2026-04-02', 'initiale', 9, '2026-04-02', NULL, 'actif'),
 (45, 11, 1, 10000.00, '2026-04-02', 'expertise', 9, '2026-04-02', 'Réserve après expertise', 'actif'),
-(46, 11, 1, 10.00, '2026-04-02', 'ajustement', 9, '2026-04-02', '', 'actif');
+(46, 11, 1, 10.00, '2026-04-02', 'ajustement', 9, '2026-04-02', '', 'actif'),
+(47, 6, 1, 90.00, '2026-04-02', 'ajustement', 2, '2026-04-02', 'UNPEU', 'actif');
 
 -- --------------------------------------------------------
 
@@ -869,6 +906,15 @@ ALTER TABLE `motif`
   ADD KEY `id_etat` (`id_etat`);
 
 --
+-- Index pour la table `notification`
+--
+ALTER TABLE `notification`
+  ADD PRIMARY KEY (`id_notification`),
+  ADD KEY `id_dossier` (`id_dossier`),
+  ADD KEY `id_expediteur` (`id_expediteur`),
+  ADD KEY `id_destinataire` (`id_destinataire`);
+
+--
 -- Index pour la table `parametre`
 --
 ALTER TABLE `parametre`
@@ -959,7 +1005,7 @@ ALTER TABLE `contrat`
 -- AUTO_INCREMENT pour la table `document`
 --
 ALTER TABLE `document`
-  MODIFY `id_document` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_document` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT pour la table `dossier`
@@ -1007,13 +1053,19 @@ ALTER TABLE `garantie`
 -- AUTO_INCREMENT pour la table `historique`
 --
 ALTER TABLE `historique`
-  MODIFY `id_historique` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `id_historique` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT pour la table `motif`
 --
 ALTER TABLE `motif`
   MODIFY `id_motif` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `notification`
+--
+ALTER TABLE `notification`
+  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `parametre`
@@ -1037,7 +1089,7 @@ ALTER TABLE `reglement`
 -- AUTO_INCREMENT pour la table `reserve`
 --
 ALTER TABLE `reserve`
-  MODIFY `id_reserve` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id_reserve` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT pour la table `seuil_validation`
@@ -1147,6 +1199,14 @@ ALTER TABLE `historique`
 --
 ALTER TABLE `motif`
   ADD CONSTRAINT `motif_ibfk_1` FOREIGN KEY (`id_etat`) REFERENCES `etat_dossier` (`id_etat`);
+
+--
+-- Contraintes pour la table `notification`
+--
+ALTER TABLE `notification`
+  ADD CONSTRAINT `notification_ibfk_1` FOREIGN KEY (`id_dossier`) REFERENCES `dossier` (`id_dossier`),
+  ADD CONSTRAINT `notification_ibfk_2` FOREIGN KEY (`id_expediteur`) REFERENCES `utilisateur` (`id_user`),
+  ADD CONSTRAINT `notification_ibfk_3` FOREIGN KEY (`id_destinataire`) REFERENCES `utilisateur` (`id_user`);
 
 --
 -- Contraintes pour la table `reglement`
