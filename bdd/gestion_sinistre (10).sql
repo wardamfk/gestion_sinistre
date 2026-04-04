@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 03 avr. 2026 à 03:11
+-- Généré le : sam. 04 avr. 2026 à 15:50
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.0.30
 
@@ -197,8 +197,9 @@ INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_pa
 (7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 4, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
 (8, 'DOS-2026-0005', '2026-03-31', 9, NULL, NULL, '', 8, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
 (9, 'DOS-2026-0006', '2026-04-02', 9, NULL, NULL, '', 2, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 55.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
-(10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 2, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
-(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 7, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, NULL, NULL, NULL, 5);
+(10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 8, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'valide', '2026-04-04', NULL, NULL, NULL, NULL, 3),
+(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 7, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, NULL, NULL, NULL, 5),
+(12, 'DOS-2026-0009', '2026-04-03', 10, NULL, NULL, '', 9, 1, 5, '2026-03-30', 'ALGER', 'HG', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 4);
 
 -- --------------------------------------------------------
 
@@ -211,7 +212,9 @@ CREATE TABLE `encaissement` (
   `id_dossier` int(11) DEFAULT NULL,
   `montant` decimal(12,2) DEFAULT NULL,
   `date_encaissement` date DEFAULT NULL,
-  `id_tiers` int(11) DEFAULT NULL
+  `id_tiers` int(11) DEFAULT NULL,
+  `type` enum('recours','franchise','epave','autre') DEFAULT 'recours',
+  `commentaire` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -468,7 +471,10 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (76, 6, 'Demande de complément CNMA', '2026-04-02 20:40:11', 2, 3, 2, NULL, NULL),
 (77, 6, 'Transmission CNMA - Dépassement seuil', '2026-04-02 21:13:27', 2, 2, 3, NULL, NULL),
 (78, 6, 'Demande de complément CNMA', '2026-04-03 00:40:45', 2, 3, 2, 'Dossier renvoyé au CRMA pour complément de documents', NULL),
-(80, 4, 'Clôture dossier CNMA', '2026-04-03 00:50:06', 2, 8, 14, 'Dossier clôturé définitivement par la CNMA', NULL);
+(80, 4, 'Clôture dossier CNMA', '2026-04-03 00:50:06', 2, 8, 14, 'Dossier clôturé définitivement par la CNMA', NULL),
+(81, 12, 'Création dossier', '2026-04-03 12:31:35', 10, NULL, 2, NULL, NULL),
+(82, 12, 'Affectation expert', '2026-04-03 12:31:35', 10, 2, 9, NULL, NULL),
+(83, 10, 'Règlement total', '2026-04-04 14:10:51', 9, 2, 8, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -505,7 +511,8 @@ CREATE TABLE `notification` (
 
 INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `id_destinataire`, `type`, `message`, `date_notification`, `lu`) VALUES
 (1, 6, 2, 9, 'complement', 'Complément demandé pour le dossier DOS-2026-0003. Veuillez compléter les documents manquants et re-transmettre.', '2026-04-03 00:40:45', 1),
-(2, 4, 2, 9, 'cloture', 'Le dossier DOS-2026-0001 a été clôturé définitivement par la CNMA.', '2026-04-03 00:50:06', 1);
+(2, 4, 2, 9, 'cloture', 'Le dossier DOS-2026-0001 a été clôturé définitivement par la CNMA.', '2026-04-03 00:50:06', 1),
+(3, 10, 9, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0007. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-04 14:15:18', 1);
 
 -- --------------------------------------------------------
 
@@ -594,7 +601,8 @@ INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`,
 (5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
 (6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
 (7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
-(8, 11, NULL, 200.00, '2026-04-02', 'Chèque', 9, 'en_attente', NULL, '');
+(8, 11, NULL, 200.00, '2026-04-02', 'Chèque', 9, 'en_attente', NULL, ''),
+(9, 10, NULL, 2000.00, '2026-04-04', 'Chèque', 9, 'disponible', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -1011,7 +1019,7 @@ ALTER TABLE `document`
 -- AUTO_INCREMENT pour la table `dossier`
 --
 ALTER TABLE `dossier`
-  MODIFY `id_dossier` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_dossier` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT pour la table `encaissement`
@@ -1053,7 +1061,7 @@ ALTER TABLE `garantie`
 -- AUTO_INCREMENT pour la table `historique`
 --
 ALTER TABLE `historique`
-  MODIFY `id_historique` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id_historique` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT pour la table `motif`
@@ -1065,7 +1073,7 @@ ALTER TABLE `motif`
 -- AUTO_INCREMENT pour la table `notification`
 --
 ALTER TABLE `notification`
-  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `parametre`
@@ -1083,7 +1091,7 @@ ALTER TABLE `personne`
 -- AUTO_INCREMENT pour la table `reglement`
 --
 ALTER TABLE `reglement`
-  MODIFY `id_reglement` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_reglement` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT pour la table `reserve`
