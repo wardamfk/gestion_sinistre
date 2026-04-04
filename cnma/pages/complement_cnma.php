@@ -4,7 +4,21 @@
 // ============================================================
 session_start();
 include '../includes/config.php';
+function notifyAssure($conn, $id_dossier, $id_expediteur, $type, $msg) {
+    $msg = mysqli_real_escape_string($conn, $msg);
+    $assure_user = mysqli_fetch_assoc(mysqli_query($conn, "
+        SELECT u.id_user FROM utilisateur u 
+        JOIN assure a ON u.id_personne=a.id_personne
+        JOIN contrat c ON c.id_assure=a.id_assure
+        JOIN dossier d ON d.id_contrat=c.id_contrat
+        WHERE d.id_dossier=$id_dossier AND u.role='ASSURE' LIMIT 1
+    "));
+    if($assure_user) {
+        mysqli_query($conn, "INSERT INTO notification (id_dossier,id_expediteur,id_destinataire,type,message) VALUES ($id_dossier,$id_expediteur,{$assure_user['id_user']},'$type','$msg')");
+    }
 
+    notifyAssure($conn, $id_dossier, $user_id, 'complement', "Des documents complémentaires sont nécessaires pour votre dossier $num. Veuillez vous connecter à votre espace pour les déposer.");
+}
 if($_SESSION['role'] != 'CNMA') { header("Location: login.php"); exit(); }
 
 if(isset($_GET['id'])) {

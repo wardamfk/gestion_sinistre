@@ -85,6 +85,7 @@ else{
     <button class="tab-btn" onclick="showTab('reserves')">Réserves</button>
     <button class="tab-btn" onclick="showTab('reglements')">Règlements</button>
     <button class="tab-btn" onclick="showTab('historique')">Historique</button>
+<button class="tab-btn" onclick="showTab('encaissements')">Encaissements</button>
 </div>
 
 <!-- INFORMATIONS -->
@@ -449,6 +450,7 @@ if($dossier['id_etat'] == 3){ ?>
     <th>Montant</th>
     <th>Mode</th>
     <th>Commentaire</th>
+    <th>Statut</th>
     <th>Action</th>
 </tr>
 
@@ -459,31 +461,28 @@ WHERE id_dossier = $id_dossier
 ORDER BY id_reglement DESC
 ");
 
-$highlight = isset($_GET['added']) ? true : false;
-$first = true;
-
 while($reg = mysqli_fetch_assoc($reglements)){
-    if($highlight && $first){
-        $class = "new-row";
-        $first = false;
-    } else {
-        $class = "";
-    }
-
-    echo "<tr class='$class'>";
+    echo "<tr>";
     echo "<td>".$reg['date_reglement']."</td>";
     echo "<td>".$reg['montant']." DA</td>";
     echo "<td>".$reg['mode_paiement']."</td>";
     echo "<td>".$reg['commentaire']."</td>";
-    echo "<td>
-<a href='modifier_reglement.php?id=".$reg['id_reglement']."'>
-    <i class='fa fa-pen'></i>
-</a>
-            <a href='supprimer_reglement.php?id=".$reg['id_reglement']."&dossier=".$id_dossier."' 
-               onclick=\"return confirm('Supprimer ce règlement ?')\">
-               <i class='fa fa-trash'></i>
-            </a>
-          </td>";
+    echo "<td>".$reg['statut']."</td>";
+    echo "<td>";
+
+    echo "<a href='modifier_reglement.php?id=".$reg['id_reglement']."'><i class='fa fa-pen'></i></a> ";
+
+    if($reg['statut']=='en_attente'){
+        echo "<a href='gerer_reglement_statut.php?id=".$reg['id_reglement']."&dossier=$id_dossier&statut=disponible' class='btn'>Disponible</a> ";
+    }
+
+    if($reg['statut']=='disponible'){
+        echo "<a href='gerer_reglement_statut.php?id=".$reg['id_reglement']."&dossier=$id_dossier&statut=remis' class='btn'>Remis</a> ";
+    }
+
+    echo "<a href='supprimer_reglement.php?id=".$reg['id_reglement']."&dossier=$id_dossier'><i class='fa fa-trash'></i></a>";
+
+    echo "</td>";
     echo "</tr>";
 }
 ?>
@@ -512,7 +511,89 @@ while($h = mysqli_fetch_assoc($hist)){
 </div>
 
 </div>
+<!-- ENCAISSEMENTS -->
+<div id="encaissements" class="tab-content">
 
+<?php
+$total_enc = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(montant),0) as t FROM encaissement WHERE id_dossier=$id_dossier"))['t'];
+$cout_reel = $total_regle - $total_enc;
+?>
+
+<div style="display:flex;gap:16px;margin-bottom:22px;flex-wrap:wrap;">
+    <div style="background:#e8eaf6;border-radius:10px;padding:16px 22px;flex:1;text-align:center;">
+        <div style="font-size:11px;color:#546e7a;font-weight:700;text-transform:uppercase;">Total Règlements</div>
+        <div style="font-size:22px;font-weight:700;color:#1a237e;font-family:'Courier New';"><?= number_format($total_regle,2,',',' '); ?> DA</div>
+    </div>
+    <div style="background:#e8f5e9;border-radius:10px;padding:16px 22px;flex:1;text-align:center;">
+        <div style="font-size:11px;color:#546e7a;font-weight:700;text-transform:uppercase;">Total Encaissements</div>
+        <div style="font-size:22px;font-weight:700;color:#2e7d32;font-family:'Courier New';"><?= number_format($total_enc,2,',',' '); ?> DA</div>
+    </div>
+    <div style="background:#fff3e0;border-radius:10px;padding:16px 22px;flex:1;text-align:center;">
+        <div style="font-size:11px;color:#546e7a;font-weight:700;text-transform:uppercase;">Coût réel sinistre</div>
+        <div style="font-size:22px;font-weight:700;color:#e65100;font-family:'Courier New';"><?= number_format($cout_reel,2,',',' '); ?> DA</div>
+    </div>
+    <div style="background:#e0f2f1;border-radius:10px;padding:16px 22px;flex:1;text-align:center;">
+        <div style="font-size:11px;color:#546e7a;font-weight:700;text-transform:uppercase;">Taux de recours</div>
+        <div style="font-size:22px;font-weight:700;color:#00695c;"><?= $total_regle > 0 ? round($total_enc/$total_regle*100,1) : 0; ?>%</div>
+    </div>
+</div>
+
+<?php if(in_array($dossier['id_etat'], [7,8,13,14])): ?>
+<div class="form" style="width:100%;margin-bottom:22px;">
+    <h3>Ajouter un encaissement</h3>
+    <form action="ajouter_encaissement.php" method="POST" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+        <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
+        <div>
+            <label>Montant (DA)</label>
+            <input type="number" step="0.01" name="montant" required>
+        </div>
+        <div>
+            <label>Date encaissement</label>
+            <input type="date" name="date_encaissement" value="<?= date('Y-m-d'); ?>" required>
+        </div>
+        <div>
+            <label>Tiers (qui a payé)</label>
+            <select name="id_tiers" required>
+                <?php
+                $trs = mysqli_query($conn,"SELECT t.id_tiers,p.nom,p.prenom,t.compagnie_assurance FROM tiers t JOIN personne p ON t.id_personne=p.id_personne");
+                while($tr = mysqli_fetch_assoc($trs)) echo "<option value='{$tr['id_tiers']}'>{$tr['nom']} {$tr['prenom']} — {$tr['compagnie_assurance']}</option>";
+                ?>
+            </select>
+        </div>
+        <div>
+            <label>Type</label>
+            <select name="type">
+                <option value="recours">Recours</option>
+                <option value="franchise">Franchise</option>
+                <option value="epave">Épave</option>
+                <option value="autre">Autre</option>
+            </select>
+        </div>
+        <div>
+            <label>Commentaire</label>
+            <input type="text" name="commentaire">
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+            <button type="submit" class="btn" style="width:100%;">Enregistrer encaissement</button>
+        </div>
+    </form>
+</div>
+<?php else: ?>
+<p style="color:#f39c12;font-weight:bold;margin-bottom:20px;">⚠ Encaissement disponible uniquement pour les dossiers en état règlement ou classé en attente recours</p>
+<?php endif; ?>
+
+<h3>Liste des encaissements</h3>
+<table class="table">
+<tr><th>Date</th><th>Tiers</th><th>Type</th><th>Montant</th><th>Commentaire</th></tr>
+<?php
+$encs = mysqli_query($conn,"SELECT enc.*,p.nom,p.prenom,t.compagnie_assurance FROM encaissement enc JOIN tiers t ON enc.id_tiers=t.id_tiers JOIN personne p ON t.id_personne=p.id_personne WHERE enc.id_dossier=$id_dossier ORDER BY enc.id_encaissement DESC");
+if(mysqli_num_rows($encs)==0) echo "<tr><td colspan='5' style='text-align:center;color:#999;'>Aucun encaissement</td></tr>";
+while($enc = mysqli_fetch_assoc($encs)) {
+    echo "<tr><td>{$enc['date_encaissement']}</td><td>{$enc['nom']} {$enc['prenom']}<br><small>{$enc['compagnie_assurance']}</small></td><td><span class='badge blue'>{$enc['type']}</span></td><td><b>".number_format($enc['montant'],2,',',' ')."</b> DA</td><td>{$enc['commentaire']}</td></tr>";
+}
+?>
+</table>
+</div>
 <script>
 function showTab(tab){
     var tabs = document.getElementsByClassName("tab-content");

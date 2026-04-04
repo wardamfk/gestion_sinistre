@@ -22,7 +22,7 @@ $current = basename($_SERVER['PHP_SELF']);
 
         <a href="/PfeCnma/cnma/pages/dashboard_cnma.php"
            class="<?php echo ($current=='dashboard_cnma.php') ? 'active' : ''; ?>">
-            <i class="fa fa-chart-pie"></i> Dashboard
+            <i class="fa fa-chart-pie"></i> Tableau de bord
         </a>
 
         <a href="/PfeCnma/cnma/pages/dossiers_attente.php"

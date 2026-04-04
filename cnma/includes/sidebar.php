@@ -4,7 +4,7 @@
 <p class="role">Espace CRMA</p>
 
     <a href="/PfeCnma/cnma/crma/dashboard_crma.php">
-        <i class="fa fa-home"></i> Dashboard
+        <i class="fa fa-home"></i> Tableau de bord
     </a>
 
     <a href="/PfeCnma/cnma/crma/ajouter_personne.php">

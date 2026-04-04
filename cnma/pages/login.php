@@ -8,9 +8,11 @@ if(isset($_POST['login'])) {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-   $sql = "SELECT u.*, a.nom_agence, a.wilaya
+ $sql = "SELECT u.*, a.nom_agence, a.wilaya, 
+               p.nom AS p_nom, p.prenom AS p_prenom
         FROM utilisateur u
         LEFT JOIN agence a ON u.id_agence = a.id_agence
+        LEFT JOIN personne p ON u.id_personne = p.id_personne
         WHERE u.email='$email' AND u.actif=1";
     $result = mysqli_query($conn, $sql);
 
@@ -21,7 +23,8 @@ if(isset($_POST['login'])) {
         if(password_verify($password, $user['mot_de_passe'])) {
 
             $_SESSION['id_user'] = $user['id_user'];
-            $_SESSION['nom'] = $user['nom'];
+          $_SESSION['nom'] = $user['nom'] ?: trim($user['p_nom'].' '.$user['p_prenom']);
+$_SESSION['id_personne'] = $user['id_personne'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['id_agence'] = $user['id_agence'];
 $_SESSION['nom_agence'] = $user['nom_agence'];
