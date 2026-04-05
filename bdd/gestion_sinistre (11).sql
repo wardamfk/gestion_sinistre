@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Hôte : 127.0.0.1:3306
--- Généré le : sam. 04 avr. 2026 à 15:50
+-- Hôte : 127.0.0.1:3307
+-- Généré le : dim. 05 avr. 2026 à 23:41
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.0.30
 
@@ -191,7 +191,7 @@ CREATE TABLE `dossier` (
 --
 
 INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_par`, `date_transmission`, `transmis_par`, `info_complementaire`, `id_etat`, `id_contrat`, `id_tiers`, `date_sinistre`, `lieu_sinistre`, `description`, `delai_declaration`, `total_reserve`, `statut_validation`, `date_validation`, `date_refus`, `date_cloture`, `commentaire_cnma`, `valide_par`, `id_expert`) VALUES
-(4, 'DOS-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 14, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-01', NULL, '2026-04-03', NULL, NULL, 2),
+(4, 'DOS-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 8, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-05', NULL, '2026-04-03', NULL, NULL, 2),
 (5, 'DOS-2026-0002', '2026-03-30', 9, NULL, NULL, 'HKJ', 2, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, '', NULL, NULL, NULL, NULL, NULL, NULL),
 (6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-02', 2, '', 2, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 600867.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
 (7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 4, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
@@ -474,7 +474,10 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (80, 4, 'Clôture dossier CNMA', '2026-04-03 00:50:06', 2, 8, 14, 'Dossier clôturé définitivement par la CNMA', NULL),
 (81, 12, 'Création dossier', '2026-04-03 12:31:35', 10, NULL, 2, NULL, NULL),
 (82, 12, 'Affectation expert', '2026-04-03 12:31:35', 10, 2, 9, NULL, NULL),
-(83, 10, 'Règlement total', '2026-04-04 14:10:51', 9, 2, 8, NULL, NULL);
+(83, 10, 'Règlement total', '2026-04-04 14:10:51', 9, 2, 8, NULL, NULL),
+(84, 4, 'Règlement total', '2026-04-05 19:44:32', 13, 14, 8, NULL, NULL),
+(85, 4, 'Suppression règlement', '2026-04-05 20:19:36', 9, 8, 8, NULL, NULL),
+(86, 11, 'Suppression règlement', '2026-04-05 20:22:13', 13, 7, 7, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -512,7 +515,10 @@ CREATE TABLE `notification` (
 INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `id_destinataire`, `type`, `message`, `date_notification`, `lu`) VALUES
 (1, 6, 2, 9, 'complement', 'Complément demandé pour le dossier DOS-2026-0003. Veuillez compléter les documents manquants et re-transmettre.', '2026-04-03 00:40:45', 1),
 (2, 4, 2, 9, 'cloture', 'Le dossier DOS-2026-0001 a été clôturé définitivement par la CNMA.', '2026-04-03 00:50:06', 1),
-(3, 10, 9, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0007. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-04 14:15:18', 1);
+(3, 10, 9, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0007. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-04 14:15:18', 1),
+(4, 4, 9, 13, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0001. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:19:54', 1),
+(5, 4, 9, 13, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0001. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:19:59', 1),
+(6, 8, 8, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0005. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:32:51', 0);
 
 -- --------------------------------------------------------
 
@@ -555,20 +561,22 @@ CREATE TABLE `personne` (
   `nin` varchar(50) DEFAULT NULL,
   `nif` varchar(50) DEFAULT NULL,
   `num_id_fiscal` varchar(50) DEFAULT NULL,
-  `activite` varchar(150) DEFAULT NULL
+  `activite` varchar(150) DEFAULT NULL,
+  `statut_personne` enum('assure','expert','adversaire') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `personne`
 --
 
-INSERT INTO `personne` (`id_personne`, `type_personne`, `nom`, `prenom`, `raison_sociale`, `num_identite`, `telephone`, `adresse`, `email`, `date_naissance`, `lieu_naissance`, `nin`, `nif`, `num_id_fiscal`, `activite`) VALUES
-(2, 'physique', 'warda', 'mf', '', '026737693618', '0541775494', 'alger', 'warda.moufouki@esst-sup.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(7, 'physique', 'Moufouki', 'Aida', '', '026737693619', '0541775499', 'alger', 'medecin@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(8, 'physique', 'FH', 'KILO', '', '026737693617', '0541775499', 'alger', 'warda.moufouki@esst-s.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(9, 'physique', 'Ali', 'Karim', NULL, NULL, '0551111111', 'Alger', 'ali@mail.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(10, 'physique', 'Ben', 'Salah', NULL, NULL, '0552222222', 'Blida', 'ben@mail.com', NULL, NULL, NULL, NULL, NULL, NULL),
-(11, 'physique', 'Kaci', 'Nadia', NULL, NULL, '0553333333', 'Oran', 'kaci@mail.com', NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `personne` (`id_personne`, `type_personne`, `nom`, `prenom`, `raison_sociale`, `num_identite`, `telephone`, `adresse`, `email`, `date_naissance`, `lieu_naissance`, `nin`, `nif`, `num_id_fiscal`, `activite`, `statut_personne`) VALUES
+(2, 'physique', 'warda', 'mf', '', '026737693618', '0541775494', 'alger', 'warda.moufouki@esst-sup.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(7, 'physique', 'Moufouki', 'Aida', '', '026737693619', '0541775499', 'alger', 'medecin@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(8, 'physique', 'FH', 'KILO', '', '026737693617', '0541775499', 'alger', 'warda.moufouki@esst-s.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(9, 'physique', 'Ali', 'Karim', NULL, NULL, '0551111111', 'Alger', 'ali@mail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(10, 'physique', 'Ben', 'Salah', NULL, NULL, '0552222222', 'Blida', 'ben@mail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, 'physique', 'Kaci', 'Nadia', NULL, NULL, '0553333333', 'Oran', 'kaci@mail.com', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(14, 'physique', '', '', '', 'GHHJ', '', '', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -598,11 +606,10 @@ INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`,
 (2, 8, NULL, 2000.00, '2026-03-31', 'Chèque', 9, 'en_attente', NULL, ''),
 (3, 8, NULL, 6.00, '2026-03-31', 'Chèque', 9, 'en_attente', NULL, ''),
 (4, 8, NULL, 1000.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
-(5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
-(6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
-(7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
-(8, 11, NULL, 200.00, '2026-04-02', 'Chèque', 9, 'en_attente', NULL, ''),
-(9, 10, NULL, 2000.00, '2026-04-04', 'Chèque', 9, 'disponible', NULL, '');
+(5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
+(6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
+(7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
+(9, 10, NULL, 2000.00, '2026-04-04', 'Chèque', 9, 'remis', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -765,7 +772,8 @@ INSERT INTO `utilisateur` (`id_user`, `nom`, `prenom`, `email`, `mot_de_passe`, 
 (9, 'Agent Alger', NULL, 'alger@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 1, 1, NULL),
 (10, 'Agent Oran', NULL, 'oran@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 2, 1, NULL),
 (11, 'Agent Constantine', NULL, 'constantine@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 3, 1, NULL),
-(12, 'Agent Ouargla', NULL, 'ouargla@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 5, 1, NULL);
+(12, 'Agent Ouargla', NULL, 'ouargla@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 5, 1, NULL),
+(13, NULL, NULL, 'warda.moufouki@esst-sup.com', '$2y$10$a/lCJPeGNRJS07fCPJA4cOPn5sZtS9i93kyaEZM1qChFjsTWeEJ7C', 'ASSURE', NULL, 1, 2);
 
 -- --------------------------------------------------------
 
@@ -1061,7 +1069,7 @@ ALTER TABLE `garantie`
 -- AUTO_INCREMENT pour la table `historique`
 --
 ALTER TABLE `historique`
-  MODIFY `id_historique` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `id_historique` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT pour la table `motif`
@@ -1073,7 +1081,7 @@ ALTER TABLE `motif`
 -- AUTO_INCREMENT pour la table `notification`
 --
 ALTER TABLE `notification`
-  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_notification` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT pour la table `parametre`
@@ -1085,13 +1093,13 @@ ALTER TABLE `parametre`
 -- AUTO_INCREMENT pour la table `personne`
 --
 ALTER TABLE `personne`
-  MODIFY `id_personne` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_personne` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT pour la table `reglement`
 --
 ALTER TABLE `reglement`
-  MODIFY `id_reglement` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_reglement` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT pour la table `reserve`
@@ -1121,7 +1129,7 @@ ALTER TABLE `type_document`
 -- AUTO_INCREMENT pour la table `utilisateur`
 --
 ALTER TABLE `utilisateur`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT pour la table `vehicule`
