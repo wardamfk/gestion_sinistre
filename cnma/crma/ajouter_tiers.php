@@ -31,9 +31,10 @@ if(isset($_POST['ajouter'])){
 ?>
 
 <link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/style_crma.css">
 
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">    
-
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <div class="main">
 
     <h2>Ajouter un tiers</h2>

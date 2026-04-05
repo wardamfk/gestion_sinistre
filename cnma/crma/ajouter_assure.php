@@ -24,10 +24,16 @@ if(isset($_POST['ajouter'])) {
     $date_creation = $_POST['date_creation'];
     $actif = $_POST['statut'];
 
+    $num_permis = $_POST['num_permis'];
+    $date_delivrance = $_POST['date_delivrance_permis'];
+    $lieu_delivrance = $_POST['lieu_delivrance_permis'];
+    $type_permis = $_POST['type_permis'];
+   
+
     $insert = "INSERT INTO assure 
-               (id_personne, date_creation, actif)
-               VALUES 
-               ('$id_personne', '$date_creation', '$actif')";
+        (id_personne, date_creation, actif, num_permis, date_delivrance_permis, lieu_delivrance_permis, type_permis)
+        VALUES 
+        ('$id_personne', '$date_creation', '$actif', '$num_permis', '$date_delivrance', '$lieu_delivrance', '$type_permis')";
     
     if(mysqli_query($conn, $insert)) {
         header("Location: ajouter_assure.php?success=1");
@@ -44,8 +50,9 @@ if(isset($_POST['ajouter'])) {
     <meta charset="UTF-8">
     <title>Ajouter assuré</title>
     <link rel="stylesheet" href="../css/style.css">
-    
+    <link rel="stylesheet" href="../css/style_crma.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
@@ -72,12 +79,11 @@ if(isset($_POST['ajouter'])) {
 
 <label>Date création</label>
 <input type="date" name="date_creation" required>
-
 <label>Statut</label>
-<select name="statut">
-    <option value="1">Actif</option>
-    <option value="0">Suspendu</option>
-</select>
+        <select name="statut">
+            <option value="1">Actif</option>
+            <option value="0">Suspendu</option>
+        </select>
 
 <label>Numéro permis</label>
 <input type="text" name="num_permis">
@@ -96,15 +102,9 @@ if(isset($_POST['ajouter'])) {
     <option value="D">D</option>
 </select>
 
-<label>Pièce identité</label>
-<input type="text" name="piece_identite">
 
-        <label>Statut</label>
-        <select name="statut">
-            <option value="1">Actif</option>
-            <option value="0">Suspendu</option>
-        </select>
 
+        
         <button type="submit" name="ajouter" class="btn">Ajouter assuré</button>
     </form>
 </div>

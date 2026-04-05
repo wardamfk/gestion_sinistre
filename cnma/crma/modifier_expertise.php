@@ -57,6 +57,7 @@ if(isset($_POST['modifier'])){
     <meta charset="UTF-8">
     <title>Modifier expertise</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style_crma.css">
 </head>
 <body>
 

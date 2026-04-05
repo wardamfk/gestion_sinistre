@@ -1,10 +1,5 @@
 <?php
 
-session_start();
-if (!isset($_SESSION['id_user'])) {
-    header("Location: login.php");
-    exit();
-}
 include("../includes/auth.php");
 include("../includes/config.php");
 
@@ -20,7 +15,7 @@ $sql = "SELECT p.*
         WHERE u.id_personne IS NULL";
 $result = mysqli_query($conn, $sql);
 
-// Créer compte
+// Créer compte assuré
 if(isset($_POST['creer'])) {
 
     $id_personne = $_POST['id_personne'];
@@ -28,10 +23,20 @@ if(isset($_POST['creer'])) {
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $role = "ASSURE";
 
+    // 1. Créer utilisateur
     $insert = "INSERT INTO utilisateur (id_personne, email, mot_de_passe, role, actif)
                VALUES ('$id_personne', '$email', '$password', '$role', 1)";
 
     if(mysqli_query($conn, $insert)) {
+
+        // 2. Vérifier si existe dans assure
+        $check = mysqli_query($conn, "SELECT * FROM assure WHERE id_personne = $id_personne");
+
+        if(mysqli_num_rows($check) == 0){
+            mysqli_query($conn, "INSERT INTO assure (id_personne, date_creation, actif)
+                                 VALUES ($id_personne, CURDATE(), 1)");
+        }
+
         $success = "Compte assuré créé avec succès";
     } else {
         $error = mysqli_error($conn);
@@ -46,9 +51,8 @@ if(isset($_POST['creer'])) {
     <title>Créer compte assuré</title>
     
     <link rel="stylesheet" href="../css/style.css">
-
-   
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
