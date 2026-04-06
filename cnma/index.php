@@ -32,7 +32,7 @@
     <div class="hero-content">
         <h1>Plateforme de gestion des sinistres automobiles</h1>
         <p>
-           Un espace en ligne pour déclarer, suivre et gérer vos sinistres automobiles.
+           Un espace en ligne pour suivre et gérer vos sinistres automobiles.
         </p>
 
         <div class="hero-buttons">
@@ -48,9 +48,9 @@
         <i class="fa fa-briefcase"></i> Espace CNMA
     </a>
 
-    <a href="pages/login.php?role=expert" class="btn btn-expert">
-        <i class="fa fa-wrench"></i> Espace Expert
-    </a>
+   
+
+    
 </div>
 
         <div class="scroll-down">

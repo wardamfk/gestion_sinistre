@@ -71,14 +71,32 @@ $filtre_role = isset($_GET['role']) ? $_GET['role'] : '';
 $where_role  = $filtre_role ? "WHERE u.role='$filtre_role'" : '';
 
 $utilisateurs = mysqli_query($conn, "
-    SELECT u.*, a.nom_agence, a.wilaya, a.type_agence,
-           (SELECT COUNT(*) FROM dossier d WHERE d.cree_par = u.id_user) as nb_dossiers
-    FROM utilisateur u
-    LEFT JOIN agence a ON u.id_agence = a.id_agence
-    $where_role
-    ORDER BY u.role, u.nom
-");
+SELECT 
+    u.*,
+    p.nom AS nom_personne,
+    p.prenom AS prenom_personne,
 
+    -- Agence pour agent (CRMA)
+    a.nom_agence AS agence_user,
+    a.wilaya AS wilaya_user,
+
+    -- Agence pour assuré (via contrat)
+    a2.nom_agence AS agence_assure,
+    a2.wilaya AS wilaya_assure,
+
+    (SELECT COUNT(*) FROM dossier d WHERE d.cree_par = u.id_user) as nb_dossiers
+
+FROM utilisateur u
+LEFT JOIN personne p ON u.id_personne = p.id_personne
+LEFT JOIN agence a ON u.id_agence = a.id_agence
+
+LEFT JOIN assure ass ON ass.id_personne = p.id_personne
+LEFT JOIN contrat c ON c.id_assure = ass.id_assure
+LEFT JOIN agence a2 ON c.id_agence = a2.id_agence
+
+$where_role
+ORDER BY u.role, u.nom
+     ");
 $agences = mysqli_query($conn, "SELECT * FROM agence ORDER BY type_agence, nom_agence");
 $agences_arr = [];
 while($a = mysqli_fetch_assoc($agences)) $agences_arr[] = $a;
@@ -240,16 +258,20 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                    <?php
-                    $count = 0;
-                    while($u = mysqli_fetch_assoc($utilisateurs)):
-                        $count++;
-                        // Couleur avatar selon rôle
-                        $av_colors = ['CNMA'=>['#283593','#e8eaf6'], 'CRMA'=>['#1b5e20','#e8f5e9'], 'ASSURE'=>['#0d47a1','#e3f2fd']];
-                        $av = $av_colors[$u['role']] ?? ['#546e7a','#eceff1'];
-                        $initial = strtoupper(substr($u['nom'] ?? 'U', 0, 1));
-                    ?>
+                  <tbody>
+<?php
+$count = 0;
+while($u = mysqli_fetch_assoc($utilisateurs)):
+    $count++;
+
+    $nom = $u['nom'] ?? $u['nom_personne'] ?? '';
+    $prenom = $u['prenom'] ?? $u['prenom_personne'] ?? '';
+
+    // Couleur avatar selon rôle
+    $av_colors = ['CNMA'=>['#283593','#e8eaf6'], 'CRMA'=>['#1b5e20','#e8f5e9'], 'ASSURE'=>['#0d47a1','#e3f2fd']];
+    $av = $av_colors[$u['role']] ?? ['#546e7a','#eceff1'];
+    $initial = strtoupper(substr($nom ?: 'U', 0, 1));
+?>
                     <tr>
                         <td>
                             <div class="user-card-row">
@@ -257,7 +279,7 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
                                     <?php echo $initial; ?>
                                 </div>
                                 <div>
-                                    <div style="font-weight:700; color:#2c3e50;"><?php echo htmlspecialchars($u['nom']); ?></div>
+                                    <div style="font-weight:700; color:#2c3e50;"><?php echo htmlspecialchars($nom); ?></div>
                                     <div style="font-size:11px; color:#90a4ae;">#<?php echo $u['id_user']; ?>
                                         <?php if($u['id_user'] == $_SESSION['id_user']) echo " <b style='color:#f57c00;'>(vous)</b>"; ?>
                                     </div>
@@ -271,14 +293,20 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
                                 <?php echo $u['role']; ?>
                             </span>
                         </td>
-                        <td>
-                            <?php if($u['nom_agence']): ?>
-                            <div style="font-weight:600; font-size:13px;"><?php echo $u['nom_agence']; ?></div>
-                            <div style="font-size:11px; color:#90a4ae;"><?php echo $u['wilaya']; ?></div>
-                            <?php else: ?>
-                            <span style="color:#b0bec5; font-size:12px;">—</span>
-                            <?php endif; ?>
-                        </td>
+                        
+<td>
+<?php
+$agence = $u['agence_user'] ?? $u['agence_assure'] ?? '';
+$wilaya = $u['wilaya_user'] ?? $u['wilaya_assure'] ?? '';
+?>
+
+<?php if($agence): ?>
+    <div style="font-weight:600; font-size:13px;"><?php echo htmlspecialchars($agence); ?></div>
+    <div style="font-size:11px; color:#90a4ae;"><?php echo htmlspecialchars($wilaya); ?></div>
+<?php else: ?>
+    <span style="color:#b0bec5; font-size:12px;">—</span>
+<?php endif; ?>
+</td>
                         <td style="text-align:center;">
                             <?php if($u['nb_dossiers'] > 0): ?>
                             <span style="background:#e8eaf6; color:#1a237e; padding:4px 10px; border-radius:12px; font-weight:700; font-size:12px;">
@@ -308,7 +336,7 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
 
                                 <!-- Réinitialiser MDP -->
                                 <button type="button" class="cnma-btn sm warning"
-                                        onclick="openPwd(<?php echo $u['id_user']; ?>, '<?php echo htmlspecialchars($u['nom']); ?>')"
+                                     onclick="openPwd(<?php echo $u['id_user']; ?>, '<?php echo htmlspecialchars($nom); ?>')"
                                         title="Réinitialiser mot de passe">
                                     <i class="fa fa-key"></i>
                                 </button>
