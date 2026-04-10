@@ -165,12 +165,13 @@ $resp_badge = [
             <div class="form-group"><label>N° police adverse</label><input type="text" name="numero_police"></div>
         </div>
         <div class="form-group">
-            <label>Responsabilité</label>
-            <select name="responsable">
-                <option value="oui">Responsable</option>
-                <option value="non">Non responsable</option>
-                <option value="partiel">Responsabilité partielle</option>
-            </select>
+         <label>Responsabilité du tiers (adversaire)</label>
+<select name="responsable" required>
+    <option value="">-- Choisir --</option>
+    <option value="oui">Le tiers est responsable</option>
+    <option value="non">Le tiers n'est pas responsable</option>
+    <option value="partiel">Responsabilité partagée</option>
+</select>
         </div>
         <div style="display:flex;gap:10px;margin-top:20px">
             <button type="submit" name="ajouter" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Ajouter</button>
@@ -198,12 +199,13 @@ $resp_badge = [
             <div class="form-group"><label>N° police</label><input type="text" name="numero_police" value="<?= htmlspecialchars($edit['numero_police']) ?>"></div>
         </div>
         <div class="form-group">
-            <label>Responsabilité</label>
-            <select name="responsable">
-                <option value="oui"     <?= $edit['responsable']=='oui'     ?'selected':'' ?>>Responsable</option>
-                <option value="non"     <?= $edit['responsable']=='non'     ?'selected':'' ?>>Non responsable</option>
-                <option value="partiel" <?= $edit['responsable']=='partiel' ?'selected':'' ?>>Partielle</option>
-            </select>
+       <label>Responsabilité du tiers (adversaire)</label>
+<select name="responsable" required>
+    <option value="">-- Choisir --</option>
+  <option value="oui" <?= $edit['responsable']=='oui'?'selected':'' ?>>Le tiers est responsable</option>
+<option value="non" <?= $edit['responsable']=='non'?'selected':'' ?>>Le tiers n'est pas responsable</option>
+<option value="partiel" <?= $edit['responsable']=='partiel'?'selected':'' ?>>Responsabilité partagée</option>
+</select>
         </div>
         <div style="display:flex;gap:10px;margin-top:20px">
             <button type="submit" name="modifier" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Modifier</button>

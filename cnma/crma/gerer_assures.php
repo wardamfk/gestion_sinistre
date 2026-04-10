@@ -121,7 +121,8 @@ if (isset($_GET['compte'])) {
 <meta charset="UTF-8">
 <title>Assurés — CRMA</title>
 <link rel="stylesheet" href="../css/style_crma.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
@@ -179,12 +180,13 @@ if (isset($_GET['compte'])) {
                 <div style="font-size:11px;color:var(--gray-400)">#<?= $a['id_assure'] ?> · <?= $a['date_creation'] ?></div>
             </td>
             <td>
-                <div><?= htmlspecialchars($a['telephone']) ?></div>
+                <div><?= htmlspecialchars($a['telephone'] ?? '') ?>
+</div>
                 <div style="font-size:12px;color:var(--blue-700)"><?= htmlspecialchars($a['email']) ?></div>
             </td>
             <td>
                 <?php if ($a['num_permis']): ?>
-                <div class="num-cell" style="font-size:12px"><?= htmlspecialchars($a['num_permis']) ?></div>
+                <div class="num-cell" style="font-size:12px"><?= htmlspecialchars($a['num_permis'] ?? '') ?></div>
                 <div style="font-size:11px;color:var(--gray-400)"><?= $a['type_permis'] ?></div>
                 <?php else: echo '<span style="color:var(--gray-300)">—</span>'; endif; ?>
             </td>
@@ -310,7 +312,7 @@ if (isset($_GET['compte'])) {
             </select>
         </div>
         <div class="form-grid-2">
-            <div class="form-group"><label>N° Permis</label><input type="text" name="num_permis" value="<?= htmlspecialchars($edit['num_permis']) ?>"></div>
+            <div class="form-group"><label>N° Permis</label><input type="text" name="num_permis" value="<?= htmlspecialchars($edit['num_permis'] ?? '') ?>"></div>
             <div class="form-group">
                 <label>Type permis</label>
                 <select name="type_permis">
@@ -321,8 +323,9 @@ if (isset($_GET['compte'])) {
             </div>
         </div>
         <div class="form-grid-2">
-            <div class="form-group"><label>Date délivrance</label><input type="date" name="date_delivrance_permis" value="<?= $edit['date_delivrance_permis'] ?>"></div>
-            <div class="form-group"><label>Lieu délivrance</label><input type="text" name="lieu_delivrance_permis" value="<?= htmlspecialchars($edit['lieu_delivrance_permis']) ?>"></div>
+            <div class="form-group"><label>Date délivrance</label><input type="date" name="date_delivrance_permis"value="<?= $edit['date_delivrance_permis'] ?? '' ?>"></div>
+            <div class="form-group"><label>Lieu délivrance</label><input type="text" name="lieu_delivrance_permis" 
+            value="<?= htmlspecialchars($edit['lieu_delivrance_permis'] ?? '') ?>"></div>
         </div>
         <div style="display:flex;gap:10px;margin-top:20px">
             <button type="submit" name="modifier" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Modifier</button>

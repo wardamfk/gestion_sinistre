@@ -566,3 +566,30 @@ body {
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .finance-bar { grid-template-columns: 1fr; }
 }
+.fi-value {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.fi-label {
+    font-size: 11px;
+    opacity: 0.7;
+}.fi-value {
+    font-family: monospace;
+}
+.crma-main {
+  margin-top: var(--header-h);
+  padding: 16px 20px; /* au lieu de 28px */
+}
+
+
+.dossier-hero-crma h2 {
+    margin-bottom: 4px !important;
+    font-size: 20px !important;
+}
+.dossier-hero-crma {
+    padding: 12px 18px !important;
+    margin-bottom: 10px !important;
+}
+

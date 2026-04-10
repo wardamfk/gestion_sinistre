@@ -61,12 +61,13 @@ if(isset($_POST['ajouter'])){
         <label>Numéro police</label>
         <input type="text" name="numero_police">
 
-        <label>Responsabilité</label>
-        <select name="responsable">
-            <option value="oui">Responsable</option>
-            <option value="non">Non responsable</option>
-            <option value="partiel">Responsabilité partielle</option>
-        </select>
+       <label>Responsabilité du tiers (adversaire)</label>
+<select name="responsable" required>
+    <option value="">-- Choisir --</option>
+    <option value="oui">Le tiers est responsable</option>
+    <option value="non">Le tiers n'est pas responsable</option>
+    <option value="partiel">Responsabilité partagée</option>
+</select>
 
         <br><br>
         <button type="submit" name="ajouter" class="btn">Ajouter tiers</button>

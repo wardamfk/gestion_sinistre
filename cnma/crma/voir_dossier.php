@@ -38,6 +38,15 @@ $total_regle   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(montan
 $total_enc     = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(montant),0) as t FROM encaissement WHERE id_dossier=$id_dossier"))['t'];
 $reste = $total_reserve - $total_regle;
 $cout_reel = $total_regle - $total_enc;
+// 🔥 Encaissement autorisé ou non
+$encaissement_autorise = false;
+
+if($dossier['responsable'] == 'oui'){
+    $encaissement_autorise = true;
+}
+elseif($dossier['responsable'] == 'partiel'){
+    $encaissement_autorise = true; // tu peux affiner plus tard
+}
 
 $etat = $dossier['id_etat'];
 ?>
@@ -420,7 +429,15 @@ $etat = $dossier['id_etat'];
 
 <!-- ===== ENCAISSEMENTS (CORRIGÉ - DANS LE MAIN) ===== -->
 <div id="encaissements" class="crma-tab-content">
+<div style="margin-bottom:12px;padding:10px;border-radius:8px;
+background:<?= $encaissement_autorise ? '#e6f4ea' : '#fdecea' ?>;
+color:<?= $encaissement_autorise ? '#1e7e34' : '#c0392b' ?>;
+font-weight:600;">
+    
+    Encaissement autorisé :
+    <?= $encaissement_autorise ? 'OUI ✅' : 'NON ❌' ?>
 
+</div>
 <!-- KPIs -->
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;">
     <div class="fi-stat" style="background:#e8eaf6;">
@@ -441,7 +458,7 @@ $etat = $dossier['id_etat'];
     </div>
 </div>
 
-<?php if(in_array($etat,[7,8,13,14])): ?>
+<?php if(in_array($etat,[7,8,13,14]) && $encaissement_autorise): ?>
 <div class="crma-card">
     <h4><i class="fa fa-plus"></i> Enregistrer un encaissement</h4>
     <form action="ajouter_encaissement.php" method="POST" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;align-items:flex-end;">
@@ -482,10 +499,15 @@ $etat = $dossier['id_etat'];
     </form>
 </div>
 <?php else: ?>
-<div class="msg-crma warning">
-    <i class="fa fa-exclamation-triangle"></i>
-    Encaissement possible uniquement pour les dossiers en état : <b>Règlement partiel</b>, <b>Règlement total</b>, <b>Classé en attente recours</b> ou <b>Clôturé</b>.<br>
-    État actuel : <b><?= $dossier['nom_etat']; ?></b>
+<div class="msg-crma error">
+    <i class="fa fa-ban"></i>
+    Encaissement interdit :
+
+    <?php if($dossier['responsable'] == 'non'): ?>
+        tiers non responsable (aucun recours)
+    <?php else: ?>
+        État dossier non compatible
+    <?php endif; ?>
 </div>
 <?php endif; ?>
 
