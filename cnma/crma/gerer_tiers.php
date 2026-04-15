@@ -1,5 +1,4 @@
 <?php
-// gerer_tiers.php — CRUD tiers adversaires
 include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
@@ -9,35 +8,30 @@ $success = $error = '';
 
 /* ======= AJOUTER ======= */
 if (isset($_POST['ajouter'])) {
-    $nom       = mysqli_real_escape_string($conn, trim($_POST['nom']));
-    $prenom    = mysqli_real_escape_string($conn, trim($_POST['prenom']));
-    $tel       = mysqli_real_escape_string($conn, trim($_POST['telephone']));
-    $adr       = mysqli_real_escape_string($conn, trim($_POST['adresse']));
-    $compagnie = mysqli_real_escape_string($conn, trim($_POST['compagnie_assurance']));
-    $police    = mysqli_real_escape_string($conn, trim($_POST['numero_police']));
-    $resp      = $_POST['responsable'];
+    $id_personne = intval($_POST['id_personne']);
+    $compagnie   = mysqli_real_escape_string($conn, trim($_POST['compagnie_assurance']));
+    $police      = mysqli_real_escape_string($conn, trim($_POST['numero_police']));
+    $resp        = $_POST['responsable'];
 
-    mysqli_query($conn, "INSERT INTO personne (type_personne,nom,prenom,telephone,adresse,statut_personne)
-        VALUES ('physique','$nom','$prenom','$tel','$adr','adversaire')");
-    $id_personne = mysqli_insert_id($conn);
-
-    mysqli_query($conn, "INSERT INTO tiers (id_personne,compagnie_assurance,numero_police,responsable)
-        VALUES ($id_personne,'$compagnie','$police','$resp')");
-    $success = "Tiers ajouté.";
+    $chk = mysqli_fetch_assoc(mysqli_query($conn,
+        "SELECT id_tiers FROM tiers WHERE id_personne=$id_personne"))['id_tiers'] ?? 0;
+    if ($chk) {
+        $error = "Cette personne est déjà enregistrée comme tiers.";
+    } else {
+        mysqli_query($conn, "INSERT INTO tiers (id_personne,compagnie_assurance,numero_police,responsable)
+            VALUES ($id_personne,'$compagnie','$police','$resp')");
+        $success = "Tiers ajouté avec succès.";
+    }
 }
 
 /* ======= MODIFIER ======= */
 if (isset($_POST['modifier'])) {
     $id_tiers  = intval($_POST['id_tiers']);
-    $id_pers   = intval($_POST['id_personne']);
-    $nom       = mysqli_real_escape_string($conn, trim($_POST['nom']));
-    $prenom    = mysqli_real_escape_string($conn, trim($_POST['prenom']));
-    $tel       = mysqli_real_escape_string($conn, trim($_POST['telephone']));
     $compagnie = mysqli_real_escape_string($conn, trim($_POST['compagnie_assurance']));
     $police    = mysqli_real_escape_string($conn, trim($_POST['numero_police']));
     $resp      = $_POST['responsable'];
-    mysqli_query($conn, "UPDATE personne SET nom='$nom',prenom='$prenom',telephone='$tel' WHERE id_personne=$id_pers");
-    mysqli_query($conn, "UPDATE tiers SET compagnie_assurance='$compagnie',numero_police='$police',responsable='$resp' WHERE id_tiers=$id_tiers");
+    mysqli_query($conn, "UPDATE tiers SET compagnie_assurance='$compagnie',
+        numero_police='$police',responsable='$resp' WHERE id_tiers=$id_tiers");
     $success = "Tiers modifié.";
 }
 
@@ -49,9 +43,7 @@ if (isset($_GET['del'])) {
     if ($usage > 0) {
         $error = "Impossible : ce tiers est lié à des dossiers.";
     } else {
-        $t = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id_personne FROM tiers WHERE id_tiers=$id"));
         mysqli_query($conn, "DELETE FROM tiers WHERE id_tiers=$id");
-        if ($t) mysqli_query($conn, "DELETE FROM personne WHERE id_personne=".$t['id_personne']);
         $success = "Tiers supprimé.";
     }
 }
@@ -62,6 +54,14 @@ $tiers_list = mysqli_query($conn, "
     FROM tiers t JOIN personne p ON t.id_personne=p.id_personne
     ORDER BY t.id_tiers DESC");
 $total = mysqli_num_rows($tiers_list);
+
+/* Personnes adversaires disponibles */
+$personnes_adversaire = mysqli_query($conn,
+    "SELECT id_personne, nom, prenom, telephone, adresse
+     FROM personne
+     WHERE statut_personne='adversaire'
+       AND id_personne NOT IN (SELECT id_personne FROM tiers WHERE id_personne IS NOT NULL)
+     ORDER BY nom");
 
 $edit = null;
 if (isset($_GET['edit'])) {
@@ -85,10 +85,60 @@ $resp_badge = [
 <link rel="stylesheet" href="../css/style_crma.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;padding:30px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
-.modal-box h3{font-size:16px;font-weight:600;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px}
+/* ===== MODAL ===== */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 900;
+    align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+    background: #fff; border-radius: 18px;
+    padding: 36px 38px;
+    width: 580px; max-width: 96vw; max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 70px rgba(0,0,0,.22);
+}
+.modal-box h3 {
+    font-size: 17px; font-weight: 700; margin-bottom: 26px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gray-100);
+    display: flex; align-items: center; gap: 10px;
+    color: var(--gray-800);
+}
+
+.modal-box .form-group { margin-bottom: 20px; }
+.modal-box .form-group label {
+    display: block; font-size: 11.5px; font-weight: 700;
+    color: var(--gray-500); text-transform: uppercase;
+    letter-spacing: .5px; margin-bottom: 7px;
+}
+.modal-box .form-group input,
+.modal-box .form-group select {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px; font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--gray-800); background: var(--gray-50);
+    transition: all .18s;
+}
+.modal-box .form-group input:focus,
+.modal-box .form-group select:focus {
+    border-color: var(--amber-600); outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(217,119,6,.12);
+}
+.modal-box .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.modal-box .btn-row { display: flex; gap: 12px; margin-top: 28px; }
+.modal-box .btn-row .btn { flex: 1; justify-content: center; padding: 13px; font-size: 14px; }
+
+.person-hint {
+    margin-top: 8px; padding: 10px 14px;
+    background: var(--amber-50); border: 1px solid var(--amber-100);
+    border-radius: 8px; font-size: 12.5px; color: #78350f;
+    display: none;
+}
+.person-hint.visible { display: block; }
 </style>
 </head>
 <body>
@@ -147,68 +197,103 @@ $resp_badge = [
     </table>
 </div>
 
-<!-- MODAL AJOUTER -->
+<!-- ====== MODAL AJOUTER ====== -->
 <div class="modal-overlay" id="modal-add">
 <div class="modal-box">
     <h3><i class="fa fa-user-plus" style="color:var(--amber-600)"></i> Nouveau tiers adversaire</h3>
+
+    <p style="font-size:13px;color:var(--gray-500);margin:-10px 0 20px;padding:12px 14px;background:var(--amber-50);border-radius:9px;border-left:3px solid var(--amber-600);">
+        <i class="fa fa-info-circle" style="color:var(--amber-600)"></i>
+        Sélectionnez une personne avec le statut <b>Adversaire</b> déjà enregistrée.
+        <a href="gerer_personnes.php" style="color:var(--amber-600);font-weight:600;">Ajouter une personne</a>
+    </p>
+
     <form method="POST">
-        <div class="form-grid-2">
-            <div class="form-group"><label>Nom *</label><input type="text" name="nom" required></div>
-            <div class="form-group"><label>Prénom</label><input type="text" name="prenom"></div>
-        </div>
-        <div class="form-grid-2">
-            <div class="form-group"><label>Téléphone</label><input type="text" name="telephone"></div>
-            <div class="form-group"><label>Adresse</label><input type="text" name="adresse"></div>
-        </div>
-        <div class="form-grid-2">
-            <div class="form-group"><label>Compagnie d'assurance</label><input type="text" name="compagnie_assurance"></div>
-            <div class="form-group"><label>N° police adverse</label><input type="text" name="numero_police"></div>
-        </div>
         <div class="form-group">
-         <label>Responsabilité du tiers (adversaire)</label>
-<select name="responsable" required>
-    <option value="">-- Choisir --</option>
-    <option value="oui">Le tiers est responsable</option>
-    <option value="non">Le tiers n'est pas responsable</option>
-    <option value="partiel">Responsabilité partagée</option>
-</select>
+            <label>Personne (statut Adversaire) <span style="color:red">*</span></label>
+            <select name="id_personne" required onchange="showTiersHint(this)">
+                <option value="">— Sélectionner —</option>
+                <?php while ($p = mysqli_fetch_assoc($personnes_adversaire)): ?>
+                <option value="<?= $p['id_personne'] ?>"
+                        data-tel="<?= htmlspecialchars($p['telephone'] ?? '') ?>"
+                        data-adr="<?= htmlspecialchars($p['adresse'] ?? '') ?>">
+                    <?= htmlspecialchars($p['nom'].' '.$p['prenom']) ?>
+                </option>
+                <?php endwhile; ?>
+            </select>
+            <div class="person-hint" id="hint_tiers">
+                <i class="fa fa-phone"></i> <span id="hint_tiers_tel"></span>
+                <span id="hint_tiers_adr" style="margin-left:14px;"><i class="fa fa-map-marker-alt"></i> <span id="hint_tiers_adr_text"></span></span>
+            </div>
         </div>
-        <div style="display:flex;gap:10px;margin-top:20px">
-            <button type="submit" name="ajouter" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Ajouter</button>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Compagnie d'assurance</label>
+                <input type="text" name="compagnie_assurance" placeholder="Ex: SAA, CAAR…">
+            </div>
+            <div class="form-group">
+                <label>N° police adverse</label>
+                <input type="text" name="numero_police" placeholder="Ex: SAA123456">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Responsabilité du tiers <span style="color:red">*</span></label>
+            <select name="responsable" required>
+                <option value="">— Choisir —</option>
+                <option value="oui">Le tiers est responsable</option>
+                <option value="non">Le tiers n'est pas responsable</option>
+                <option value="partiel">Responsabilité partagée</option>
+            </select>
+        </div>
+
+        <div class="btn-row">
+            <button type="submit" name="ajouter" class="btn btn-primary">
+                <i class="fa fa-save"></i> Ajouter le tiers
+            </button>
             <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Annuler</button>
         </div>
     </form>
 </div>
 </div>
 
-<!-- MODAL MODIFIER -->
+<!-- ====== MODAL MODIFIER ====== -->
 <?php if ($edit): ?>
 <div class="modal-overlay open" id="modal-edit">
 <div class="modal-box">
     <h3><i class="fa fa-pen" style="color:var(--amber-600)"></i> Modifier le tiers</h3>
     <form method="POST">
-        <input type="hidden" name="id_tiers"   value="<?= $edit['id_tiers'] ?>">
-        <input type="hidden" name="id_personne" value="<?= $edit['id_personne'] ?>">
-        <div class="form-grid-2">
-            <div class="form-group"><label>Nom</label><input type="text" name="nom" value="<?= htmlspecialchars($edit['nom']) ?>"></div>
-            <div class="form-group"><label>Prénom</label><input type="text" name="prenom" value="<?= htmlspecialchars($edit['prenom']) ?>"></div>
-        </div>
-        <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" value="<?= htmlspecialchars($edit['telephone']) ?>"></div>
-        <div class="form-grid-2">
-            <div class="form-group"><label>Compagnie</label><input type="text" name="compagnie_assurance" value="<?= htmlspecialchars($edit['compagnie_assurance']) ?>"></div>
-            <div class="form-group"><label>N° police</label><input type="text" name="numero_police" value="<?= htmlspecialchars($edit['numero_police']) ?>"></div>
-        </div>
+        <input type="hidden" name="id_tiers" value="<?= $edit['id_tiers'] ?>">
+
         <div class="form-group">
-       <label>Responsabilité du tiers (adversaire)</label>
-<select name="responsable" required>
-    <option value="">-- Choisir --</option>
-  <option value="oui" <?= $edit['responsable']=='oui'?'selected':'' ?>>Le tiers est responsable</option>
-<option value="non" <?= $edit['responsable']=='non'?'selected':'' ?>>Le tiers n'est pas responsable</option>
-<option value="partiel" <?= $edit['responsable']=='partiel'?'selected':'' ?>>Responsabilité partagée</option>
-</select>
+            <label>Personne (non modifiable)</label>
+            <input type="text" value="<?= htmlspecialchars($edit['nom'].' '.$edit['prenom']) ?>"
+                   readonly style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed;">
         </div>
-        <div style="display:flex;gap:10px;margin-top:20px">
-            <button type="submit" name="modifier" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Modifier</button>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Compagnie</label>
+                <input type="text" name="compagnie_assurance" value="<?= htmlspecialchars($edit['compagnie_assurance']) ?>">
+            </div>
+            <div class="form-group">
+                <label>N° police</label>
+                <input type="text" name="numero_police" value="<?= htmlspecialchars($edit['numero_police']) ?>">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Responsabilité <span style="color:red">*</span></label>
+            <select name="responsable" required>
+                <option value="oui"     <?= $edit['responsable']=='oui'    ?'selected':'' ?>>Le tiers est responsable</option>
+                <option value="non"     <?= $edit['responsable']=='non'    ?'selected':'' ?>>Le tiers n'est pas responsable</option>
+                <option value="partiel" <?= $edit['responsable']=='partiel'?'selected':'' ?>>Responsabilité partagée</option>
+            </select>
+        </div>
+
+        <div class="btn-row">
+            <button type="submit" name="modifier" class="btn btn-primary"><i class="fa fa-save"></i> Modifier</button>
             <a href="gerer_tiers.php" class="btn btn-outline">Annuler</a>
         </div>
     </form>
@@ -223,6 +308,15 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
+
+function showTiersHint(sel) {
+    const opt  = sel.options[sel.selectedIndex];
+    const hint = document.getElementById('hint_tiers');
+    if (!opt.value) { hint.classList.remove('visible'); return; }
+    document.getElementById('hint_tiers_tel').textContent      = opt.getAttribute('data-tel') || '—';
+    document.getElementById('hint_tiers_adr_text').textContent = opt.getAttribute('data-adr') || '—';
+    hint.classList.add('visible');
+}
 </script>
 </body>
 </html>
