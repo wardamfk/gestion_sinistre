@@ -129,7 +129,7 @@ $statut_badge = [
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;padding:30px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-box{background:#fff;border-radius:16px;padding:30px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .modal-box h3{font-size:16px;font-weight:600;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px}
 .calc-box{background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius);padding:14px 16px;margin-top:16px}
 .calc-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
@@ -219,8 +219,9 @@ $statut_badge = [
                         <i class="fa fa-eye"></i>
                     </a>
                     <?php if ($c['statut']=='actif'): ?>
-                    <a href="?statut=suspendu&id=<?= $c['id_contrat'] ?>"
-                       class="btn btn-xs btn-warning" onclick="return confirm('Suspendre ?')">
+                   <a href="#" 
+   class="btn btn-xs btn-warning" 
+   onclick="confirmSuspend(event, <?= $c['id_contrat'] ?>)">
                         <i class="fa fa-pause"></i>
                     </a>
                     <?php elseif ($c['statut']=='suspendu'): ?>
@@ -362,6 +363,7 @@ $statut_badge = [
 </div>
 
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const TAXE   = <?= $TAXE ?>;
 const TIMBRE = <?= $TIMBRE ?>;
@@ -398,6 +400,7 @@ function updateFormule(id) {
     box.style.display = 'block';
 }
 
+
 function toggleDetail(id) {
     const row = document.getElementById('detail-'+id);
     row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
@@ -408,6 +411,25 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
+function confirmSuspend(e, id){
+    e.preventDefault();
+
+    Swal.fire({
+        title: 'Suspendre ce contrat ?',
+        text: "Cette action est réversible",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Oui, suspendre',
+        cancelButtonText: 'Annuler'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "?statut=suspendu&id=" + id;
+        }
+    });
+}
 </script>
+
 </body>
 </html>

@@ -10,56 +10,134 @@ $success = $error = '';
 /* ======= SUPPRESSION ======= */
 if (isset($_GET['del'])) {
     $id = intval($_GET['del']);
-    // Vérifier usage
+
     $usage = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT (SELECT COUNT(*) FROM assure WHERE id_personne=$id)+
-                (SELECT COUNT(*) FROM tiers  WHERE id_personne=$id) as n"))['n'];
+        "SELECT 
+            (SELECT COUNT(*) FROM assure WHERE id_personne=$id)+
+            (SELECT COUNT(*) FROM tiers  WHERE id_personne=$id)+
+            (SELECT COUNT(*) FROM expert WHERE id_personne=$id)
+        as n"))['n'];
+
     if ($usage > 0) {
-        $error = "Impossible de supprimer : cette personne est utilisée dans le système.";
+        $error = "❌ Impossible de supprimer : cette personne est utilisée dans le système..";
     } else {
-        mysqli_query($conn, "DELETE FROM personne WHERE id_personne=$id");
-        $success = "Personne supprimée.";
+
+        $res = mysqli_query($conn, "DELETE FROM personne WHERE id_personne=$id");
+
+        if($res){
+            $success = "Personne supprimée.";
+        } else {
+            $error = "❌ Suppression échouée (erreur base)";
+        }
     }
 }
+
 
 /* ======= AJOUT ======= */
 if (isset($_POST['ajouter'])) {
     $type    = $_POST['type_personne'];
-    $nom     = mysqli_real_escape_string($conn, trim($_POST['nom']));
-    $prenom  = mysqli_real_escape_string($conn, trim($_POST['prenom']));
-    $raison  = mysqli_real_escape_string($conn, trim($_POST['raison_sociale']));
-    $cin     = mysqli_real_escape_string($conn, trim($_POST['num_identite']));
-    $tel     = mysqli_real_escape_string($conn, trim($_POST['telephone']));
-    $adr     = mysqli_real_escape_string($conn, trim($_POST['adresse']));
-    $email   = mysqli_real_escape_string($conn, trim($_POST['email']));
+$nom = isset($_POST['nom']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['nom'])) 
+    : '';
+
+$prenom = isset($_POST['prenom']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['prenom'])) 
+    : '';
+
+$raison = isset($_POST['raison_sociale']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['raison_sociale'])) 
+    : '';
+
+$tel = isset($_POST['telephone']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['telephone'])) 
+    : '';
+
+$adr = isset($_POST['adresse']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['adresse'])) 
+    : '';
+
+$email = isset($_POST['email']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['email'])) 
+    : '';
+$lieu_naissance = mysqli_real_escape_string($conn, $_POST['lieu_naissance'] ?? '');
+$date_naissance = $_POST['date_naissance'] ?? null;
     $statut  = $_POST['statut_personne'];
+$cin = isset($_POST['num_identite']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['num_identite'])) 
+    : '';
+ $result = mysqli_query($conn,
+"SELECT id_personne FROM personne WHERE num_identite='$cin'");
+
+$check = 0;
+
+if ($result && mysqli_num_rows($result) > 0) {
+    $row = mysqli_fetch_assoc($result);
+    $check = $row['id_personne'];
+}
+
+if ($check) {
+    $error = "❌ Ce numéro d'identité existe déjà !";
+} else {
 
     $sql = "INSERT INTO personne
-            (type_personne,nom,prenom,raison_sociale,num_identite,telephone,adresse,email,statut_personne)
-            VALUES ('$type','$nom','$prenom','$raison','$cin','$tel','$adr','$email','$statut')";
+    (type_personne,nom,prenom,raison_sociale,num_identite,date_naissance,lieu_naissance,telephone,adresse,email,statut_personne)
+    VALUES ('$type','$nom','$prenom','$raison','$cin','$date_naissance','$lieu_naissance','$tel','$adr','$email','$statut')";
+
     if (mysqli_query($conn, $sql)) {
-        $success = "Personne ajoutée avec succès.";
+        $success = "✅ Personne ajoutée avec succès.";
     } else {
         $error = "Erreur : " . mysqli_error($conn);
     }
+}
 }
 
 /* ======= MODIFICATION ======= */
 if (isset($_POST['modifier'])) {
     $id     = intval($_POST['id_personne']);
-    $nom    = mysqli_real_escape_string($conn, trim($_POST['nom']));
-    $prenom = mysqli_real_escape_string($conn, trim($_POST['prenom']));
-    $raison = mysqli_real_escape_string($conn, trim($_POST['raison_sociale']));
-    $tel    = mysqli_real_escape_string($conn, trim($_POST['telephone']));
-    $adr    = mysqli_real_escape_string($conn, trim($_POST['adresse']));
-    $email  = mysqli_real_escape_string($conn, trim($_POST['email']));
+    $type   = $_POST['type_personne'];
+  $nom = isset($_POST['nom']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['nom'])) 
+    : '';
+
+$prenom = isset($_POST['prenom']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['prenom'])) 
+    : '';
+
+$raison = isset($_POST['raison_sociale']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['raison_sociale'])) 
+    : '';
+
+
+    $cin = isset($_POST['num_identite']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['num_identite'])) 
+    : '';
+$tel = isset($_POST['telephone']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['telephone'])) 
+    : '';
+
+$adr = isset($_POST['adresse']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['adresse'])) 
+    : '';
+
+$email = isset($_POST['email']) 
+    ? mysqli_real_escape_string($conn, trim($_POST['email'])) 
+    : '';
+$lieu_naissance = mysqli_real_escape_string($conn, $_POST['lieu_naissance'] ?? '');
+$date_naissance = $_POST['date_naissance'] ?? null;
     $statut = $_POST['statut_personne'];
 
-    mysqli_query($conn, "UPDATE personne SET
-        nom='$nom', prenom='$prenom', raison_sociale='$raison',
-        telephone='$tel', adresse='$adr', email='$email',
-        statut_personne='$statut'
-        WHERE id_personne=$id");
+ mysqli_query($conn, "UPDATE personne SET
+    type_personne='$type',
+    nom='$nom',
+    prenom='$prenom',
+    raison_sociale='$raison',
+    telephone='$tel',
+    adresse='$adr',
+    email='$email',
+    date_naissance ".($date_naissance ? "='$date_naissance'" : "=NULL").",
+    lieu_naissance='$lieu_naissance',
+    statut_personne='$statut'
+    WHERE id_personne=$id");
     $success = "Personne modifiée.";
 }
 
@@ -97,7 +175,7 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;padding:30px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-box{background:#fff;border-radius:16px;padding:30px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .modal-box h3{font-size:16px;font-weight:600;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px}
 </style>
 </head>
@@ -162,7 +240,7 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
     <table class="crma-table">
         <thead>
             <tr>
-                <th>#</th><th>Nom complet</th><th>Rôle</th><th>Téléphone</th>
+               <th>#</th><th>Nom complet</th><th>CIN</th><th>Rôle</th><th>Téléphone</th>
                 <th>Adresse</th><th>Email</th><th>Actions</th>
             </tr>
         </thead>
@@ -187,6 +265,11 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
                 </div>
                 <div style="font-size:11px;color:var(--gray-400)"><?= ucfirst($p['type_personne']) ?></div>
             </td>
+            <td>
+    <?= $p['num_identite'] 
+        ? htmlspecialchars($p['num_identite']) 
+        : '<span style="color:var(--gray-300)">—</span>' ?>
+</td>
             <td><span class="badge <?= $sinfo[0] ?>"><?= $sinfo[1] ?></span></td>
             <td class="num-cell"><?= htmlspecialchars($p['telephone']) ?></td>
             <td style="font-size:13px"><?= htmlspecialchars($p['adresse']) ?></td>
@@ -202,10 +285,10 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
                     </a>
                     <?php endif; ?>
                     <a href="?del=<?= $p['id_personne'] ?>&<?= http_build_query($_GET) ?>"
-                       class="btn btn-xs btn-danger"
-                       onclick="return confirm('Supprimer cette personne ?')">
-                        <i class="fa fa-trash"></i>
-                    </a>
+                     class="btn btn-xs btn-danger"
+   onclick="confirmDelete(event, <?= $p['id_personne'] ?>)">
+   <i class="fa fa-trash"></i>
+</a>
                 </div>
             </td>
         </tr>
@@ -241,19 +324,31 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
         </div>
         <div id="champs-physique-add">
             <div class="form-grid-2">
-                <div class="form-group"><label>Nom</label><input type="text" name="nom"></div>
-                <div class="form-group"><label>Prénom</label><input type="text" name="prenom"></div>
+                <div class="form-group"><label>Nom</label><input type="text" name="nom"required></div>
+                <div class="form-group"><label>Prénom</label><input type="text" name="prenom"required></div>
             </div>
-            <div class="form-group"><label>N° identité (CIN / Passeport)</label><input type="text" name="num_identite"></div>
+            <div class="form-group"><label>N° identité (CIN / Passeport)</label><input type="text" name="num_identite" id="num_identite" required>
+<small id="cin-error" class="error-text"></small>
         </div>
+        <div class="form-grid-2">
+    <div class="form-group">
+        <label>Date de naissance</label>
+        <input type="date" name="date_naissance" required>
+    </div>
+    <div class="form-group">
+        <label>Lieu de naissance</label>
+        <input type="text" name="lieu_naissance" required>
+    </div>
+</div>
         <div id="champs-morale-add" style="display:none">
             <div class="form-group"><label>Raison sociale</label><input type="text" name="raison_sociale"></div>
         </div>
+        
         <div class="form-grid-2">
-            <div class="form-group"><label>Téléphone</label><input type="text" name="telephone"></div>
-            <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+            <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" required></div>
+            <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
         </div>
-        <div class="form-group"><label>Adresse</label><input type="text" name="adresse"></div>
+        <div class="form-group"><label>Adresse</label><input type="text" name="adresse" required></div>
         <div style="display:flex;gap:10px;margin-top:20px">
             <button type="submit" name="ajouter" class="btn btn-primary" style="flex:1">
                 <i class="fa fa-save"></i> Enregistrer
@@ -271,22 +366,44 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
     <h3><i class="fa fa-pen" style="color:var(--green-700)"></i> Modifier la personne</h3>
     <form method="POST">
         <input type="hidden" name="id_personne" value="<?= $edit['id_personne'] ?>">
-        <div class="form-group">
-            <label>Rôle dans le système</label>
-            <select name="statut_personne">
-                <option value="assure"     <?= $edit['statut_personne']=='assure'     ?'selected':'' ?>>Assuré</option>
-                <option value="expert"     <?= $edit['statut_personne']=='expert'     ?'selected':'' ?>>Expert</option>
-                <option value="adversaire" <?= $edit['statut_personne']=='adversaire' ?'selected':'' ?>>Adversaire (tiers)</option>
-            </select>
-        </div>
-        <?php if ($edit['type_personne'] == 'physique'): ?>
         <div class="form-grid-2">
-            <div class="form-group"><label>Nom</label><input type="text" name="nom" value="<?= htmlspecialchars($edit['nom']) ?>"></div>
-            <div class="form-group"><label>Prénom</label><input type="text" name="prenom" value="<?= htmlspecialchars($edit['prenom']) ?>"></div>
+            <div class="form-group">
+                <label>Type de personne</label>
+                <select name="type_personne" id="type_edit" onchange="toggleType('edit')">
+                    <option value="physique" <?= $edit['type_personne']=='physique' ?'selected':'' ?>>Physique</option>
+                    <option value="morale" <?= $edit['type_personne']=='morale' ?'selected':'' ?>>Morale</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Rôle dans le système</label>
+                <select name="statut_personne">
+                    <option value="assure"     <?= $edit['statut_personne']=='assure'     ?'selected':'' ?>>Assuré</option>
+                    <option value="expert"     <?= $edit['statut_personne']=='expert'     ?'selected':'' ?>>Expert</option>
+                    <option value="adversaire" <?= $edit['statut_personne']=='adversaire' ?'selected':'' ?>>Adversaire (tiers)</option>
+                </select>
+            </div>
         </div>
-        <?php else: ?>
-        <div class="form-group"><label>Raison sociale</label><input type="text" name="raison_sociale" value="<?= htmlspecialchars($edit['raison_sociale']) ?>"></div>
-        <?php endif; ?>
+        <div id="champs-physique-edit" style="display:<?= $edit['type_personne']=='physique'?'':'none' ?>">
+            <div class="form-grid-2">
+                <div class="form-group"><label>Nom</label><input type="text" name="nom" value="<?= htmlspecialchars($edit['nom']) ?>"></div>
+                <div class="form-group"><label>Prénom</label><input type="text" name="prenom" value="<?= htmlspecialchars($edit['prenom']) ?>"></div>
+            </div>
+            <div class="form-grid-2">
+        <div class="form-group">
+            <label>Date de naissance</label>
+            <input type="date" name="date_naissance"
+                   value="<?= $edit['date_naissance'] ?>">
+        </div>
+        <div class="form-group">
+            <label>Lieu de naissance</label>
+            <input type="text" name="lieu_naissance"
+                   value="<?= htmlspecialchars($edit['lieu_naissance']) ?>">
+        </div>
+    </div>
+        </div>
+        <div id="champs-morale-edit" style="display:<?= $edit['type_personne']=='morale'?'':'none' ?>">
+            <div class="form-group"><label>Raison sociale</label><input type="text" name="raison_sociale" value="<?= htmlspecialchars($edit['raison_sociale']) ?>"></div>
+        </div>
         <div class="form-grid-2">
             <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" value="<?= htmlspecialchars($edit['telephone']) ?>"></div>
             <div class="form-group"><label>Email</label><input type="email" name="email" value="<?= htmlspecialchars($edit['email']) ?>"></div>
@@ -304,6 +421,7 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
 <?php endif; ?>
 
 </div><!-- /crma-main -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -315,6 +433,76 @@ function toggleType(suffix) {
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
+</script>
+<script>
+const cinInput = document.getElementById('num_identite');
+const cinError = document.getElementById('cin-error');
+const form = document.querySelector('#modal-add form');
+
+let timeout = null;
+let isCinInvalid = false;
+
+// 🔎 validation temps réel
+cinInput.addEventListener('input', () => {
+    clearTimeout(timeout);
+
+    const val = cinInput.value.trim();
+
+    if(val.length === 0){
+        cinInput.classList.remove('input-error');
+        cinError.textContent = '';
+        isCinInvalid = true;
+        return;
+    }
+
+    timeout = setTimeout(() => {
+        fetch('check_cin.php?cin=' + encodeURIComponent(val))
+        .then(res => res.json())
+        .then(data => {
+            if(data.exists){
+                cinInput.classList.add('input-error');
+                cinError.innerHTML = "❌ CIN déjà utilisé";
+                isCinInvalid = true;
+            } else {
+                cinInput.classList.remove('input-error');
+                cinError.textContent = "";
+                isCinInvalid = false;
+            }
+        });
+    }, 400);
+});
+
+// 🚫 blocage submit
+form.addEventListener('submit', function(e){
+    const val = cinInput.value.trim();
+
+    if(val === "" || isCinInvalid){
+        e.preventDefault();
+
+        if(val === ""){
+            cinInput.classList.add('input-error');
+            cinError.innerHTML = "❌ Champ obligatoire";
+        }
+    }
+});
+function confirmDelete(e, id){
+    e.preventDefault();
+
+    Swal.fire({
+        title: 'Supprimer cette personne ?',
+        text: "Cette action est irréversible",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "?del=" + id;
+        }
+    });
+}
 </script>
 </body>
 </html>
