@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 17 avr. 2026 à 10:40
+-- Généré le : ven. 17 avr. 2026 à 17:01
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -258,6 +258,7 @@ DROP TABLE IF EXISTS `etat_dossier`;
 CREATE TABLE IF NOT EXISTS `etat_dossier` (
   `id_etat` int NOT NULL AUTO_INCREMENT,
   `nom_etat` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `motif_obligatoire` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id_etat`)
 ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -265,26 +266,26 @@ CREATE TABLE IF NOT EXISTS `etat_dossier` (
 -- Déchargement des données de la table `etat_dossier`
 --
 
-INSERT INTO `etat_dossier` (`id_etat`, `nom_etat`) VALUES
-(1, 'Brouillon'),
-(2, 'En cours CRMA'),
-(3, 'Transmis CNMA'),
-(4, 'Validé CNMA'),
-(5, 'Refusé CNMA'),
-(6, 'Complément demandé'),
-(7, 'Reglement partiel'),
-(8, 'Reglement definitif amiable'),
-(9, 'En cours dexpertise'),
-(11, 'Classé sans suite'),
-(12, 'Classé après rejet'),
-(13, 'Classé en attente recours'),
-(14, 'Clôturé'),
-(15, 'Repris'),
-(16, 'En cours de contre-expertise'),
-(17, 'Règlement définitif judiciaire'),
-(18, 'Repris pour recours abouti'),
-(19, 'Classé après recours abouti'),
-(20, 'Gestion pour recours');
+INSERT INTO `etat_dossier` (`id_etat`, `nom_etat`, `motif_obligatoire`) VALUES
+(1, 'Brouillon', 0),
+(2, 'En cours CRMA', 0),
+(3, 'Transmis CNMA', 0),
+(4, 'Validé CNMA', 0),
+(5, 'Refusé CNMA', 0),
+(6, 'Complément demandé', 0),
+(7, 'Règlement partiel', 0),
+(8, 'Règlement définitif amiable', 0),
+(9, 'En cours d\'expertise', 0),
+(11, 'Classé sans suite', 1),
+(12, 'Classé après rejet', 0),
+(13, 'Classé en attente recours', 0),
+(14, 'Clôturé', 0),
+(15, 'Repris', 1),
+(16, 'En cours de contre-expertise', 0),
+(17, 'Règlement définitif judiciaire', 0),
+(18, 'Repris pour recours abouti', 0),
+(19, 'Classé après recours abouti', 0),
+(20, 'Gestion pour recours', 1);
 
 -- --------------------------------------------------------
 
@@ -461,7 +462,7 @@ CREATE TABLE IF NOT EXISTS `historique` (
   KEY `fk_ancien_etat` (`ancien_etat`),
   KEY `fk_nouvel_etat` (`nouvel_etat`),
   KEY `fk_historique_motif` (`id_motif`)
-) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `historique`
@@ -539,7 +540,8 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (84, 4, 'Règlement total', '2026-04-05 19:44:32', 13, 14, 8, NULL, NULL),
 (85, 4, 'Suppression règlement', '2026-04-05 20:19:36', 9, 8, 8, NULL, NULL),
 (86, 11, 'Suppression règlement', '2026-04-05 20:22:13', 13, 7, 7, NULL, NULL),
-(87, 10, 'Suppression règlement', '2026-04-07 15:20:50', 9, 8, 8, NULL, NULL);
+(87, 10, 'Suppression règlement', '2026-04-07 15:20:50', 9, 8, 8, NULL, NULL),
+(88, 11, 'Règlement partiel', '2026-04-17 14:34:41', 9, 7, 7, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -554,30 +556,30 @@ CREATE TABLE IF NOT EXISTS `motif` (
   `nom_motif` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_motif`),
   KEY `id_etat` (`id_etat`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `motif`
 --
 
 INSERT INTO `motif` (`id_motif`, `id_etat`, `nom_motif`) VALUES
-(1, 11, 'Absence de garantie couvrant le sinistre'),
-(2, 11, 'Sinistre hors période de couverture'),
-(3, 11, 'Exclusion de garantie'),
-(4, 11, 'Prescription'),
-(5, 11, 'Absence de dégâts matériels'),
-(6, 11, 'Dégâts sous franchise'),
-(7, 11, 'Absence de preuve expertise'),
-(8, 11, 'Fausse déclaration'),
-(9, 11, 'Absence de réclamation du tiers'),
-(10, 15, 'Réception d\'une citation à comparaître'),
-(11, 15, 'Réclamation fondée de l\'assuré ou d\'une victime du sinistre'),
-(12, 15, 'Réception d\'un jugement par défaut'),
-(13, 15, 'Repris pour recours abouti'),
-(14, 15, 'Réouverture pour recours'),
-(15, 15, 'Réouverture pour erreur de classement'),
-(16, 19, 'Encaissement du recours'),
-(17, 20, 'Responsabilité de l\'assuré dégagée entièrement');
+(18, 11, 'Absence de garantie couvrant le sinistre'),
+(19, 11, 'Sinistre survenu hors période de couverture'),
+(20, 11, 'Exclusions de garanties mentionnées sur les conditions générales et particulières'),
+(21, 11, 'Prescription'),
+(22, 11, 'Absence de dégâts matériels engendrés par le sinistre'),
+(23, 11, 'Dégâts sous franchise'),
+(24, 11, 'Absence de PV d\'expertise ou de photos d\'expertise (matérialité non prouvée)'),
+(25, 11, 'Fausse déclaration (cas fraude à l\'assurance avéré)'),
+(26, 11, 'Absence de la réclamation du tiers dans le cas d\'un règlement au titre de la garantie RC'),
+(27, 15, 'Réception d\'une citation à comparaître'),
+(28, 15, 'Réclamation fondée de l\'assuré ou d\'une victime du sinistre'),
+(29, 15, 'Réception d\'un jugement par défaut'),
+(30, 15, 'Repris pour recours abouti'),
+(31, 15, 'Réouverture pour recours'),
+(32, 15, 'Réouverture pour erreur de classement'),
+(33, 19, 'Encaissement du recours'),
+(34, 20, 'Responsabilité de l\'assuré dégagée entièrement');
 
 -- --------------------------------------------------------
 
@@ -704,7 +706,7 @@ CREATE TABLE IF NOT EXISTS `reglement` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `saisi_par` (`saisi_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reglement`
@@ -717,7 +719,8 @@ INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`,
 (4, 8, NULL, 1000.00, '2026-04-01', 'Chèque', 9, 'en_attente', NULL, ''),
 (5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
 (6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
-(7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, '');
+(7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
+(11, 11, NULL, 10.00, '2026-04-17', 'Chèque', 9, 'en_attente', NULL, '');
 
 -- --------------------------------------------------------
 
