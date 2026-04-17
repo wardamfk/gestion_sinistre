@@ -50,21 +50,72 @@ $etat = $dossier['id_etat'];
 $transitions = [];
 
 if ($role === 'CRMA') {
+  $tiers_responsable = in_array($dossier['responsable'], ['oui','partiel']);
     switch ($etat) {
-        case 2: // En cours CRMA
-            $transitions[16] = ['label'=>'Demander contre-expertise', 'icon'=>'fa-rotate',      'class'=>'btn-outline',  'confirm'=>true];
-            $transitions[13] = ['label'=>'Mettre en attente recours',  'icon'=>'fa-pause-circle','class'=>'btn-warning',  'confirm'=>true];
-            $transitions[20] = ['label'=>'Passer en gestion recours',  'icon'=>'fa-gavel',       'class'=>'btn-info',     'confirm'=>false]; // motif obligatoire
-            $transitions[11] = ['label'=>'Classer sans suite',         'icon'=>'fa-ban',         'class'=>'btn-danger',   'confirm'=>false]; // motif obligatoire
-            break;
+       case 2: // En cours CRMA
+
+    $transitions[16] = ['label'=>'Demander contre-expertise', 'icon'=>'fa-rotate', 'class'=>'btn-outline', 'confirm'=>true];
+
+   
+
+    $transitions[11] = ['label'=>'Classer sans suite', 'icon'=>'fa-ban','class'=>'btn-danger','confirm'=>false];
+    break;
         case 4: // Validé CNMA
             $transitions[17] = ['label'=>'Marquer judiciaire',         'icon'=>'fa-gavel',       'class'=>'btn-outline',  'confirm'=>true];
             break;
         case 5: // Refusé CNMA
             $transitions[12] = ['label'=>'Classer après rejet',        'icon'=>'fa-folder-minus','class'=>'btn-danger',   'confirm'=>true];
             break;
+            case 7: // règlement partiel
+
+    // ✔ actions normales
+    $transitions[11] = [
+        'label'=>'Classer sans suite',
+        'icon'=>'fa-ban',
+        'class'=>'btn-danger',
+        'confirm'=>false
+    ];
+
+    // ✔ recours seulement si responsable
+   if ($tiers_responsable) {
+    $transitions[20] = [
+        'label'=>'Passer en gestion recours',
+        'icon'=>'fa-gavel',
+        'class'=>'btn-info',
+        'confirm'=>false
+    ];
+
+    $transitions[13] = [
+        'label'=>'Mettre en attente recours',
+        'icon'=>'fa-pause-circle',
+        'class'=>'btn-warning',
+        'confirm'=>true
+    ];
+}
+        if ($total_enc > 0) {
+    $transitions[19] = [
+        'label'=>'Classer après recours abouti',
+        'icon'=>'fa-check-circle',
+        'class'=>'btn-success',
+        'confirm'=>true
+    ];
+}
+
+       
+  
+
+    break;
         case 8: // Règlement définitif amiable
-            $transitions[14] = ['label'=>'Clôturer',                   'icon'=>'fa-archive',     'class'=>'btn-primary',  'confirm'=>true];
+            $transitions[14] = ['label'=>'Clôturer',  
+                             'icon'=>'fa-archive',     'class'=>'btn-primary',  'confirm'=>true];
+                             if ($total_enc > 0) {
+    $transitions[19] = [
+        'label'=>'Classer après recours abouti',
+        'icon'=>'fa-check-circle',
+        'class'=>'btn-success',
+        'confirm'=>true
+    ];
+}
             break;
         case 17: // Règlement judiciaire
             $transitions[14] = ['label'=>'Clôturer',                   'icon'=>'fa-archive',     'class'=>'btn-primary',  'confirm'=>true];
@@ -74,17 +125,52 @@ if ($role === 'CRMA') {
         case 14: // Clôturé
             $transitions[15] = ['label'=>'Reprendre dossier',          'icon'=>'fa-folder-open', 'class'=>'btn-primary',  'confirm'=>false]; // motif obligatoire
             break;
-        case 13: // En attente recours
-            $transitions[15] = ['label'=>'Reprendre dossier',          'icon'=>'fa-folder-open', 'class'=>'btn-primary',  'confirm'=>false]; // motif obligatoire
-            $transitions[18] = ['label'=>'Reprise après recours abouti','icon'=>'fa-check-double','class'=>'btn-success',  'confirm'=>true];
-            break;
-        case 18: // Repris pour recours abouti
-            $transitions[19] = ['label'=>'Classé recours abouti',      'icon'=>'fa-check-circle','class'=>'btn-success',  'confirm'=>false]; // motif encaissement
-            break;
+    case 13: // attente recours
+
+    $transitions[15] = [
+        'label'=>'Reprendre dossier',
+        'icon'=>'fa-folder-open',
+        'class'=>'btn-primary',
+        'confirm'=>false
+    ];
+
+    // 🔥 SEULEMENT SI ENCAISSEMENT → débloquer 18
+    if ($total_enc > 0) {
+        $transitions[18] = [
+            'label'=>'Valider recours abouti',
+            'icon'=>'fa-check-double',
+            'class'=>'btn-success',
+            'confirm'=>true
+        ];
+    }
+
+break;
+      case 18:
+
+    $transitions[19] = [
+        'label'=>'Classer après recours abouti',
+        'icon'=>'fa-check-circle',
+        'class'=>'btn-success',
+        'confirm'=>false
+    ];
+
+break;
         case 16: // Contre-expertise
             $transitions[2]  = ['label'=>'Retour en cours CRMA',       'icon'=>'fa-undo',        'class'=>'btn-outline',  'confirm'=>true];
             $transitions[11] = ['label'=>'Classer sans suite',         'icon'=>'fa-ban',         'class'=>'btn-danger',   'confirm'=>false];
             break;
+            case 20:
+
+    if ($total_enc > 0) {
+        $transitions[18] = [
+            'label'=>'Valider recours abouti',
+            'icon'=>'fa-check-double',
+            'class'=>'btn-success',
+            'confirm'=>true
+        ];
+    }
+
+break;
     }
 }
 
@@ -542,7 +628,7 @@ if ($role === 'CNMA') {
     <div class="enc-kpi c-teal"><div class="ek-label">Taux de recours</div><div class="ek-val"><?= $taux_recours; ?><small>%</small></div></div>
   </div>
 
-  <?php if($encaissement_autorise && in_array($etat,[7,8,13,14,19])): ?>
+  <?php if($encaissement_autorise && in_array($etat,[7,8,13,14,19,20])): ?>
   <div class="enc-form">
     <div class="enc-form-title"><i class="fa fa-plus" style="color:var(--green-700);"></i> Enregistrer un encaissement</div>
     <form action="ajouter_encaissement.php" method="POST">

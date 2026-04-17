@@ -11,13 +11,26 @@ if($_SERVER['REQUEST_METHOD']=='POST') {
     $commentaire = mysqli_real_escape_string($conn, $_POST['commentaire']);
     $user_id = $_SESSION['id_user'];
 
-    // Vérifier état dossier
-    $dossier = mysqli_fetch_assoc(mysqli_query($conn,"SELECT id_etat FROM dossier WHERE id_dossier=$id_dossier"));
-    if(!in_array($dossier['id_etat'], [7,8,13,14])) {
-        header("Location: voir_dossier.php?id=$id_dossier&tab=encaissements&err=etat");
-        exit();
-    }
+ // Vérifier état dossier
+$dossier = mysqli_fetch_assoc(mysqli_query($conn,"SELECT id_etat FROM dossier WHERE id_dossier=$id_dossier"));
 
+// 🔴 AJOUT ICI (NE BOUGE PAS CET EMPLACEMENT)
+$tiers = mysqli_fetch_assoc(mysqli_query($conn,"
+    SELECT responsabilite 
+    FROM tiers 
+    WHERE id_tiers = $id_tiers
+"));
+
+if (!$tiers || $tiers['responsabilite'] != 1) {
+    header("Location: voir_dossier.php?id=$id_dossier&tab=encaissements&err=tiers_non_responsable");
+    exit();
+}
+
+// Vérifier état autorisé
+if(!in_array($dossier['id_etat'], [7,8,13,14])) {
+    header("Location: voir_dossier.php?id=$id_dossier&tab=encaissements&err=etat");
+    exit();
+}
     // Insérer encaissement
     mysqli_query($conn,"INSERT INTO encaissement (id_dossier,montant,date_encaissement,id_tiers,type,commentaire) VALUES ($id_dossier,$montant,'$date_enc',$id_tiers,'$type','$commentaire')");
 
