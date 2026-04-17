@@ -5,9 +5,10 @@ session_start();
 if(!isset($_GET['id'])){ echo "Dossier introuvable"; exit(); }
 $id_dossier = $_GET['id'];
 $id_user = $_SESSION['id_user'];
+$role    = $_SESSION['role'];
 
 $dossier = mysqli_fetch_assoc(mysqli_query($conn,"
-    SELECT d.*, e.nom_etat,
+    SELECT d.*, e.nom_etat, e.motif_obligatoire,
            p.nom AS nom_assure, p.prenom AS prenom_assure, p.telephone,
            pt.nom AS nom_tiers, pt.prenom AS prenom_tiers,
            t.compagnie_assurance, t.responsable,
@@ -31,7 +32,8 @@ $dossier = mysqli_fetch_assoc(mysqli_query($conn,"
 
 if(!$dossier){ die("Dossier introuvable"); }
 
-$expert_dossier = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.nom,e.prenom,e.id_expert FROM dossier d LEFT JOIN expert e ON d.id_expert=e.id_expert WHERE d.id_dossier=$id_dossier"));
+$expert_dossier = mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT e.nom,e.prenom,e.id_expert FROM dossier d LEFT JOIN expert e ON d.id_expert=e.id_expert WHERE d.id_dossier=$id_dossier"));
 
 $total_reserve = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(montant),0) as t FROM reserve WHERE id_dossier=$id_dossier"))['t'];
 $total_regle   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(montant),0) as t FROM reglement WHERE id_dossier=$id_dossier"))['t'];
@@ -42,6 +44,56 @@ $taux_recours = $total_regle > 0 ? round($total_enc / $total_regle * 100, 1) : 0
 
 $encaissement_autorise = in_array($dossier['responsable'], ['oui', 'partiel']);
 $etat = $dossier['id_etat'];
+
+// ── Transitions autorisées selon état et rôle ─────────────────────────────
+// Format: [ nouvel_etat => ['label'=>..., 'icon'=>..., 'class'=>..., 'confirm'=>bool] ]
+$transitions = [];
+
+if ($role === 'CRMA') {
+    switch ($etat) {
+        case 2: // En cours CRMA
+            $transitions[16] = ['label'=>'Demander contre-expertise', 'icon'=>'fa-rotate',      'class'=>'btn-outline',  'confirm'=>true];
+            $transitions[13] = ['label'=>'Mettre en attente recours',  'icon'=>'fa-pause-circle','class'=>'btn-warning',  'confirm'=>true];
+            $transitions[20] = ['label'=>'Passer en gestion recours',  'icon'=>'fa-gavel',       'class'=>'btn-info',     'confirm'=>false]; // motif obligatoire
+            $transitions[11] = ['label'=>'Classer sans suite',         'icon'=>'fa-ban',         'class'=>'btn-danger',   'confirm'=>false]; // motif obligatoire
+            break;
+        case 4: // Validé CNMA
+            $transitions[17] = ['label'=>'Marquer judiciaire',         'icon'=>'fa-gavel',       'class'=>'btn-outline',  'confirm'=>true];
+            break;
+        case 5: // Refusé CNMA
+            $transitions[12] = ['label'=>'Classer après rejet',        'icon'=>'fa-folder-minus','class'=>'btn-danger',   'confirm'=>true];
+            break;
+        case 8: // Règlement définitif amiable
+            $transitions[14] = ['label'=>'Clôturer',                   'icon'=>'fa-archive',     'class'=>'btn-primary',  'confirm'=>true];
+            break;
+        case 17: // Règlement judiciaire
+            $transitions[14] = ['label'=>'Clôturer',                   'icon'=>'fa-archive',     'class'=>'btn-primary',  'confirm'=>true];
+            break;
+        case 11: // Classé sans suite
+        case 12: // Classé après rejet
+        case 14: // Clôturé
+            $transitions[15] = ['label'=>'Reprendre dossier',          'icon'=>'fa-folder-open', 'class'=>'btn-primary',  'confirm'=>false]; // motif obligatoire
+            break;
+        case 13: // En attente recours
+            $transitions[15] = ['label'=>'Reprendre dossier',          'icon'=>'fa-folder-open', 'class'=>'btn-primary',  'confirm'=>false]; // motif obligatoire
+            $transitions[18] = ['label'=>'Reprise après recours abouti','icon'=>'fa-check-double','class'=>'btn-success',  'confirm'=>true];
+            break;
+        case 18: // Repris pour recours abouti
+            $transitions[19] = ['label'=>'Classé recours abouti',      'icon'=>'fa-check-circle','class'=>'btn-success',  'confirm'=>false]; // motif encaissement
+            break;
+        case 16: // Contre-expertise
+            $transitions[2]  = ['label'=>'Retour en cours CRMA',       'icon'=>'fa-undo',        'class'=>'btn-outline',  'confirm'=>true];
+            $transitions[11] = ['label'=>'Classer sans suite',         'icon'=>'fa-ban',         'class'=>'btn-danger',   'confirm'=>false];
+            break;
+    }
+}
+
+if ($role === 'CNMA') {
+    if ($etat == 8) {
+        $transitions[14] = ['label'=>'Clôturer',                       'icon'=>'fa-archive',     'class'=>'btn-primary',  'confirm'=>true];
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -52,328 +104,96 @@ $etat = $dossier['id_etat'];
 <link rel="stylesheet" href="../css/style_crma.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-/* ===== OVERRIDES COMPACTS ===== */
+/* ── Hero compact ── */
+.dossier-hero-v2{background:linear-gradient(90deg,#368a5dff,#85d29cff);border-radius:var(--radius-lg);padding:14px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.dossier-hero-v2 .dh-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.dossier-hero-v2 .dh-num{font-size:18px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:-.2px}
+.dossier-hero-v2 .dh-meta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.dossier-hero-v2 .dh-meta span{font-size:12px;color:rgba(255,255,255,.65);display:flex;align-items:center;gap:5px}
+.dossier-hero-v2 .dh-right{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.6)}
+.badge-hero{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.2);white-space:nowrap}
 
-/* Hero ultra-compact */
-.dossier-hero-v2 {
- background: linear-gradient(90deg, #368a5dff, #85d29cff);
-  border-radius: var(--radius-lg);
-  padding: 14px 22px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.dossier-hero-v2 .dh-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.dossier-hero-v2 .dh-num {
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-  font-family: 'DM Mono', monospace;
-  letter-spacing: -.2px;
-}
-.dossier-hero-v2 .dh-meta {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.dossier-hero-v2 .dh-meta span {
-  font-size: 12px;
-  color: rgba(255,255,255,.65);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.dossier-hero-v2 .dh-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: rgba(255,255,255,.6);
-}
+/* ── KPI bar ── */
+.kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi-item{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:12px;transition:box-shadow .15s}
+.kpi-item:hover{box-shadow:var(--shadow)}
+.kpi-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.kpi-body{flex:1;min-width:0}
+.kpi-label{font-size:10px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-value{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;white-space:nowrap}
+.kpi-value small{font-size:11px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--gray-400);margin-left:2px}
+.kpi-reserve .kpi-icon{background:var(--blue-50);color:var(--blue-700)}
+.kpi-reserve .kpi-value{color:var(--blue-800)}
+.kpi-regle .kpi-icon{background:var(--green-100);color:var(--green-700)}
+.kpi-regle .kpi-value{color:var(--green-800)}
+.kpi-reste .kpi-icon{background:var(--red-50);color:var(--red-600)}
+.kpi-reste .kpi-value{color:var(--red-600)}
+.kpi-reste.ok .kpi-icon{background:var(--green-100);color:var(--green-700)}
+.kpi-reste.ok .kpi-value{color:var(--green-700)}
+.kpi-enc .kpi-icon{background:var(--teal-50);color:var(--teal-700)}
+.kpi-enc .kpi-value{color:var(--teal-700)}
 
-/* Badge état inline */
-.badge-hero {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 11px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 600;
-  background: rgba(255,255,255,.18);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,.2);
-  white-space: nowrap;
-}
+/* ── Action bar compact ── */
+.action-bar-v2{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
 
-/* ===== KPI BAR — UNE SEULE LIGNE ===== */
-.kpi-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.kpi-item {
-  background: #fff;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: box-shadow .15s;
-}
-.kpi-item:hover { box-shadow: var(--shadow); }
-.kpi-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  flex-shrink: 0;
-}
-.kpi-body { flex: 1; min-width: 0; }
-.kpi-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.kpi-value {
-  font-size: 20px;
-  font-weight: 700;
-  font-family: 'DM Mono', monospace;
-  line-height: 1;
-  white-space: nowrap;
-}
-.kpi-value small {
-  font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 400;
-  color: var(--gray-400);
-  margin-left: 2px;
-}
+/* ── Workflow transitions section ── */
+.transitions-bar{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px}
+.transitions-bar .tb-title{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.transitions-bar .tb-title i{color:var(--green-700)}
+.transitions-bar .tb-buttons{display:flex;gap:8px;flex-wrap:wrap}
 
-/* Variantes couleur KPI */
-.kpi-reserve .kpi-icon { background: var(--blue-50);   color: var(--blue-700);  }
-.kpi-reserve .kpi-value { color: var(--blue-800); }
-.kpi-regle   .kpi-icon { background: var(--green-100); color: var(--green-700); }
-.kpi-regle   .kpi-value { color: var(--green-800); }
-.kpi-reste   .kpi-icon { background: var(--red-50);    color: var(--red-600);   }
-.kpi-reste   .kpi-value { color: var(--red-600); }
-.kpi-reste.ok .kpi-icon { background: var(--green-100); color: var(--green-700); }
-.kpi-reste.ok .kpi-value { color: var(--green-700); }
-.kpi-enc     .kpi-icon { background: var(--teal-50);   color: var(--teal-700);  }
-.kpi-enc     .kpi-value { color: var(--teal-700); }
+/* ── Motif modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:18px;padding:32px 36px;width:580px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.22);animation:modalIn .18s ease}
+@keyframes modalIn{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-box h3{font-size:16px;font-weight:700;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--gray-100);display:flex;align-items:center;gap:10px;color:var(--gray-800)}
+.modal-box .form-group{margin-bottom:18px}
+.modal-box .form-group label{display:block;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.modal-box .form-group select,
+.modal-box .form-group textarea{width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--gray-800);background:var(--gray-50);transition:border-color .18s}
+.modal-box .form-group select:focus,
+.modal-box .form-group textarea:focus{border-color:var(--green-600);outline:none;background:#fff;box-shadow:0 0 0 3px rgba(22,163,74,.12)}
+.motif-obligatoire-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:var(--red-50);color:var(--red-700);border:1px solid var(--red-100);margin-bottom:8px}
+.modal-btn-row{display:flex;gap:10px;margin-top:22px}
+.modal-btn-row .btn{flex:1;justify-content:center;padding:12px;font-size:14px}
 
-/* ===== ONGLETS PLUS COMPACTS ===== */
-.crma-tabs {
-  margin-bottom: 16px;
-  gap: 0;
-  border-bottom: 2px solid var(--gray-200);
-}
-.crma-tab-btn {
-  padding: 9px 16px;
-  font-size: 12.5px;
-}
+/* ── Tabs ── */
+.crma-tabs{margin-bottom:16px;gap:0;border-bottom:2px solid var(--gray-200)}
+.crma-tab-btn{padding:9px 16px;font-size:12.5px}
 
-/* ===== ACTION BAR COMPACTE ===== */
-.action-bar-v2 {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
+/* ── Info rows compact ── */
+.info-row-crma{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:13.5px}
+.info-row-crma:last-child{border-bottom:none}
+.info-row-crma span:first-child{color:var(--gray-500);font-weight:400}
+.info-row-crma span:last-child{font-weight:500;color:var(--gray-800);text-align:right;max-width:60%}
 
-/* ===== TAB ENCAISSEMENTS ===== */
+/* ── Messages ── */
+.msg-ok{background:var(--green-100);color:var(--green-800);border-left:3px solid var(--green-600);padding:12px 16px;border-radius:var(--radius);margin-bottom:14px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.msg-err{background:var(--red-50);color:var(--red-700);border-left:3px solid var(--red-600);padding:12px 16px;border-radius:var(--radius);margin-bottom:14px;font-size:13.5px;display:flex;align-items:center;gap:8px}
 
-/* Statut compact — badge pill au lieu d'un grand block */
-.enc-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 13px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 14px;
-}
-.enc-status-pill.ok  { background: var(--green-100); color: var(--green-800); border: 1px solid var(--green-200); }
-.enc-status-pill.nok { background: var(--red-50);    color: var(--red-700);   border: 1px solid var(--red-100);   }
-
-/* KPIs encaissements — 4 colonnes compactes */
-.enc-kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
-}
-.enc-kpi {
-  background: #fff;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius);
-  padding: 13px 15px;
-  text-align: center;
-}
-.enc-kpi .ek-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 6px;
-}
-.enc-kpi .ek-val {
-  font-size: 21px;
-  font-weight: 700;
-  font-family: 'DM Mono', monospace;
-  color: var(--gray-800);
-}
-.enc-kpi .ek-val small {
-  font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--gray-400);
-  margin-left: 2px;
-}
-.enc-kpi.c-blue  { border-top: 3px solid var(--blue-600);  }
-.enc-kpi.c-blue  .ek-val { color: var(--blue-800); }
-.enc-kpi.c-green { border-top: 3px solid var(--green-600); }
-.enc-kpi.c-green .ek-val { color: var(--green-800); }
-.enc-kpi.c-amber { border-top: 3px solid var(--amber-600); }
-.enc-kpi.c-amber .ek-val { color: var(--amber-600); }
-.enc-kpi.c-teal  { border-top: 3px solid var(--teal-600);  }
-.enc-kpi.c-teal  .ek-val { color: var(--teal-700); }
-
-/* Empty state encaissements interdit */
-.enc-forbidden {
-  background: var(--gray-50);
-  border: 1px dashed var(--gray-300);
-  border-radius: var(--radius-lg);
-  padding: 40px 20px;
-  text-align: center;
-  color: var(--gray-500);
-}
-.enc-forbidden .ef-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--red-50);
-  color: var(--red-600);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  margin: 0 auto 14px;
-}
-.enc-forbidden h4 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 6px;
-}
-.enc-forbidden p {
-  font-size: 13px;
-  color: var(--gray-500);
-  max-width: 380px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-/* Formulaire encaissement compact */
-.enc-form {
-  background: #fff;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  margin-bottom: 18px;
-}
-.enc-form-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--gray-700);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--gray-100);
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.enc-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto;
-  gap: 12px;
-  align-items: flex-end;
-}
-.enc-form-grid .fg {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.enc-form-grid label {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--gray-500);
-  text-transform: uppercase;
-  letter-spacing: .4px;
-}
-.enc-form-grid input,
-.enc-form-grid select {
-  padding: 8px 10px;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--radius);
-  font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--gray-800);
-  background: #fff;
-}
-.enc-form-grid input:focus,
-.enc-form-grid select:focus {
-  border-color: var(--green-600);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(22,163,74,.12);
-}
-.enc-form-comment {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
-  align-items: flex-end;
-  margin-top: 10px;
-}
-
-/* Info card dans les tabs */
-.info-row-crma {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--gray-100);
-  font-size: 13.5px;
-}
-.info-row-crma:last-child { border-bottom: none; }
-.info-row-crma span:first-child { color: var(--gray-500); font-weight: 400; }
-.info-row-crma span:last-child  { font-weight: 500; color: var(--gray-800); text-align: right; max-width: 60%; }
-
-/* Conteneur tab moins de padding vertical */
-#encaissements.crma-tab-content { padding-top: 4px; }
+/* Encaissements */
+.enc-status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;font-size:12px;font-weight:600;margin-bottom:14px}
+.enc-status-pill.ok{background:var(--green-100);color:var(--green-800);border:1px solid var(--green-200)}
+.enc-status-pill.nok{background:var(--red-50);color:var(--red-700);border:1px solid var(--red-100)}
+.enc-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.enc-kpi{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:13px 15px;text-align:center}
+.enc-kpi .ek-label{font-size:10px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.enc-kpi .ek-val{font-size:21px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gray-800)}
+.enc-kpi .ek-val small{font-size:11px;font-family:'DM Sans',sans-serif;color:var(--gray-400);margin-left:2px}
+.enc-kpi.c-blue{border-top:3px solid var(--blue-600)}.enc-kpi.c-blue .ek-val{color:var(--blue-800)}
+.enc-kpi.c-green{border-top:3px solid var(--green-600)}.enc-kpi.c-green .ek-val{color:var(--green-800)}
+.enc-kpi.c-amber{border-top:3px solid var(--amber-600)}.enc-kpi.c-amber .ek-val{color:var(--amber-600)}
+.enc-kpi.c-teal{border-top:3px solid var(--teal-600)}.enc-kpi.c-teal .ek-val{color:var(--teal-700)}
+.enc-forbidden{background:var(--gray-50);border:1px dashed var(--gray-300);border-radius:var(--radius-lg);padding:40px 20px;text-align:center;color:var(--gray-500)}
+.enc-forbidden .ef-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px}
+.enc-form{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:18px}
+.enc-form-title{font-size:12.5px;font-weight:600;color:var(--gray-700);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:7px}
+.enc-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:flex-end}
+.enc-form-grid .fg{display:flex;flex-direction:column;gap:5px}
+.enc-form-grid label{font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px}
+.enc-form-grid input,.enc-form-grid select{padding:8px 10px;border:1px solid var(--gray-300);border-radius:var(--radius);font-size:13px;font-family:'DM Sans',sans-serif;color:var(--gray-800);background:#fff}
+.enc-form-grid input:focus,.enc-form-grid select:focus{border-color:var(--green-600);outline:none;box-shadow:0 0 0 2px rgba(22,163,74,.12)}
 </style>
 </head>
 <body>
@@ -382,14 +202,10 @@ $etat = $dossier['id_etat'];
 
 <div class="main" style="padding-top:16px;">
 
-<!-- ===== HERO COMPACT ===== -->
+<!-- ─── HERO ─────────────────────────────────────────────────────── -->
 <div class="dossier-hero-v2">
   <div class="dh-left">
     <div class="dh-num"><?= $dossier['numero_dossier']; ?></div>
-    <?php
-    $etat_colors = [2=>'blue',3=>'purple',4=>'green',5=>'red',6=>'orange',7=>'teal',8=>'green',9=>'orange',14=>'gray'];
-    $ec = $etat_colors[$etat] ?? 'gray';
-    ?>
     <span class="badge-hero"><i class="fa fa-circle" style="font-size:7px;opacity:.7;"></i> <?= $dossier['nom_etat']; ?></span>
     <div class="dh-meta">
       <span><i class="fa fa-calendar"></i> <?= $dossier['date_sinistre']; ?></span>
@@ -402,52 +218,111 @@ $etat = $dossier['id_etat'];
   </div>
 </div>
 
-<!-- ===== KPI BAR — 4 métriques sur 1 ligne ===== -->
+<!-- ─── KPI BAR ───────────────────────────────────────────────────── -->
 <div class="kpi-bar">
   <div class="kpi-item kpi-reserve">
     <div class="kpi-icon"><i class="fa fa-shield-halved"></i></div>
     <div class="kpi-body">
       <div class="kpi-label">Réserves</div>
-      <div class="kpi-value"><?= number_format($total_reserve, 0, ',', ' '); ?><small>DA</small></div>
+      <div class="kpi-value"><?= number_format($total_reserve,0,',',' '); ?><small>DA</small></div>
     </div>
   </div>
   <div class="kpi-item kpi-regle">
     <div class="kpi-icon"><i class="fa fa-money-bill-wave"></i></div>
     <div class="kpi-body">
       <div class="kpi-label">Réglé</div>
-      <div class="kpi-value"><?= number_format($total_regle, 0, ',', ' '); ?><small>DA</small></div>
+      <div class="kpi-value"><?= number_format($total_regle,0,',',' '); ?><small>DA</small></div>
     </div>
   </div>
-  <div class="kpi-item kpi-reste<?= $reste <= 0 ? ' ok' : ''; ?>">
+  <div class="kpi-item kpi-reste<?= $reste<=0?' ok':''; ?>">
     <div class="kpi-icon"><i class="fa fa-scale-balanced"></i></div>
     <div class="kpi-body">
       <div class="kpi-label">Reste</div>
-      <div class="kpi-value"><?= number_format($reste, 0, ',', ' '); ?><small>DA</small></div>
+      <div class="kpi-value"><?= number_format($reste,0,',',' '); ?><small>DA</small></div>
     </div>
   </div>
   <div class="kpi-item kpi-enc">
     <div class="kpi-icon"><i class="fa fa-arrow-trend-down"></i></div>
     <div class="kpi-body">
       <div class="kpi-label">Encaissements</div>
-      <div class="kpi-value"><?= number_format($total_enc, 0, ',', ' '); ?><small>DA</small></div>
+      <div class="kpi-value"><?= number_format($total_enc,0,',',' '); ?><small>DA</small></div>
     </div>
   </div>
 </div>
 
-<!-- ===== ACTIONS ===== -->
+<!-- ─── MESSAGES ─────────────────────────────────────────────────── -->
+<?php if(isset($_GET['ok']) && $_GET['ok']==='etat_change'): ?>
+<div class="msg-ok"><i class="fa fa-check-circle"></i> État du dossier mis à jour avec succès.</div>
+<?php endif; ?>
+<?php if(isset($_GET['err']) && $_GET['err']==='motif_required'): ?>
+<div class="msg-err"><i class="fa fa-exclamation-triangle"></i> Un motif est obligatoire pour ce changement d'état.</div>
+<?php endif; ?>
+
+<!-- ─── BOUTONS ACTIONS DE BASE ───────────────────────────────────── -->
 <div class="action-bar-v2">
-  <?php if($etat == 8 && $_SESSION['role'] == 'CRMA'): ?>
-  <a href="cloturer_dossier.php?id=<?= $id_dossier; ?>" class="btn btn-primary btn-sm" onclick="return confirm('Clôturer ce dossier ?')">
-    <i class="fa fa-archive"></i> Clôturer
-  </a>
-  <?php endif; ?>
-  <?php if($etat == 14): ?>
-  <span class="badge badge-green" style="padding:7px 14px;font-size:12px;"><i class="fa fa-check-circle"></i> Dossier clôturé</span>
-  <?php endif; ?>
   <a href="mes_dossiers.php" class="btn btn-outline btn-sm" style="margin-left:auto;"><i class="fa fa-arrow-left"></i> Retour</a>
 </div>
 
-<!-- ===== ONGLETS ===== -->
+<!-- ─── TRANSITIONS D'ÉTAT (WORKFLOW) ────────────────────────────── -->
+<?php if (!empty($transitions)): ?>
+<div class="transitions-bar">
+  <div class="tb-title"><i class="fa fa-route"></i> Actions workflow — passer à un nouvel état</div>
+  <div class="tb-buttons">
+    <?php foreach ($transitions as $nouvel_etat_id => $t): ?>
+    <button class="btn <?= $t['class']; ?> btn-sm"
+            onclick="openTransition(<?= $nouvel_etat_id ?>, '<?= htmlspecialchars($t['label']) ?>')">
+      <i class="fa <?= $t['icon']; ?>"></i> <?= $t['label']; ?>
+    </button>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
+
+<!-- ─── MODAL CHANGEMENT D'ÉTAT + MOTIF ──────────────────────────── -->
+<div class="modal-overlay" id="modal-transition">
+  <div class="modal-box">
+    <h3 id="modal-transition-title"><i class="fa fa-route" style="color:var(--green-700)"></i> Changement d'état</h3>
+
+    <form method="POST" action="changer_etat_dossier.php" id="form-transition">
+      <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
+      <input type="hidden" name="nouvel_etat" id="input-nouvel-etat" value="">
+
+      <!-- Badge état cible -->
+      <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;font-size:13px;">
+        <span style="color:var(--gray-500);">État actuel :</span>
+        <strong style="margin-left:6px;"><?= $dossier['nom_etat']; ?></strong>
+        <span style="margin:0 10px;color:var(--gray-400);">→</span>
+        <strong id="label-nouvel-etat" style="color:var(--green-700);"></strong>
+      </div>
+
+      <!-- Motif -->
+      <div class="form-group" id="groupe-motif" style="display:none;">
+        <label id="label-motif">Motif <span id="motif-required-star" style="color:red;display:none;">*</span></label>
+        <div id="motif-obligatoire-badge" class="motif-obligatoire-badge" style="display:none;">
+          <i class="fa fa-exclamation-triangle"></i> Motif obligatoire pour cet état
+        </div>
+        <select name="id_motif" id="select-motif">
+          <option value="">— Choisir un motif —</option>
+        </select>
+      </div>
+
+      <!-- Commentaire libre -->
+      <div class="form-group">
+        <label>Commentaire <span style="color:var(--gray-400);font-weight:400;">(optionnel)</span></label>
+        <textarea name="commentaire" rows="3" placeholder="Précisions sur ce changement d'état…"></textarea>
+      </div>
+
+      <div class="modal-btn-row">
+        <button type="submit" class="btn btn-primary" id="btn-confirmer-transition">
+          <i class="fa fa-check"></i> Confirmer le changement
+        </button>
+        <button type="button" class="btn btn-outline" onclick="closeTransition()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ─── ONGLETS ───────────────────────────────────────────────────── -->
 <div class="crma-tabs">
   <button class="crma-tab-btn active" onclick="showTab('info',this)"><i class="fa fa-info-circle"></i> Informations</button>
   <button class="crma-tab-btn" onclick="showTab('documents',this)"><i class="fa fa-file-alt"></i> Documents</button>
@@ -458,7 +333,7 @@ $etat = $dossier['id_etat'];
   <button class="crma-tab-btn" onclick="showTab('historique',this)"><i class="fa fa-history"></i> Historique</button>
 </div>
 
-<!-- ===== TAB: INFORMATIONS ===== -->
+<!-- ─── TAB: INFORMATIONS ─────────────────────────────────────────── -->
 <div id="info" class="crma-tab-content" style="display:block;">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
   <div class="crma-card">
@@ -469,8 +344,8 @@ $etat = $dossier['id_etat'];
     <div class="info-row-crma"><span>Description</span><span><?= $dossier['description']; ?></span></div>
     <div class="info-row-crma"><span>Statut validation</span>
       <span><?php
-        $sv_map = ['non_soumis'=>['badge-gray','Non soumis'],'en_attente'=>['badge-amber','En attente'],'valide'=>['badge-green','Validé'],'refuse'=>['badge-red','Refusé']];
-        $sv = $sv_map[$dossier['statut_validation']] ?? ['badge-gray',$dossier['statut_validation']];
+        $sv_map=['non_soumis'=>['badge-gray','Non soumis'],'en_attente'=>['badge-amber','En attente'],'valide'=>['badge-green','Validé'],'refuse'=>['badge-red','Refusé']];
+        $sv=$sv_map[$dossier['statut_validation']]??['badge-gray',$dossier['statut_validation']];
         echo "<span class='badge {$sv[0]}'>{$sv[1]}</span>";
       ?></span>
     </div>
@@ -489,8 +364,7 @@ $etat = $dossier['id_etat'];
     <div class="info-row-crma"><span>Compagnie</span><span><?= $dossier['compagnie_assurance']; ?></span></div>
     <div class="info-row-crma"><span>Responsabilité</span>
       <span><?php
-        $r = $dossier['responsable'];
-        $rc = ['oui'=>'badge-red','non'=>'badge-green','partiel'=>'badge-amber'];
+        $r=$dossier['responsable'];$rc=['oui'=>'badge-red','non'=>'badge-green','partiel'=>'badge-amber'];
         echo "<span class='badge ".($rc[$r]??'badge-gray')."'>".ucfirst($r)."</span>";
       ?></span>
     </div>
@@ -506,7 +380,7 @@ $etat = $dossier['id_etat'];
 </div>
 </div>
 
-<!-- ===== TAB: DOCUMENTS ===== -->
+<!-- ─── TAB: DOCUMENTS ───────────────────────────────────────────── -->
 <div id="documents" class="crma-tab-content">
 <div class="crma-card">
   <h4><i class="fa fa-upload"></i> Ajouter document</h4>
@@ -541,7 +415,7 @@ $etat = $dossier['id_etat'];
 </div>
 </div>
 
-<!-- ===== TAB: EXPERTISE ===== -->
+<!-- ─── TAB: EXPERTISE ───────────────────────────────────────────── -->
 <div id="expertise" class="crma-tab-content">
 <div class="crma-card">
   <h4><i class="fa fa-plus"></i> Ajouter expertise</h4>
@@ -575,9 +449,9 @@ $etat = $dossier['id_etat'];
 </div>
 </div>
 
-<!-- ===== TAB: RÉSERVES ===== -->
+<!-- ─── TAB: RÉSERVES ────────────────────────────────────────────── -->
 <div id="reserves" class="crma-tab-content">
-<?php if(in_array($etat,[1,2,3,7])): ?>
+<?php if(in_array($etat,[1,2,3,7,9,15,16])): ?>
 <div class="crma-card">
   <h4><i class="fa fa-plus"></i> Ajouter réserve</h4>
   <form action="ajouter_reserve.php" method="POST" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end;">
@@ -589,7 +463,7 @@ $etat = $dossier['id_etat'];
   </form>
 </div>
 <?php else: ?>
-<div class="msg msg-warning"><i class="fa fa-exclamation-triangle"></i> Ajout de réserve impossible dans l'état actuel du dossier.</div>
+<div class="msg msg-warning" style="margin-bottom:16px;"><i class="fa fa-exclamation-triangle"></i> Ajout de réserve non disponible dans l'état actuel.</div>
 <?php endif; ?>
 <div class="crma-table-wrapper">
 <table class="crma-table">
@@ -609,25 +483,27 @@ $etat = $dossier['id_etat'];
 </div>
 </div>
 
-<!-- ===== TAB: RÈGLEMENTS ===== -->
+<!-- ─── TAB: RÈGLEMENTS ──────────────────────────────────────────── -->
 <div id="reglements" class="crma-tab-content">
 <?php if($etat==3): ?>
-<div class="msg msg-info"><i class="fa fa-info-circle"></i> Règlement impossible — dossier transmis à la CNMA pour validation.</div>
+<div class="msg msg-info" style="margin-bottom:16px;"><i class="fa fa-info-circle"></i> Règlement impossible — dossier transmis à la CNMA pour validation.</div>
 <?php elseif($etat==5): ?>
-<div class="msg msg-error"><i class="fa fa-times-circle"></i> Règlement impossible — dossier refusé par la CNMA.</div>
+<div class="msg msg-error" style="margin-bottom:16px;"><i class="fa fa-times-circle"></i> Règlement impossible — dossier refusé par la CNMA.</div>
 <?php elseif($etat==8): ?>
-<div class="msg msg-success"><i class="fa fa-check-circle"></i> Dossier intégralement réglé.</div>
-<?php else: ?>
+<div class="msg msg-success" style="margin-bottom:16px;"><i class="fa fa-check-circle"></i> Dossier intégralement réglé.</div>
+<?php elseif(in_array($etat,[4,7,15])): ?>
 <div class="crma-card">
   <h4><i class="fa fa-plus"></i> Ajouter règlement</h4>
   <form action="ajouter_reglement.php" method="POST" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end;">
     <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
     <div class="form-group" style="margin:0"><label>Montant (DA)</label><input type="number" step="0.01" name="montant" required></div>
-    <div class="form-group" style="margin:0"><label>Mode</label><select name="mode"><option>Chèque</option></select></div>
+    <div class="form-group" style="margin:0"><label>Mode</label><select name="mode"><option>Chèque</option><option>Virement</option></select></div>
     <div class="form-group" style="margin:0"><label>Commentaire</label><input type="text" name="commentaire"></div>
     <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Ajouter</button>
   </form>
 </div>
+<?php else: ?>
+<div class="msg msg-warning" style="margin-bottom:16px;"><i class="fa fa-exclamation-triangle"></i> Règlement non disponible — état : <?= $dossier['nom_etat']; ?>.</div>
 <?php endif; ?>
 <div class="crma-table-wrapper">
 <table class="crma-table">
@@ -651,38 +527,22 @@ $etat = $dossier['id_etat'];
 </div>
 </div>
 
-<!-- ===== TAB: ENCAISSEMENTS — REDESIGNÉ ===== -->
+<!-- ─── TAB: ENCAISSEMENTS ───────────────────────────────────────── -->
 <div id="encaissements" class="crma-tab-content">
-
-  <!-- 1. Statut en badge compact (une seule fois) -->
   <?php if($encaissement_autorise): ?>
   <span class="enc-status-pill ok"><i class="fa fa-circle-check"></i> Encaissement autorisé</span>
   <?php else: ?>
   <span class="enc-status-pill nok"><i class="fa fa-circle-xmark"></i> Encaissement non autorisé — tiers non responsable</span>
   <?php endif; ?>
 
-  <!-- 2. KPIs — 4 métriques sur une ligne -->
   <div class="enc-kpi-row">
-    <div class="enc-kpi c-blue">
-      <div class="ek-label">Total règlements</div>
-      <div class="ek-val"><?= number_format($total_regle, 0, ',', ' '); ?><small>DA</small></div>
-    </div>
-    <div class="enc-kpi c-green">
-      <div class="ek-label">Total encaissements</div>
-      <div class="ek-val"><?= number_format($total_enc, 0, ',', ' '); ?><small>DA</small></div>
-    </div>
-    <div class="enc-kpi c-amber">
-      <div class="ek-label">Coût réel sinistre</div>
-      <div class="ek-val"><?= number_format($cout_reel, 0, ',', ' '); ?><small>DA</small></div>
-    </div>
-    <div class="enc-kpi c-teal">
-      <div class="ek-label">Taux de recours</div>
-      <div class="ek-val"><?= $taux_recours; ?><small>%</small></div>
-    </div>
+    <div class="enc-kpi c-blue"><div class="ek-label">Total règlements</div><div class="ek-val"><?= number_format($total_regle,0,',',' '); ?><small>DA</small></div></div>
+    <div class="enc-kpi c-green"><div class="ek-label">Total encaissements</div><div class="ek-val"><?= number_format($total_enc,0,',',' '); ?><small>DA</small></div></div>
+    <div class="enc-kpi c-amber"><div class="ek-label">Coût réel sinistre</div><div class="ek-val"><?= number_format($cout_reel,0,',',' '); ?><small>DA</small></div></div>
+    <div class="enc-kpi c-teal"><div class="ek-label">Taux de recours</div><div class="ek-val"><?= $taux_recours; ?><small>%</small></div></div>
   </div>
 
-  <!-- 3. Formulaire OU empty state (jamais les deux) -->
-  <?php if($encaissement_autorise && in_array($etat,[7,8,13,14])): ?>
+  <?php if($encaissement_autorise && in_array($etat,[7,8,13,14,19])): ?>
   <div class="enc-form">
     <div class="enc-form-title"><i class="fa fa-plus" style="color:var(--green-700);"></i> Enregistrer un encaissement</div>
     <form action="ajouter_encaissement.php" method="POST">
@@ -697,57 +557,41 @@ $etat = $dossier['id_etat'];
           </select>
         </div>
         <div class="fg"><label>Type</label>
-          <select name="type">
-            <option value="recours">Recours</option>
-            <option value="franchise">Franchise</option>
-            <option value="epave">Épave</option>
-            <option value="autre">Autre</option>
-          </select>
+          <select name="type"><option value="recours">Recours</option><option value="franchise">Franchise</option><option value="epave">Épave</option><option value="autre">Autre</option></select>
         </div>
         <button type="submit" class="btn btn-primary" style="white-space:nowrap;"><i class="fa fa-save"></i> Enregistrer</button>
       </div>
-      <div class="enc-form-comment" style="margin-top:10px;">
-        <div class="fg" style="display:flex;flex-direction:column;gap:5px;">
-          <label style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px;">Commentaire (optionnel)</label>
-          <input type="text" name="commentaire" placeholder="Précisions sur cet encaissement…" style="padding:8px 10px;border:1px solid var(--gray-300);border-radius:var(--radius);font-size:13px;">
-        </div>
+      <div style="margin-top:10px;">
+        <input type="text" name="commentaire" placeholder="Commentaire optionnel…" style="width:100%;padding:8px 10px;border:1px solid var(--gray-300);border-radius:var(--radius);font-size:13px;">
       </div>
     </form>
   </div>
   <?php else: ?>
-  <!-- Empty state selon la raison -->
   <div class="enc-forbidden">
-    <div class="ef-icon">
-      <?php if(!$encaissement_autorise): ?>
-      <i class="fa fa-ban"></i>
-      <?php else: ?>
-      <i class="fa fa-lock"></i>
-      <?php endif; ?>
+    <div class="ef-icon" style="background:<?= !$encaissement_autorise?'var(--red-50)':'var(--gray-100)'; ?>;color:<?= !$encaissement_autorise?'var(--red-600)':'var(--gray-500)'; ?>;">
+      <i class="fa <?= !$encaissement_autorise?'fa-ban':'fa-lock'; ?>"></i>
     </div>
     <?php if(!$encaissement_autorise): ?>
     <h4>Aucun recours possible</h4>
-    <p>Le tiers est déclaré non responsable dans ce dossier. L'enregistrement d'encaissements de recours n'est donc pas applicable.</p>
+    <p>Le tiers est déclaré non responsable. L'encaissement de recours n'est pas applicable.</p>
     <?php else: ?>
     <h4>Encaissement non disponible</h4>
-    <p>Le dossier doit être dans un état de règlement (partiel ou total) pour enregistrer un encaissement. État actuel : <strong><?= $dossier['nom_etat']; ?></strong></p>
+    <p>Le dossier doit être en règlement pour enregistrer un encaissement. État actuel : <strong><?= $dossier['nom_etat']; ?></strong></p>
     <?php endif; ?>
   </div>
   <?php endif; ?>
 
-  <!-- 4. Liste des encaissements -->
   <div class="crma-table-wrapper" style="margin-top:18px;">
-    <div class="table-toolbar" style="padding:12px 16px;">
-      <span style="font-size:12px;font-weight:600;color:var(--gray-600);display:flex;align-items:center;gap:7px;"><i class="fa fa-list" style="color:var(--green-700);"></i> Liste des encaissements</span>
-    </div>
+    <div class="table-toolbar" style="padding:12px 16px;"><span style="font-size:12px;font-weight:600;color:var(--gray-600);"><i class="fa fa-list" style="color:var(--green-700);margin-right:6px;"></i>Liste des encaissements</span></div>
     <table class="crma-table">
       <thead><tr><th>Date</th><th>Tiers</th><th>Type</th><th>Montant</th><th>Commentaire</th></tr></thead>
       <tbody>
       <?php
       $encs=mysqli_query($conn,"SELECT enc.*,p.nom,p.prenom,t.compagnie_assurance FROM encaissement enc JOIN tiers t ON enc.id_tiers=t.id_tiers JOIN personne p ON t.id_personne=p.id_personne WHERE enc.id_dossier=$id_dossier ORDER BY enc.id_encaissement DESC");
-      if(mysqli_num_rows($encs)==0) echo "<tr><td colspan='5'><div class='empty-state'><i class='fa fa-inbox'></i><p>Aucun encaissement enregistré</p></div></td></tr>";
-      $type_badges=['recours'=>'badge-blue','franchise'=>'badge-amber','epave'=>'badge-gray','autre'=>'badge-teal'];
+      if(mysqli_num_rows($encs)==0) echo "<tr><td colspan='5'><div class='empty-state'><i class='fa fa-inbox'></i><p>Aucun encaissement</p></div></td></tr>";
+      $type_badges_enc=['recours'=>'badge-blue','franchise'=>'badge-amber','epave'=>'badge-gray','autre'=>'badge-teal'];
       while($enc=mysqli_fetch_assoc($encs)){
-        $tb=$type_badges[$enc['type']]??'badge-gray';
+        $tb=$type_badges_enc[$enc['type']]??'badge-gray';
         echo "<tr><td style='font-size:12px;'>{$enc['date_encaissement']}</td><td><div style='font-weight:500;'>{$enc['nom']} {$enc['prenom']}</div><div style='font-size:11px;color:var(--gray-400);'>{$enc['compagnie_assurance']}</div></td><td><span class='badge $tb' style='font-size:11px;'>{$enc['type']}</span></td><td class='num-cell' style='font-weight:700;color:var(--green-800);'>".number_format($enc['montant'],2,',',' ')." DA</td><td style='font-size:12px;color:var(--gray-500);'>{$enc['commentaire']}</td></tr>";
       }
       ?>
@@ -756,24 +600,47 @@ $etat = $dossier['id_etat'];
   </div>
 </div>
 
-<!-- ===== TAB: HISTORIQUE ===== -->
+<!-- ─── TAB: HISTORIQUE ───────────────────────────────────────────── -->
 <div id="historique" class="crma-tab-content">
 <div class="crma-table-wrapper">
 <table class="crma-table">
-  <thead><tr><th>Date / Heure</th><th>Action</th><th>Ancien état</th><th>Nouvel état</th></tr></thead>
+  <thead><tr><th>Date / Heure</th><th>Action</th><th>Ancien état</th><th>Nouvel état</th><th>Motif</th><th>Commentaire</th></tr></thead>
   <tbody>
   <?php
-  $hist=mysqli_query($conn,"SELECT h.*,ea.nom_etat AS ancien,en.nom_etat AS nouveau FROM historique h LEFT JOIN etat_dossier ea ON h.ancien_etat=ea.id_etat LEFT JOIN etat_dossier en ON h.nouvel_etat=en.id_etat WHERE h.id_dossier=$id_dossier ORDER BY h.date_action DESC");
+  $hist=mysqli_query($conn,"
+    SELECT h.*,
+           ea.nom_etat AS ancien, en.nom_etat AS nouveau,
+           m.nom_motif
+    FROM historique h
+    LEFT JOIN etat_dossier ea ON h.ancien_etat=ea.id_etat
+    LEFT JOIN etat_dossier en ON h.nouvel_etat=en.id_etat
+    LEFT JOIN motif m ON h.id_motif=m.id_motif
+    WHERE h.id_dossier=$id_dossier
+    ORDER BY h.date_action DESC");
   while($h=mysqli_fetch_assoc($hist)){
     $a=strtolower($h['action']);
-    if(str_contains($a,'valid')) $as="background:var(--green-100);color:var(--green-800);";
-    elseif(str_contains($a,'refus')) $as="background:var(--red-50);color:var(--red-700);";
+    if(str_contains($a,'valid'))      $as="background:var(--green-100);color:var(--green-800);";
+    elseif(str_contains($a,'refus'))  $as="background:var(--red-50);color:var(--red-700);";
+    elseif(str_contains($a,'clôture')||str_contains($a,'classé')||str_contains($a,'cloture')) $as="background:#f3e5f5;color:#4a148c;";
     elseif(str_contains($a,'règlement')||str_contains($a,'reglement')) $as="background:var(--teal-50);color:var(--teal-700);";
     elseif(str_contains($a,'réserve')||str_contains($a,'reserve')) $as="background:var(--blue-50);color:var(--blue-800);";
     elseif(str_contains($a,'créat')||str_contains($a,'creat')) $as="background:#e8eaf6;color:#283593;";
+    elseif(str_contains($a,'repris')) $as="background:#fff3e0;color:#e65100;";
     elseif(str_contains($a,'encaissement')) $as="background:#f3e5f5;color:#4a148c;";
     else $as="background:var(--gray-100);color:var(--gray-600);";
-    echo "<tr><td style='font-size:12px;'><b>".date('d/m/Y',strtotime($h['date_action']))."</b><br><small style='color:var(--gray-400);'>".date('H:i:s',strtotime($h['date_action']))."</small></td><td><span style='$as padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:600;'>{$h['action']}</span></td><td style='font-size:12px;color:var(--gray-500);'>".($h['ancien']??'—')."</td><td style='font-size:12px;color:var(--gray-500);'>".($h['nouveau']??'—')."</td></tr>";
+
+    $motif_cell = $h['nom_motif']
+        ? "<span style='background:var(--amber-50);color:var(--amber-600);border:1px solid var(--amber-100);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;'>".$h['nom_motif']."</span>"
+        : '<span style="color:var(--gray-300);">—</span>';
+
+    echo "<tr>
+      <td style='font-size:12px;'><b>".date('d/m/Y',strtotime($h['date_action']))."</b><br><small style='color:var(--gray-400);'>".date('H:i:s',strtotime($h['date_action']))."</small></td>
+      <td><span style='$as padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:600;'>{$h['action']}</span></td>
+      <td style='font-size:12px;color:var(--gray-500);'>".($h['ancien']??'—')."</td>
+      <td style='font-size:12px;color:var(--gray-500);'>".($h['nouveau']??'—')."</td>
+      <td>$motif_cell</td>
+      <td style='font-size:12px;color:var(--gray-500);max-width:180px;'>".htmlspecialchars($h['commentaire']??'')."</td>
+    </tr>";
   }
   ?>
   </tbody>
@@ -783,7 +650,9 @@ $etat = $dossier['id_etat'];
 
 </div><!-- fin .main -->
 
+<!-- ─── JAVASCRIPT ────────────────────────────────────────────────── -->
 <script>
+// Onglets
 function showTab(tab, btn) {
   document.querySelectorAll('.crma-tab-content').forEach(t => t.style.display='none');
   document.querySelectorAll('.crma-tab-btn').forEach(b => b.classList.remove('active'));
@@ -796,6 +665,80 @@ if(tab) {
   const btn = document.querySelector(`.crma-tab-btn[onclick*="${tab}"]`);
   showTab(tab, btn);
 }
+
+// ─── Modal Transition d'état ─────────────────────────────────────
+let motifObligatoire = false;
+
+async function openTransition(nEtat, label) {
+  document.getElementById('input-nouvel-etat').value = nEtat;
+  document.getElementById('label-nouvel-etat').textContent = label;
+  document.getElementById('modal-transition-title').innerHTML =
+    '<i class="fa fa-route" style="color:var(--green-700)"></i> ' + label;
+
+  // Charger les motifs via AJAX
+  const groupeMotif = document.getElementById('groupe-motif');
+  const selectMotif = document.getElementById('select-motif');
+  const badgeObligatoire = document.getElementById('motif-obligatoire-badge');
+  const starRequired = document.getElementById('motif-required-star');
+
+  try {
+    const resp = await fetch(`/PfeCnma/cnma/crma/get_motifs.php?id_etat=${nEtat}`)
+    const data = await resp.json();
+
+    selectMotif.innerHTML = '<option value="">— Choisir un motif —</option>';
+
+    if (data.motifs && data.motifs.length > 0) {
+      data.motifs.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id_motif;
+        opt.textContent = m.nom_motif;
+        selectMotif.appendChild(opt);
+      });
+      groupeMotif.style.display = 'block';
+
+      motifObligatoire = data.obligatoire;
+      if (data.obligatoire) {
+        badgeObligatoire.style.display = 'inline-flex';
+        starRequired.style.display = 'inline';
+        selectMotif.required = true;
+      } else {
+        badgeObligatoire.style.display = 'none';
+        starRequired.style.display = 'none';
+        selectMotif.required = false;
+      }
+    } else {
+      groupeMotif.style.display = 'none';
+      selectMotif.required = false;
+      motifObligatoire = false;
+    }
+  } catch (e) {
+    groupeMotif.style.display = 'none';
+  }
+
+  document.getElementById('modal-transition').classList.add('open');
+}
+
+function closeTransition() {
+  document.getElementById('modal-transition').classList.remove('open');
+}
+
+// Fermer modal en cliquant dehors
+document.getElementById('modal-transition').addEventListener('click', function(e) {
+  if(e.target === this) closeTransition();
+});
+
+// Validation avant submit
+document.getElementById('form-transition').addEventListener('submit', function(e) {
+  const sel = document.getElementById('select-motif');
+  if (motifObligatoire && (!sel.value || sel.value === '')) {
+    e.preventDefault();
+    sel.style.border = '2px solid var(--red-600)';
+    sel.focus();
+    alert('⚠ Ce changement d\'état nécessite un motif. Veuillez en sélectionner un.');
+    return false;
+  }
+  
+});
 </script>
 </body>
 </html>
