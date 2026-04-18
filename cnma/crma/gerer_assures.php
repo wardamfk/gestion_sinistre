@@ -1,57 +1,95 @@
 <?php
-// gerer_assures.php — CRUD assurés (filtrés depuis personne statut='assure')
 include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
 
 $page_title = 'Gestion des assurés';
-$cin = isset($_POST['num_identite']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['num_identite'])) 
-    : '';
 $success = $error = '';
 
-/* ======= AJOUTER ASSURÉ ======= */
+/* ======= AJOUTER ASSURÉ (personne + assuré en une seule étape) ======= */
 if (isset($_POST['ajouter'])) {
-    $id_personne    = intval($_POST['id_personne']);
+    // --- Données PERSONNE ---
+    $nom            = mysqli_real_escape_string($conn, trim($_POST['nom']));
+    $prenom         = mysqli_real_escape_string($conn, trim($_POST['prenom']));
+    $cin            = mysqli_real_escape_string($conn, trim($_POST['num_identite']));
+    $tel            = mysqli_real_escape_string($conn, trim($_POST['telephone']));
+    $email_p        = mysqli_real_escape_string($conn, trim($_POST['email']));
+    $adresse        = mysqli_real_escape_string($conn, trim($_POST['adresse']));
+    $date_naissance = !empty($_POST['date_naissance']) ? $_POST['date_naissance'] : null;
+    $lieu_naissance = mysqli_real_escape_string($conn, trim($_POST['lieu_naissance'] ?? ''));
+
+    // --- Données ASSURÉ ---
     $date_creation  = $_POST['date_creation'];
     $actif          = intval($_POST['actif']);
-    $num_permis     = mysqli_real_escape_string($conn, $_POST['num_permis']);
+    $num_permis     = mysqli_real_escape_string($conn, trim($_POST['num_permis']));
     $date_deliv     = $_POST['date_delivrance_permis'];
-    $lieu_deliv     = mysqli_real_escape_string($conn, $_POST['lieu_delivrance_permis']);
+    $lieu_deliv     = mysqli_real_escape_string($conn, trim($_POST['lieu_delivrance_permis']));
     $type_permis    = $_POST['type_permis'];
-$checkPermis = mysqli_fetch_assoc(mysqli_query($conn,
-"SELECT id_assure FROM assure WHERE num_permis='$num_permis'"))['id_assure'] ?? 0;
-    // Vérif doublon
-    $check = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT id_assure FROM assure WHERE id_personne=$id_personne"))['id_assure'] ?? 0;
-  if ($check) {
-    $error = "Cette personne est déjà enregistrée comme assurée.";
-} elseif ($checkPermis) {
-    $error = "❌ Ce numéro de permis existe déjà !";
+
+    // Vérifications doublons
+    $checkCIN    = mysqli_num_rows(mysqli_query($conn, "SELECT id_personne FROM personne WHERE num_identite='$cin'"));
+    $checkPermis = $num_permis ? mysqli_num_rows(mysqli_query($conn, "SELECT id_assure FROM assure WHERE num_permis='$num_permis'")) : 0;
+
+    if ($checkCIN > 0) {
+        $error = "❌ Ce numéro d'identité (CIN) est déjà utilisé.";
+    } elseif ($checkPermis > 0) {
+        $error = "❌ Ce numéro de permis est déjà enregistré.";
+    } else {
+        // 1. Créer la personne
+        $dn_sql = $date_naissance ? "'$date_naissance'" : "NULL";
+        $type = $_POST['type_personne'];
+       if ($type == 'physique') {
+
+    mysqli_query($conn, "INSERT INTO personne
+    (type_personne, nom, prenom, num_identite, date_naissance, lieu_naissance, telephone, adresse, email, statut_personne)
+    VALUES ('physique','$nom','$prenom','$cin',$dn_sql,'$lieu_naissance','$tel','$adresse','$email_p','assure')");
+
 } else {
-   
-        mysqli_query($conn, "INSERT INTO assure
-            (id_personne,date_creation,actif,num_permis,date_delivrance_permis,lieu_delivrance_permis,type_permis)
-            VALUES ($id_personne,'$date_creation',$actif,'$num_permis','$date_deliv','$lieu_deliv','$type_permis')");
-        $success = "Assuré ajouté avec succès.";
+
+    $raison = mysqli_real_escape_string($conn, $_POST['raison_sociale']);
+
+    mysqli_query($conn, "INSERT INTO personne
+    (type_personne, raison_sociale, telephone, adresse, email, statut_personne)
+    VALUES ('morale','$raison','$tel','$adresse','$email_p','assure')");
+}
+        // 2. Créer l'assuré lié
+       $id_personne = mysqli_insert_id($conn);
+
+if ($type == 'physique') {
+
+    mysqli_query($conn, "INSERT INTO assure
+    (id_personne, date_creation, actif, num_permis, date_delivrance_permis, lieu_delivrance_permis, type_permis)
+    VALUES ($id_personne,'$date_creation',$actif,'$num_permis','$date_deliv','$lieu_deliv','$type_permis')");
+
+} else {
+
+    mysqli_query($conn, "INSERT INTO assure
+    (id_personne, date_creation, actif)
+    VALUES ($id_personne,'$date_creation',$actif)");
+}
+       if ($type == 'morale') {
+    $success = "Assuré <b>$raison</b> créé avec succès.";
+} else {
+    $success = "Assuré <b>$nom $prenom</b> créé avec succès.";
+}
     }
 }
 
 /* ======= MODIFIER ASSURÉ ======= */
 if (isset($_POST['modifier'])) {
-    $id         = intval($_POST['id_assure']);
-    $actif      = intval($_POST['actif']);
-    $num_permis = mysqli_real_escape_string($conn, $_POST['num_permis']);
-    $date_deliv = $_POST['date_delivrance_permis'];
-    $lieu_deliv = mysqli_real_escape_string($conn, $_POST['lieu_delivrance_permis']);
-    $type_permis= $_POST['type_permis'];
+    $id          = intval($_POST['id_assure']);
+    $actif       = intval($_POST['actif']);
+    $num_permis  = mysqli_real_escape_string($conn, $_POST['num_permis']);
+    $date_deliv  = $_POST['date_delivrance_permis'];
+    $lieu_deliv  = mysqli_real_escape_string($conn, $_POST['lieu_delivrance_permis']);
+    $type_permis = $_POST['type_permis'];
     mysqli_query($conn, "UPDATE assure SET
         actif=$actif, num_permis='$num_permis',
         date_delivrance_permis='$date_deliv',
         lieu_delivrance_permis='$lieu_deliv',
         type_permis='$type_permis'
         WHERE id_assure=$id");
-    $success = "Assuré modifié.";
+    $success = "✅ Assuré modifié.";
 }
 
 /* ======= SUPPRIMER ======= */
@@ -82,13 +120,12 @@ if (isset($_POST['creer_compte'])) {
     }
 }
 
-/* ======= DONNÉES ======= */
-$filtre_q    = $_GET['q'] ?? '';
-$filtre_actif= $_GET['actif'] ?? '';
+/* ======= DONNÉES LISTE ======= */
+$filtre_q     = $_GET['q'] ?? '';
+$filtre_actif = $_GET['actif'] ?? '';
 $where = "WHERE 1=1";
-if ($filtre_q)     $where .= " AND (p.nom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%'
-                                 OR p.prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%')";
-if ($filtre_actif !== '') $where .= " AND a.actif=".intval($filtre_actif);
+if ($filtre_q)             $where .= " AND (p.nom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%' OR p.prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%')";
+if ($filtre_actif !== '')  $where .= " AND a.actif=".intval($filtre_actif);
 
 $assures = mysqli_query($conn, "
     SELECT a.*,p.nom,p.prenom,p.telephone,p.email,p.adresse,p.num_identite,
@@ -99,13 +136,6 @@ $assures = mysqli_query($conn, "
     $where
     ORDER BY a.id_assure DESC");
 $total = mysqli_num_rows($assures);
-
-/* Personnes assurées sans compte assure */
-$personnes_dispo = mysqli_query($conn,
-    "SELECT id_personne,nom,prenom,email FROM personne
-     WHERE statut_personne='assure'
-     AND id_personne NOT IN (SELECT id_personne FROM assure WHERE id_personne IS NOT NULL)
-     ORDER BY nom");
 
 /* Édition */
 $edit = null;
@@ -128,13 +158,14 @@ if (isset($_GET['compte'])) {
 <meta charset="UTF-8">
 <title>Assurés — CRMA</title>
 <link rel="stylesheet" href="../css/style_crma.css">
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;padding:30px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-box{background:#fff;border-radius:16px;padding:30px;width:720px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .modal-box h3{font-size:16px;font-weight:600;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px}
+.section-divider{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 14px;margin:18px 0 14px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px}
+.section-divider i{font-size:13px}
 </style>
 </head>
 <body>
@@ -184,14 +215,11 @@ if (isset($_GET['compte'])) {
         <tr>
             <td>
                 <div style="font-weight:500"><?= htmlspecialchars($a['nom'].' '.$a['prenom']) ?></div>
-                <div style="font-size:11px;color:var(--gray-400)">
-    CIN: <?= htmlspecialchars($a['num_identite']) ?>
-</div>
+                <div style="font-size:11px;color:var(--gray-400)">CIN: <?= htmlspecialchars($a['num_identite']) ?></div>
                 <div style="font-size:11px;color:var(--gray-400)">#<?= $a['id_assure'] ?> · <?= $a['date_creation'] ?></div>
             </td>
             <td>
-                <div><?= htmlspecialchars($a['telephone'] ?? '') ?>
-</div>
+                <div><?= htmlspecialchars($a['telephone'] ?? '') ?></div>
                 <div style="font-size:12px;color:var(--blue-700)"><?= htmlspecialchars($a['email']) ?></div>
             </td>
             <td>
@@ -231,9 +259,8 @@ if (isset($_GET['compte'])) {
                         <i class="fa fa-file-contract"></i>
                     </a>
                     <?php if ($a['nb_contrats'] == 0): ?>
-                    <a href="#"
-   class="btn btn-xs btn-danger"
-   onclick="confirmDeleteAssure(event, <?= $a['id_assure'] ?>)">
+                    <a href="#" class="btn btn-xs btn-danger"
+                       onclick="confirmDeleteAssure(event, <?= $a['id_assure'] ?>)">
                         <i class="fa fa-trash"></i>
                     </a>
                     <?php endif; ?>
@@ -248,26 +275,89 @@ if (isset($_GET['compte'])) {
     </table>
 </div>
 
-<!-- ====== MODAL AJOUTER ====== -->
+<!-- ====== MODAL AJOUTER (personne + assuré) ====== -->
 <div class="modal-overlay" id="modal-add">
 <div class="modal-box">
     <h3><i class="fa fa-user-plus" style="color:var(--green-700)"></i> Nouvel assuré</h3>
-    <p style="font-size:13px;color:var(--gray-500);margin-bottom:18px">
-        Choisissez une personne existante avec le statut <b>Assuré</b>.
-        <a href="gerer_personnes.php" style="color:var(--green-700)">Ajouter une personne</a>
-    </p>
+
     <form method="POST">
-        <div class="form-group">
-            <label>Personne <span style="color:red">*</span></label>
-            <select name="id_personne" required>
-                <option value="">— Sélectionner —</option>
-                <?php while ($prs = mysqli_fetch_assoc($personnes_dispo)): ?>
-                <option value="<?= $prs['id_personne'] ?>" data-email="<?= htmlspecialchars($prs['email']) ?>">
-                    <?= htmlspecialchars($prs['nom'].' '.$prs['prenom']) ?>
-                </option>
-                <?php endwhile; ?>
-            </select>
+
+        <!-- ===== PARTIE 1 : PERSONNE ===== -->
+        <div class="section-divider" style="background:var(--green-50);border-color:var(--green-200);color:var(--green-800);">
+            <i class="fa fa-user" style="color:var(--green-700)"></i>
+            Informations personnelles
         </div>
+<div class="form-group">
+    <label>Type de personne <span style="color:red">*</span></label>
+    <select name="type_personne" id="type_personne" onchange="toggleTypeAssure()" required>
+        <option value="physique">Physique</option>
+        <option value="morale">Morale (Entreprise)</option>
+    </select>
+</div>
+   <div id="physique_fields">
+
+    <!-- Nom / Prénom -->
+    <div class="form-grid-2">
+        <div class="form-group">
+            <label>Nom <span style="color:red">*</span></label>
+            <input type="text" name="nom" id="nom">
+        </div>
+        <div class="form-group">
+            <label>Prénom <span style="color:red">*</span></label>
+            <input type="text" name="prenom" id="prenom">
+        </div>
+    </div>
+
+    <!-- Date + lieu naissance -->
+    <div class="form-grid-2">
+        <div class="form-group">
+            <label>Date de naissance <span style="color:red">*</span></label>
+            <input type="date" name="date_naissance" id="date_naissance">
+        </div>
+        <div class="form-group">
+            <label>Lieu de naissance <span style="color:red">*</span></label>
+            <input type="text" name="lieu_naissance" id="lieu_naissance">
+        </div>
+    </div>
+
+</div>
+
+<div id="morale_fields" style="display:none">
+    <div class="form-group">
+        <label>Raison sociale <span style="color:red">*</span></label>
+        <input type="text" name="raison_sociale" id="raison_sociale">
+    </div>
+</div>
+
+        <div class="form-group">
+            <label>N° identité (CIN) <span style="color:red">*</span></label>
+            <input type="text" name="num_identite" id="cin_add" required placeholder="Ex: 026737698">
+            <small id="cin-error" class="error-text"></small>
+        </div>
+
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Téléphone <span style="color:red">*</span></label>
+                <input type="text" name="telephone" required placeholder="Ex: 0550 00 00 00">
+            </div>
+            <div class="form-group">
+                <label>Email <span style="color:red">*</span></label>
+                <input type="email" name="email" required placeholder="exemple@mail.com">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Adresse</label>
+            <input type="text" name="adresse" placeholder="Ex: 12 rue des Fleurs, Alger">
+        </div>
+
+        <!-- ===== PARTIE 2 : ASSURÉ ===== -->
+        <div class="section-divider" style="background:var(--blue-50);border-color:var(--blue-100);color:var(--blue-800);">
+            <i class="fa fa-id-card" style="color:var(--blue-700)"></i>
+            Informations assuré & permis
+        </div>
+
         <div class="form-grid-2">
             <div class="form-group">
                 <label>Date de création</label>
@@ -281,27 +371,38 @@ if (isset($_GET['compte'])) {
                 </select>
             </div>
         </div>
+
         <div class="form-grid-2">
             <div class="form-group">
-    <label>N° Permis</label>
-    <input type="text" name="num_permis" id="num_permis" placeholder="Ex: AB123456" required>
-    <small id="permis-error" class="error-text"></small>
-</div>
+                <label>N° Permis <span style="color:red">*</span></label>
+                <input type="text" name="num_permis" id="permis_add" required placeholder="Ex: AB123456">
+                <small id="permis-error" class="error-text"></small>
+            </div>
             <div class="form-group">
                 <label>Type permis</label>
                 <select name="type_permis">
-                    <option value="B">B</option><option value="A">A</option>
-                    <option value="C">C</option><option value="D">D</option>
+                    <option value="B">B</option>
+                    <option value="A">A</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
                 </select>
             </div>
         </div>
+
         <div class="form-grid-2">
-            <div class="form-group"><label>Date délivrance</label><input type="date" name="date_delivrance_permis" placeholder="Ex: 2023-01-01" required></div>
-            <div class="form-group"><label>Lieu délivrance</label><input type="text" name="lieu_delivrance_permis" placeholder="Ex: alger" required></div>
+            <div class="form-group">
+                <label>Date délivrance permis <span style="color:red">*</span></label>
+                <input type="date" name="date_delivrance_permis" required>
+            </div>
+            <div class="form-group">
+                <label>Lieu délivrance permis <span style="color:red">*</span></label>
+                <input type="text" name="lieu_delivrance_permis" required placeholder="Ex: Alger">
+            </div>
         </div>
+
         <div style="display:flex;gap:10px;margin-top:20px">
             <button type="submit" name="ajouter" class="btn btn-primary" style="flex:1">
-                <i class="fa fa-save"></i> Ajouter
+                <i class="fa fa-save"></i> Créer l'assuré
             </button>
             <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Annuler</button>
         </div>
@@ -318,6 +419,28 @@ if (isset($_GET['compte'])) {
     </h3>
     <form method="POST">
         <input type="hidden" name="id_assure" value="<?= $edit['id_assure'] ?>">
+
+        <!-- Infos identité en lecture seule -->
+        <div class="section-divider" style="background:var(--gray-100);border-color:var(--gray-200);">
+            <i class="fa fa-lock"></i> Identité (non modifiable)
+        </div>
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Nom complet</label>
+                <input type="text" value="<?= htmlspecialchars($edit['nom'].' '.$edit['prenom']) ?>"
+                       style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed" readonly>
+            </div>
+            <div class="form-group">
+                <label>CIN</label>
+                <input type="text" value="<?= htmlspecialchars($edit['num_identite'] ?? '—') ?>"
+                       style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed" readonly>
+            </div>
+        </div>
+
+        <div class="section-divider" style="background:var(--blue-50);border-color:var(--blue-100);color:var(--blue-800);">
+            <i class="fa fa-id-card" style="color:var(--blue-700)"></i> Informations assuré & permis
+        </div>
+
         <div class="form-group">
             <label>Statut</label>
             <select name="actif">
@@ -326,7 +449,10 @@ if (isset($_GET['compte'])) {
             </select>
         </div>
         <div class="form-grid-2">
-            <div class="form-group"><label>N° Permis</label><input type="text" name="num_permis" value="<?= htmlspecialchars($edit['num_permis'] ?? '') ?>"></div>
+            <div class="form-group">
+                <label>N° Permis</label>
+                <input type="text" name="num_permis" value="<?= htmlspecialchars($edit['num_permis'] ?? '') ?>">
+            </div>
             <div class="form-group">
                 <label>Type permis</label>
                 <select name="type_permis">
@@ -337,12 +463,20 @@ if (isset($_GET['compte'])) {
             </div>
         </div>
         <div class="form-grid-2">
-            <div class="form-group"><label>Date délivrance</label><input type="date" name="date_delivrance_permis"value="<?= $edit['date_delivrance_permis'] ?? '' ?>"></div>
-            <div class="form-group"><label>Lieu délivrance</label><input type="text" name="lieu_delivrance_permis" 
-            value="<?= htmlspecialchars($edit['lieu_delivrance_permis'] ?? '') ?>"></div>
+            <div class="form-group">
+                <label>Date délivrance</label>
+                <input type="date" name="date_delivrance_permis" value="<?= $edit['date_delivrance_permis'] ?? '' ?>">
+            </div>
+            <div class="form-group">
+                <label>Lieu délivrance</label>
+                <input type="text" name="lieu_delivrance_permis"
+                       value="<?= htmlspecialchars($edit['lieu_delivrance_permis'] ?? '') ?>">
+            </div>
         </div>
         <div style="display:flex;gap:10px;margin-top:20px">
-            <button type="submit" name="modifier" class="btn btn-primary" style="flex:1"><i class="fa fa-save"></i> Modifier</button>
+            <button type="submit" name="modifier" class="btn btn-primary" style="flex:1">
+                <i class="fa fa-save"></i> Modifier
+            </button>
             <a href="gerer_assures.php" class="btn btn-outline">Annuler</a>
         </div>
     </form>
@@ -368,7 +502,9 @@ if (isset($_GET['compte'])) {
             <input type="password" name="pwd_compte" required minlength="6" placeholder="Minimum 6 caractères">
         </div>
         <div style="display:flex;gap:10px;margin-top:20px">
-            <button type="submit" name="creer_compte" class="btn btn-info" style="flex:1"><i class="fa fa-save"></i> Créer le compte</button>
+            <button type="submit" name="creer_compte" class="btn btn-info" style="flex:1">
+                <i class="fa fa-save"></i> Créer le compte
+            </button>
             <a href="gerer_assures.php" class="btn btn-outline">Annuler</a>
         </div>
     </form>
@@ -377,70 +513,150 @@ if (isset($_GET['compte'])) {
 <?php endif; ?>
 
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>      
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
-</script>
-<script>
-const input = document.getElementById('num_permis');
-const errorText = document.getElementById('permis-error');
 
-let timeout = null;
+// ── Vérification CIN en temps réel ──
+const cinInput = document.getElementById('cin_add');
 
-input.addEventListener('input', () => {
-    clearTimeout(timeout);
-
-    const val = input.value.trim();
-
-    if(val.length < 3){
-        input.classList.remove('input-error');
-        errorText.textContent = '';
-        return;
-    }
-
-    document.querySelector('#modal-add form').addEventListener('submit', function(e){
-    if(input.classList.contains('input-error')){
-        e.preventDefault();
-    }
-});
-    timeout = setTimeout(() => {
-        fetch('check_permis.php?num=' + encodeURIComponent(val))
-        .then(res => res.json())
-        .then(data => {
-            if(data.exists){
-                input.classList.add('input-error');
-                errorText.textContent = "❌ Ce numéro existe déjà";
+const cinError = document.getElementById('cin-error');
+let cinInvalid = false;
+let cinTimeout = null;
+cinInput.addEventListener('input', () => {
+    clearTimeout(cinTimeout);
+    const val = cinInput.value.trim();
+    if (!val) { cinInput.classList.remove('input-error'); cinError.textContent = ''; cinInvalid = true; return; }
+    cinTimeout = setTimeout(() => {
+        fetch('check_cin.php?cin=' + encodeURIComponent(val))
+        .then(r => r.json())
+        .then(d => {
+            if (d.exists) {
+                cinInput.classList.add('input-error');
+                cinError.innerHTML = '❌ Ce numéro d\'identité est déjà utilisé';
+                cinInvalid = true;
             } else {
-                input.classList.remove('input-error');
-                errorText.textContent = "";
+                cinInput.classList.remove('input-error');
+                cinError.textContent = '';
+                cinInvalid = false;
             }
         });
     }, 400);
-    input.dispatchEvent(new Event('input')); // anti spam requêtes
-    
 });
-function confirmDeleteAssure(e, id){
-    e.preventDefault();
 
+// ── Vérification Permis en temps réel ──
+const permisInput = document.getElementById('permis_add');
+const permisError = document.getElementById('permis-error');
+let permisInvalid = false;
+let permisTimeout = null;
+permisInput.addEventListener('input', () => {
+    clearTimeout(permisTimeout);
+    const val = permisInput.value.trim();
+    if (val.length < 3) { permisInput.classList.remove('input-error'); permisError.textContent = ''; return; }
+    permisTimeout = setTimeout(() => {
+        fetch('check_permis.php?num=' + encodeURIComponent(val))
+        .then(r => r.json())
+        .then(d => {
+            if (d.exists) {
+                permisInput.classList.add('input-error');
+                permisError.innerHTML = '❌ Ce numéro de permis existe déjà';
+                permisInvalid = true;
+            } else {
+                permisInput.classList.remove('input-error');
+                permisError.textContent = '';
+                permisInvalid = false;
+            }
+        });
+    }, 400);
+});
+
+// ── Bloquer soumission si erreurs ──
+document.querySelector('#modal-add form').addEventListener('submit', function(e) {
+    if (cinInvalid || permisInvalid) e.preventDefault();
+});
+function toggleTypeAssure() {
+
+    const type = document.getElementById('type_personne').value;
+    const cin = document.getElementById('cin_add');
+
+    const nom = document.getElementById('nom');
+    const prenom = document.getElementById('prenom');
+    const raison = document.getElementById('raison_sociale');
+
+    const date = document.getElementById('date_naissance');
+    const lieu = document.getElementById('lieu_naissance');
+
+    const physique = document.getElementById('physique_fields');
+    const morale = document.getElementById('morale_fields');
+    const permis = document.getElementById('permis_fields');
+if (type === 'physique') {
+    cin.required = true;
+} else {
+    cin.required = false;
+    cin.value = '';
+}
+    if (type === 'physique') {
+
+        // affichage
+        physique.style.display = '';
+        morale.style.display = 'none';
+        permis.style.display = '';
+
+        // required
+        nom.required = true;
+        prenom.required = true;
+        date.required = true;
+        lieu.required = true;
+
+        raison.required = false;
+
+        // nettoyage
+        raison.value = '';
+
+    } else {
+
+        // affichage
+        physique.style.display = 'none';
+        morale.style.display = '';
+        permis.style.display = 'none';
+
+        // required
+        nom.required = false;
+        prenom.required = false;
+        date.required = false;
+        lieu.required = false;
+
+        raison.required = true;
+
+        // nettoyage
+        nom.value = '';
+        prenom.value = '';
+        date.value = '';
+        lieu.value = '';
+    } 
+   
+} 
+window.onload = toggleTypeAssure;
+function confirmDeleteAssure(e, id) {
+    e.preventDefault();
     Swal.fire({
         title: 'Supprimer cet assuré ?',
-        text: "Cette action est irréversible",
+        text: 'Cette action est irréversible',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Oui, supprimer',
         cancelButtonText: 'Annuler'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = "?del=" + id;
-        }
-    });
+    }).then(r => { if (r.isConfirmed) window.location.href = '?del=' + id; });
+   
 }
 </script>
+
 </body>
-</html>
+</html> 

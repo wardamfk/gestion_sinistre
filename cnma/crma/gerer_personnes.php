@@ -1,5 +1,6 @@
 <?php
-// gerer_personnes.php — CRUD personnes avec statut_personne
+// gerer_personnes.php — Référentiel personnes (lecture + modification + suppression)
+// La création se fait désormais depuis : Assurés / Experts / Tiers
 include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
@@ -10,135 +11,41 @@ $success = $error = '';
 /* ======= SUPPRESSION ======= */
 if (isset($_GET['del'])) {
     $id = intval($_GET['del']);
-
     $usage = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT 
+        "SELECT
             (SELECT COUNT(*) FROM assure WHERE id_personne=$id)+
             (SELECT COUNT(*) FROM tiers  WHERE id_personne=$id)+
             (SELECT COUNT(*) FROM expert WHERE id_personne=$id)
         as n"))['n'];
-
     if ($usage > 0) {
-        $error = "❌ Impossible de supprimer : cette personne est utilisée dans le système..";
+        $error = "❌ Impossible de supprimer : cette personne est utilisée dans le système.";
     } else {
-
-        $res = mysqli_query($conn, "DELETE FROM personne WHERE id_personne=$id");
-
-        if($res){
-            $success = "Personne supprimée.";
-        } else {
-            $error = "❌ Suppression échouée (erreur base)";
-        }
+        mysqli_query($conn, "DELETE FROM personne WHERE id_personne=$id");
+        $success = "Personne supprimée.";
     }
-}
-
-
-/* ======= AJOUT ======= */
-if (isset($_POST['ajouter'])) {
-    $type    = $_POST['type_personne'];
-$nom = isset($_POST['nom']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['nom'])) 
-    : '';
-
-$prenom = isset($_POST['prenom']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['prenom'])) 
-    : '';
-
-$raison = isset($_POST['raison_sociale']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['raison_sociale'])) 
-    : '';
-
-$tel = isset($_POST['telephone']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['telephone'])) 
-    : '';
-
-$adr = isset($_POST['adresse']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['adresse'])) 
-    : '';
-
-$email = isset($_POST['email']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['email'])) 
-    : '';
-$lieu_naissance = mysqli_real_escape_string($conn, $_POST['lieu_naissance'] ?? '');
-$date_naissance = $_POST['date_naissance'] ?? null;
-    $statut  = $_POST['statut_personne'];
-$cin = isset($_POST['num_identite']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['num_identite'])) 
-    : '';
- $result = mysqli_query($conn,
-"SELECT id_personne FROM personne WHERE num_identite='$cin'");
-
-$check = 0;
-
-if ($result && mysqli_num_rows($result) > 0) {
-    $row = mysqli_fetch_assoc($result);
-    $check = $row['id_personne'];
-}
-
-if ($check) {
-    $error = "❌ Ce numéro d'identité existe déjà !";
-} else {
-
-    $sql = "INSERT INTO personne
-    (type_personne,nom,prenom,raison_sociale,num_identite,date_naissance,lieu_naissance,telephone,adresse,email,statut_personne)
-    VALUES ('$type','$nom','$prenom','$raison','$cin','$date_naissance','$lieu_naissance','$tel','$adr','$email','$statut')";
-
-    if (mysqli_query($conn, $sql)) {
-        $success = "✅ Personne ajoutée avec succès.";
-    } else {
-        $error = "Erreur : " . mysqli_error($conn);
-    }
-}
 }
 
 /* ======= MODIFICATION ======= */
 if (isset($_POST['modifier'])) {
     $id     = intval($_POST['id_personne']);
     $type   = $_POST['type_personne'];
-  $nom = isset($_POST['nom']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['nom'])) 
-    : '';
+    $nom    = mysqli_real_escape_string($conn, trim($_POST['nom'] ?? ''));
+    $prenom = mysqli_real_escape_string($conn, trim($_POST['prenom'] ?? ''));
+    $raison = mysqli_real_escape_string($conn, trim($_POST['raison_sociale'] ?? ''));
+    $tel    = mysqli_real_escape_string($conn, trim($_POST['telephone'] ?? ''));
+    $adr    = mysqli_real_escape_string($conn, trim($_POST['adresse'] ?? ''));
+    $email  = mysqli_real_escape_string($conn, trim($_POST['email'] ?? ''));
+    $lieu_naissance = mysqli_real_escape_string($conn, $_POST['lieu_naissance'] ?? '');
+    $date_naissance = $_POST['date_naissance'] ?? null;
+   
 
-$prenom = isset($_POST['prenom']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['prenom'])) 
-    : '';
-
-$raison = isset($_POST['raison_sociale']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['raison_sociale'])) 
-    : '';
-
-
-    $cin = isset($_POST['num_identite']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['num_identite'])) 
-    : '';
-$tel = isset($_POST['telephone']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['telephone'])) 
-    : '';
-
-$adr = isset($_POST['adresse']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['adresse'])) 
-    : '';
-
-$email = isset($_POST['email']) 
-    ? mysqli_real_escape_string($conn, trim($_POST['email'])) 
-    : '';
-$lieu_naissance = mysqli_real_escape_string($conn, $_POST['lieu_naissance'] ?? '');
-$date_naissance = $_POST['date_naissance'] ?? null;
-    $statut = $_POST['statut_personne'];
-
- mysqli_query($conn, "UPDATE personne SET
-    type_personne='$type',
-    nom='$nom',
-    prenom='$prenom',
-    raison_sociale='$raison',
-    telephone='$tel',
-    adresse='$adr',
-    email='$email',
-    date_naissance ".($date_naissance ? "='$date_naissance'" : "=NULL").",
-    lieu_naissance='$lieu_naissance',
-    statut_personne='$statut'
-    WHERE id_personne=$id");
-    $success = "Personne modifiée.";
+    mysqli_query($conn, "UPDATE personne SET
+        type_personne='$type', nom='$nom', prenom='$prenom',
+        raison_sociale='$raison', telephone='$tel', adresse='$adr', email='$email',
+        date_naissance ".($date_naissance ? "='$date_naissance'" : "=NULL").",
+        lieu_naissance='$lieu_naissance'
+        WHERE id_personne=$id");
+    $success = "✅ Personne modifiée.";
 }
 
 /* ======= FILTRE ======= */
@@ -147,8 +54,8 @@ $filtre_search = $_GET['q'] ?? '';
 $where = "WHERE 1=1";
 if ($filtre_statut) $where .= " AND statut_personne='".mysqli_real_escape_string($conn,$filtre_statut)."'";
 if ($filtre_search) $where .= " AND (nom LIKE '%".mysqli_real_escape_string($conn,$filtre_search)."%'
-                                OR prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_search)."%'
-                                OR telephone LIKE '%".mysqli_real_escape_string($conn,$filtre_search)."%')";
+                               OR prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_search)."%'
+                               OR telephone LIKE '%".mysqli_real_escape_string($conn,$filtre_search)."%')";
 
 $personnes = mysqli_query($conn, "SELECT * FROM personne $where ORDER BY id_personne DESC");
 $total = mysqli_num_rows($personnes);
@@ -161,9 +68,9 @@ if (isset($_GET['edit'])) {
 }
 
 /* Stats rapides */
-$cnt_assure   = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM personne WHERE statut_personne='assure'"))['n'];
-$cnt_expert   = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM personne WHERE statut_personne='expert'"))['n'];
-$cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM personne WHERE statut_personne='adversaire'"))['n'];
+$cnt_assure    = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM personne WHERE statut_personne='assure'"))['n'];
+$cnt_expert    = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM personne WHERE statut_personne='expert'"))['n'];
+$cnt_adversaire= mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM personne WHERE statut_personne='adversaire'"))['n'];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -175,8 +82,11 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;padding:30px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-box{background:#fff;border-radius:16px;padding:30px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
 .modal-box h3{font-size:16px;font-weight:600;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:8px}
+.create-tip{display:flex;align-items:center;gap:10px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--green-800)}
+.create-tip a{color:var(--green-700);font-weight:600;text-decoration:none}
+.create-tip a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -185,15 +95,23 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
 
 <div class="crma-main">
 
-<!-- PAGE HEADING -->
+<!-- PAGE HEADING — sans bouton "Nouvelle personne" -->
 <div class="page-heading">
     <div>
         <h1><i class="fa fa-users"></i> Personnes</h1>
         <p class="sub">Référentiel centralisé — assurés, experts, adversaires</p>
     </div>
-    <button class="btn btn-primary" onclick="openModal('modal-add')">
-        <i class="fa fa-plus"></i> Nouvelle personne
-    </button>
+</div>
+
+<!-- TIP : où créer les personnes -->
+<div class="create-tip">
+    <i class="fa fa-lightbulb" style="font-size:16px;flex-shrink:0;"></i>
+    <div>
+        Pour ajouter une nouvelle personne, utilisez directement :
+        <a href="gerer_assures.php">Assurés</a>,
+        <a href="gerer_experts.php">Experts</a> ou
+        <a href="gerer_tiers.php">Tiers adversaires</a> — la personne y sera créée automatiquement en même temps.
+    </div>
 </div>
 
 <!-- STATS -->
@@ -221,7 +139,8 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
 
 <!-- FILTRES -->
 <form method="GET" class="filter-bar">
-    <input type="text" name="q" placeholder="Rechercher nom, prénom, téléphone…" value="<?= htmlspecialchars($filtre_search) ?>">
+    <input type="text" name="q" placeholder="Rechercher nom, prénom, téléphone…"
+           value="<?= htmlspecialchars($filtre_search) ?>">
     <select name="statut">
         <option value="">Tous les rôles</option>
         <option value="assure"     <?= $filtre_statut=='assure'     ?'selected':'' ?>>Assuré</option>
@@ -240,8 +159,8 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
     <table class="crma-table">
         <thead>
             <tr>
-               <th>#</th><th>Nom complet</th><th>CIN</th><th>Rôle</th><th>Téléphone</th>
-                <th>Adresse</th><th>Email</th><th>Actions</th>
+                <th>#</th><th>Nom complet</th><th>CIN</th><th>Rôle</th>
+                <th>Téléphone</th><th>Adresse</th><th>Email</th><th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -265,98 +184,44 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
                 </div>
                 <div style="font-size:11px;color:var(--gray-400)"><?= ucfirst($p['type_personne']) ?></div>
             </td>
-            <td>
-    <?= $p['num_identite'] 
-        ? htmlspecialchars($p['num_identite']) 
-        : '<span style="color:var(--gray-300)">—</span>' ?>
-</td>
+            <td><?= $p['num_identite']
+                ? htmlspecialchars($p['num_identite'])
+                : '<span style="color:var(--gray-300)">—</span>' ?></td>
             <td><span class="badge <?= $sinfo[0] ?>"><?= $sinfo[1] ?></span></td>
             <td class="num-cell"><?= htmlspecialchars($p['telephone']) ?></td>
             <td style="font-size:13px"><?= htmlspecialchars($p['adresse']) ?></td>
             <td style="font-size:13px;color:var(--blue-700)"><?= htmlspecialchars($p['email']) ?></td>
             <td>
                 <div style="display:flex;gap:4px;flex-wrap:wrap">
-                    <a href="?edit=<?= $p['id_personne'] ?>" class="btn btn-outline btn-xs">
+                    <a href="?edit=<?= $p['id_personne'] ?>" class="btn btn-outline btn-xs" title="Modifier">
                         <i class="fa fa-pen"></i>
                     </a>
                     <?php if ($p['statut_personne']=='assure'): ?>
-                    <a href="gerer_assures.php?from=<?= $p['id_personne'] ?>" class="btn btn-xs btn-info" title="Gérer assuré">
+                    <a href="gerer_assures.php" class="btn btn-xs btn-info" title="Gérer assuré">
                         <i class="fa fa-id-card"></i>
                     </a>
+                    <?php elseif ($p['statut_personne']=='expert'): ?>
+                    <a href="gerer_experts.php" class="btn btn-xs btn-teal" title="Gérer expert">
+                        <i class="fa fa-user-tie"></i>
+                    </a>
+                    <?php elseif ($p['statut_personne']=='adversaire'): ?>
+                    <a href="gerer_tiers.php" class="btn btn-xs btn-warning" title="Gérer tiers">
+                        <i class="fa fa-user-shield"></i>
+                    </a>
                     <?php endif; ?>
-                    <a href="?del=<?= $p['id_personne'] ?>&<?= http_build_query($_GET) ?>"
-                     class="btn btn-xs btn-danger"
-   onclick="confirmDelete(event, <?= $p['id_personne'] ?>)">
-   <i class="fa fa-trash"></i>
-</a>
+                    <a href="#" class="btn btn-xs btn-danger"
+                       onclick="confirmDelete(event, <?= $p['id_personne'] ?>)">
+                        <i class="fa fa-trash"></i>
+                    </a>
                 </div>
             </td>
         </tr>
         <?php endwhile; ?>
         <?php if ($total == 0): ?>
-        <tr><td colspan="7"><div class="empty-state"><i class="fa fa-users"></i><p>Aucune personne trouvée</p></div></td></tr>
+        <tr><td colspan="8"><div class="empty-state"><i class="fa fa-users"></i><p>Aucune personne trouvée</p></div></td></tr>
         <?php endif; ?>
         </tbody>
     </table>
-</div>
-
-<!-- ====== MODAL AJOUTER ====== -->
-<div class="modal-overlay" id="modal-add">
-<div class="modal-box">
-    <h3><i class="fa fa-user-plus" style="color:var(--green-700)"></i> Nouvelle personne</h3>
-    <form method="POST">
-        <div class="form-grid-2">
-            <div class="form-group">
-                <label>Type de personne</label>
-                <select name="type_personne" id="type_add" onchange="toggleType('add')">
-                    <option value="physique">Physique</option>
-                    <option value="morale">Morale</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Rôle dans le système</label>
-                <select name="statut_personne">
-                    <option value="assure">Assuré</option>
-                    <option value="expert">Expert</option>
-                    <option value="adversaire">Adversaire (tiers)</option>
-                </select>
-            </div>
-        </div>
-        <div id="champs-physique-add">
-            <div class="form-grid-2">
-                <div class="form-group"><label>Nom</label><input type="text" name="nom"required></div>
-                <div class="form-group"><label>Prénom</label><input type="text" name="prenom"required></div>
-            </div>
-            <div class="form-group"><label>N° identité (CIN / Passeport)</label><input type="text" name="num_identite" id="num_identite" required>
-<small id="cin-error" class="error-text"></small>
-        </div>
-        <div class="form-grid-2">
-    <div class="form-group">
-        <label>Date de naissance</label>
-        <input type="date" name="date_naissance" required>
-    </div>
-    <div class="form-group">
-        <label>Lieu de naissance</label>
-        <input type="text" name="lieu_naissance" required>
-    </div>
-</div>
-        <div id="champs-morale-add" style="display:none">
-            <div class="form-group"><label>Raison sociale</label><input type="text" name="raison_sociale"></div>
-        </div>
-        
-        <div class="form-grid-2">
-            <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" required></div>
-            <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
-        </div>
-        <div class="form-group"><label>Adresse</label><input type="text" name="adresse" required></div>
-        <div style="display:flex;gap:10px;margin-top:20px">
-            <button type="submit" name="ajouter" class="btn btn-primary" style="flex:1">
-                <i class="fa fa-save"></i> Enregistrer
-            </button>
-            <button type="button" class="btn btn-outline" onclick="closeModal('modal-add')">Annuler</button>
-        </div>
-    </form>
-</div>
 </div>
 
 <!-- ====== MODAL MODIFIER ====== -->
@@ -370,18 +235,15 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
             <div class="form-group">
                 <label>Type de personne</label>
                 <select name="type_personne" id="type_edit" onchange="toggleType('edit')">
-                    <option value="physique" <?= $edit['type_personne']=='physique' ?'selected':'' ?>>Physique</option>
-                    <option value="morale" <?= $edit['type_personne']=='morale' ?'selected':'' ?>>Morale</option>
+                    <option value="physique" <?= $edit['type_personne']=='physique'?'selected':'' ?>>Physique</option>
+                    <option value="morale"   <?= $edit['type_personne']=='morale'  ?'selected':'' ?>>Morale</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Rôle dans le système</label>
-                <select name="statut_personne">
-                    <option value="assure"     <?= $edit['statut_personne']=='assure'     ?'selected':'' ?>>Assuré</option>
-                    <option value="expert"     <?= $edit['statut_personne']=='expert'     ?'selected':'' ?>>Expert</option>
-                    <option value="adversaire" <?= $edit['statut_personne']=='adversaire' ?'selected':'' ?>>Adversaire (tiers)</option>
-                </select>
-            </div>
+<div class="form-group">
+    <label>Rôle</label>
+    <input type="text" value="<?= ucfirst($edit['statut_personne']) ?>" disabled>
+</div>
+
         </div>
         <div id="champs-physique-edit" style="display:<?= $edit['type_personne']=='physique'?'':'none' ?>">
             <div class="form-grid-2">
@@ -389,20 +251,12 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
                 <div class="form-group"><label>Prénom</label><input type="text" name="prenom" value="<?= htmlspecialchars($edit['prenom']) ?>"></div>
             </div>
             <div class="form-grid-2">
-        <div class="form-group">
-            <label>Date de naissance</label>
-            <input type="date" name="date_naissance"
-                   value="<?= $edit['date_naissance'] ?>">
-        </div>
-        <div class="form-group">
-            <label>Lieu de naissance</label>
-            <input type="text" name="lieu_naissance"
-                   value="<?= htmlspecialchars($edit['lieu_naissance']) ?>">
-        </div>
-    </div>
+                <div class="form-group"><label>Date de naissance</label><input type="date" name="date_naissance" value="<?= $edit['date_naissance'] ?>"></div>
+                <div class="form-group"><label>Lieu de naissance</label><input type="text" name="lieu_naissance" value="<?= htmlspecialchars($edit['lieu_naissance']) ?>"></div>
+            </div>
         </div>
         <div id="champs-morale-edit" style="display:<?= $edit['type_personne']=='morale'?'':'none' ?>">
-            <div class="form-group"><label>Raison sociale</label><input type="text" name="raison_sociale" value="<?= htmlspecialchars($edit['raison_sociale']) ?>"></div>
+            <div class="form-group"><label>Raison sociale</label><input type="text" name="raison_sociale" value="<?= htmlspecialchars($edit['raison_sociale'] ?? '')?>"></div>
         </div>
         <div class="form-grid-2">
             <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" value="<?= htmlspecialchars($edit['telephone']) ?>"></div>
@@ -421,10 +275,12 @@ $cnt_adversaire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM
 <?php endif; ?>
 
 </div><!-- /crma-main -->
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
 function toggleType(suffix) {
     const v = document.getElementById('type_'+suffix).value;
     document.getElementById('champs-physique-'+suffix).style.display = v==='physique'?'':'none';
@@ -433,75 +289,19 @@ function toggleType(suffix) {
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
-</script>
-<script>
-const cinInput = document.getElementById('num_identite');
-const cinError = document.getElementById('cin-error');
-const form = document.querySelector('#modal-add form');
 
-let timeout = null;
-let isCinInvalid = false;
-
-// 🔎 validation temps réel
-cinInput.addEventListener('input', () => {
-    clearTimeout(timeout);
-
-    const val = cinInput.value.trim();
-
-    if(val.length === 0){
-        cinInput.classList.remove('input-error');
-        cinError.textContent = '';
-        isCinInvalid = true;
-        return;
-    }
-
-    timeout = setTimeout(() => {
-        fetch('check_cin.php?cin=' + encodeURIComponent(val))
-        .then(res => res.json())
-        .then(data => {
-            if(data.exists){
-                cinInput.classList.add('input-error');
-                cinError.innerHTML = "❌ CIN déjà utilisé";
-                isCinInvalid = true;
-            } else {
-                cinInput.classList.remove('input-error');
-                cinError.textContent = "";
-                isCinInvalid = false;
-            }
-        });
-    }, 400);
-});
-
-// 🚫 blocage submit
-form.addEventListener('submit', function(e){
-    const val = cinInput.value.trim();
-
-    if(val === "" || isCinInvalid){
-        e.preventDefault();
-
-        if(val === ""){
-            cinInput.classList.add('input-error');
-            cinError.innerHTML = "❌ Champ obligatoire";
-        }
-    }
-});
-function confirmDelete(e, id){
+function confirmDelete(e, id) {
     e.preventDefault();
-
     Swal.fire({
         title: 'Supprimer cette personne ?',
-        text: "Cette action est irréversible",
+        text: 'Cette action est irréversible',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Oui, supprimer',
         cancelButtonText: 'Annuler'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = "?del=" + id;
-        }
-    });
+    }).then(r => { if (r.isConfirmed) window.location.href = '?del=' + id; });
 }
 </script>
 </body>
