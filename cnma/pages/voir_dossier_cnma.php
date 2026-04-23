@@ -66,6 +66,7 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
     <meta charset="UTF-8">
     <title>Dossier <?php echo $dossier['numero_dossier']; ?> — CNMA</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style_cnma.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         .dossier-header {
@@ -317,7 +318,7 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
             <tr>
                 <td><?php echo $ex['date_expertise']; ?></td>
                 <td><?php echo $ex['nom'].' '.$ex['prenom']; ?></td>
-                <td><b><?php echo number_format($ex['montant_indemnite'], 2, ',', ' '); ?> DA</b></td>
+                <td><b><?php echo number_format($ex['montant_indemnite'] ?? 0, 2, ',', ' '); ?> DA</b></td>
                 <td>
                     <?php if($ex['rapport_pdf']): ?>
                     <a href="../uploads/<?php echo $ex['rapport_pdf']; ?>" target="_blank">

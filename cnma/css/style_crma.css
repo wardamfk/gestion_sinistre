@@ -989,3 +989,51 @@ input.input-error:focus {
 .form-group {
     margin-bottom: 18px;
 }
+#garanties_box {
+    margin-top: 25px;
+}
+
+.garantie-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 14px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.garantie-card:hover {
+    border-color: #2e7d32;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+.garantie-nom {
+    font-size: 15px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.garantie-input input {
+    width: 160px;
+    padding: 10px 12px;
+
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+
+    font-size: 14px;
+    background: #f9fafb;
+
+    transition: all 0.2s;
+}
+
+.garantie-input input:focus {
+    border-color: #2e7d32;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+    outline: none;
+}

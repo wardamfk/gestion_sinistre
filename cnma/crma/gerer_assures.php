@@ -59,32 +59,59 @@ if (isset($_POST['ajouter'])) {
 
     // ===== VALIDATION =====
     if ($type == 'physique' && empty($num_permis)) {
-        $error = "Permis obligatoire.";
+        $error .= "❌ Permis obligatoire.<br>";
     }
 
     if ($type == 'morale' && empty($c_permis)) {
-        $error = "Permis chauffeur obligatoire.";
+       $error .= "❌ Permis chauffeur obligatoire.<br>";
     }
 
-    // ===== DOUBLONS =====
-    if ($type == 'physique') {
-        $checkCIN = mysqli_num_rows(mysqli_query($conn,
-            "SELECT id_personne FROM personne WHERE num_identite='$cin'"));
-    } else {
-        $checkCIN = 0;
-    }
+// ===== DOUBLONS =====
 
-    $checkPermis = ($type == 'physique' && $num_permis)
-        ? mysqli_num_rows(mysqli_query($conn, "SELECT id_assure FROM assure 
- WHERE num_permis='$num_permis' 
- OR chauffeur_permis='$num_permis'"))
-        : 0;
+// CIN
+if ($type == 'physique') {
+    $checkCIN = mysqli_num_rows(mysqli_query($conn,
+        "SELECT id_personne FROM personne WHERE num_identite='$cin'"));
+} else {
+    $checkCIN = 0;
+}
 
-    if ($checkCIN > 0) {
-        $error = "❌ CIN déjà utilisé.";
-    } elseif ($checkPermis > 0) {
-        $error = "❌ Permis déjà utilisé.";
+// NIF
+if ($type == 'morale') {
+    $checkNIF = mysqli_num_rows(mysqli_query($conn,
+        "SELECT id_personne FROM personne WHERE nif='$nif'"));
+
+    if ($checkNIF > 0) {
+        $error .= "❌ NIF déjà utilisé.<br>";
     }
+}
+
+// EMAIL
+$checkEmail = mysqli_num_rows(mysqli_query($conn,
+    "SELECT id_personne FROM personne WHERE email='$email_p'"));
+
+if ($checkEmail > 0) {
+    $error .= "❌ Email déjà utilisé.<br>";
+}
+
+// PERMIS
+$checkPermis = ($type == 'physique' && $num_permis)
+    ? mysqli_num_rows(mysqli_query($conn, "SELECT id_assure FROM assure 
+        WHERE num_permis='$num_permis' 
+        OR chauffeur_permis='$num_permis'"))
+    : 0;
+
+// CIN
+if ($checkCIN > 0) {
+    $error .= "❌ CIN déjà utilisé.<br>";
+}
+
+// PERMIS
+if ($checkPermis > 0) {
+    $error .= "❌ Permis déjà utilisé.<br>";
+}
+}
+
 
     // ===== INSERT =====
     if (!$error) {
@@ -122,7 +149,10 @@ VALUES
  ".($c_permis ? "'$c_permis'" : "NULL").",
  ".($c_type ? "'$c_type'" : "NULL")."
 )");
-    }
+    
+
+    
+}
 }
 
 /* ======= MODIFIER ASSURÉ ======= */
@@ -686,7 +716,7 @@ cinInput.addEventListener('input', () => {
 
 const permisInput = document.getElementById('permis_add');
 const chauffeurError = document.getElementById('chauffeur-error');
-
+const chauffeurInput = document.querySelector('[name="chauffeur_permis"]');
 if (chauffeurInput) {
     chauffeurInput.addEventListener('input', () => {
 

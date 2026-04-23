@@ -1,7 +1,26 @@
 <?php
 session_start();
 include('../includes/config.php');
+// ===== AJAX GARANTIES =====
+if(isset($_GET['ajax']) && $_GET['ajax'] == 'garanties'){
 
+    $id_contrat = intval($_GET['id_contrat']);
+
+    $res = mysqli_query($conn, "
+        SELECT g.id_garantie, g.nom_garantie
+        FROM contrat_garantie cg
+        JOIN garantie g ON cg.id_garantie = g.id_garantie
+        WHERE cg.id_contrat = $id_contrat
+    ");
+
+    $data = [];
+    while($row = mysqli_fetch_assoc($res)){
+        $data[] = $row;
+    }
+
+    echo json_encode($data);
+    exit(); // IMPORTANT
+}
 // Récupérer contrat depuis GET
 if(isset($_GET['id_contrat'])){
     $id_contrat = $_GET['id_contrat'];
@@ -50,6 +69,20 @@ $statut_validation = 'non_soumis';
     mysqli_query($conn, $sql);
 
     $id_dossier = mysqli_insert_id($conn);
+    $reserves = $_POST['reserve'] ?? [];
+
+foreach($reserves as $id_garantie => $montant){
+
+    if($montant > 0){
+
+        mysqli_query($conn, "
+            INSERT INTO reserve
+            (id_dossier, id_garantie, montant, date_reserve)
+            VALUES
+            ('$id_dossier', '$id_garantie', '$montant', NOW())
+        ");
+    }
+}
     // =======================
 // UPLOAD DOCUMENTS
 // =======================
@@ -135,7 +168,8 @@ if($id_expert != ""){
     <h3>Informations sinistre</h3>
 
 <label>Contrat</label>
-<select name="id_contrat" onchange="window.location='creer_dossier.php?id_contrat='+this.value" required>
+
+<select name="id_contrat" id="contrat_select" required>
     <option value="">-- Sélectionner contrat --</option>
     <?php
     $res = mysqli_query($conn, "SELECT id_contrat, numero_police FROM contrat");
@@ -145,6 +179,9 @@ if($id_expert != ""){
     }
     ?>
 </select>
+
+
+<div id="garanties_box"></div>
 
 <label>Tiers</label>
 <select name="id_tiers" required>
@@ -225,6 +262,45 @@ if($id_expert != ""){
 </div>
 </form>
 </div>
+<script>
+document.getElementById('contrat_select').addEventListener('change', function() {
 
+    let id = this.value;
+
+    if (!id) {
+        document.getElementById('garanties_box').innerHTML = '';
+        return;
+    }
+
+    fetch('creer_dossier.php?ajax=garanties&id_contrat=' + id)
+    .then(res => res.json())
+    .then(data => {
+
+        let html = `<h4 style="margin:20px 0 10px; font-weight:600;">Garanties du contrat</h4>`;
+
+        if (data.length === 0) {
+            html += "<p style='color:red'>Aucune garantie trouvée</p>";
+        }
+
+        data.forEach(g => {
+            html += `
+            <div class="garantie-card">
+                <div class="garantie-nom">${g.nom_garantie}</div>
+                <div class="garantie-input">
+                    <input type="number" name="reserve[${g.id_garantie}]" placeholder="0 DA">
+                </div>
+            </div>
+            `;
+        });
+
+        document.getElementById('garanties_box').innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('garanties_box').innerHTML = "<p style='color:red'>Erreur chargement</p>";
+    });
+
+});
+</script>
 </body>
 </html>
