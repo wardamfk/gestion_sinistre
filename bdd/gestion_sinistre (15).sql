@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 17 avr. 2026 à 17:01
+-- Généré le : jeu. 23 avr. 2026 à 17:39
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -64,6 +64,10 @@ CREATE TABLE IF NOT EXISTS `assure` (
   `lieu_delivrance_permis` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `type_permis` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `piece_identite` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_nom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_prenom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_permis` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_type_permis` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_assure`),
   UNIQUE KEY `id_personne` (`id_personne`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -72,10 +76,10 @@ CREATE TABLE IF NOT EXISTS `assure` (
 -- Déchargement des données de la table `assure`
 --
 
-INSERT INTO `assure` (`id_assure`, `id_personne`, `date_creation`, `actif`, `num_permis`, `date_delivrance_permis`, `lieu_delivrance_permis`, `type_permis`, `piece_identite`) VALUES
-(2, 7, '2026-03-24', 1, '', '0000-00-00', '<br /><font size=\'1\'><table class=\'xdebug-error xe-deprecated\' dir=\'ltr\' border=\'1\' cellspacing=\'0\' ', 'A', NULL),
-(3, 2, '2026-03-24', 1, NULL, NULL, NULL, NULL, NULL),
-(4, 19, '2026-04-12', 1, '234567', '2026-02-05', 'LOIN', 'B', NULL);
+INSERT INTO `assure` (`id_assure`, `id_personne`, `date_creation`, `actif`, `num_permis`, `date_delivrance_permis`, `lieu_delivrance_permis`, `type_permis`, `piece_identite`, `chauffeur_nom`, `chauffeur_prenom`, `chauffeur_permis`, `chauffeur_type_permis`) VALUES
+(2, 7, '2026-03-24', 1, '', '0000-00-00', '<br /><font size=\'1\'><table class=\'xdebug-error xe-deprecated\' dir=\'ltr\' border=\'1\' cellspacing=\'0\' ', 'A', NULL, NULL, NULL, NULL, NULL),
+(3, 2, '2026-03-24', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(4, 19, '2026-04-12', 1, '234567', '2026-02-05', 'LOIN', 'B', NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -95,29 +99,28 @@ CREATE TABLE IF NOT EXISTS `contrat` (
   `majoration` decimal(12,2) DEFAULT NULL,
   `prime_nette` decimal(12,2) DEFAULT NULL,
   `complement` decimal(12,2) DEFAULT NULL,
-  `total_taxes` decimal(12,2) DEFAULT NULL,
-  `total_timbres` decimal(12,2) DEFAULT NULL,
   `net_a_payer` decimal(12,2) DEFAULT NULL,
   `statut` enum('actif','expire','suspendu') COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_creation` date DEFAULT NULL,
   `id_vehicule` int DEFAULT NULL,
   `id_agence` int DEFAULT NULL,
-  `id_formule` int DEFAULT NULL,
+  `duree` int NOT NULL,
+  `capital` decimal(12,2) NOT NULL,
+  `taxe` decimal(5,2),
   PRIMARY KEY (`id_contrat`),
   UNIQUE KEY `numero_police` (`numero_police`),
   KEY `id_assure` (`id_assure`),
   KEY `fk_contrat_vehicule` (`id_vehicule`),
-  KEY `fk_contrat_agence` (`id_agence`),
-  KEY `id_formule` (`id_formule`)
+  KEY `fk_contrat_agence` (`id_agence`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `contrat`
 --
 
-INSERT INTO `contrat` (`id_contrat`, `numero_police`, `id_assure`, `date_effet`, `date_expiration`, `prime_base`, `reduction`, `majoration`, `prime_nette`, `complement`, `total_taxes`, `total_timbres`, `net_a_payer`, `statut`, `date_creation`, `id_vehicule`, `id_agence`, `id_formule`) VALUES
-(1, 'C001', 3, '2026-03-14', '2027-06-29', 30000.00, 355.00, 7888.00, 37533.00, 455.00, 7131.27, 1500.00, 46619.27, 'actif', '2026-03-29', 1, 1, 2),
-(2, 'C002', 2, '2026-03-03', '2027-10-30', 2999.00, 299.00, 499.00, 3199.00, 299.00, 607.81, 1500.00, 5605.81, 'actif', '2026-03-30', 1, 1, 1);
+INSERT INTO `contrat` (`id_contrat`, `numero_police`, `id_assure`, `date_effet`, `date_expiration`, `prime_base`, `reduction`, `majoration`, `prime_nette`, `complement`, `net_a_payer`, `statut`, `date_creation`, `id_vehicule`, `id_agence`, `duree`, `capital`, `taxe`) VALUES
+(1, 'C001', 3, '2026-03-14', '2027-06-29', 30000.00, 355.00, 7888.00, 37533.00, 455.00, 46619.27, 'actif', '2026-03-29', 1, 1, 0, 0.00, NULL),
+(2, 'C002', 2, '2026-03-03', '2027-10-30', 2999.00, 299.00, 499.00, 3199.00, 299.00, 5605.81, 'actif', '2026-03-30', 1, 1, 0, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -220,12 +223,12 @@ CREATE TABLE IF NOT EXISTS `dossier` (
 INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_par`, `date_transmission`, `transmis_par`, `info_complementaire`, `id_etat`, `id_contrat`, `id_tiers`, `date_sinistre`, `lieu_sinistre`, `description`, `delai_declaration`, `total_reserve`, `statut_validation`, `date_validation`, `date_refus`, `date_cloture`, `commentaire_cnma`, `valide_par`, `id_expert`) VALUES
 (4, 'DOS-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 8, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-05', NULL, '2026-04-03', NULL, NULL, 2),
 (5, 'DOS-2026-0002', '2026-03-30', 9, NULL, NULL, 'HKJ', 2, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, '', NULL, NULL, NULL, NULL, NULL, NULL),
-(6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-02', 2, '', 2, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 600867.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
-(7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 4, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
+(6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-19', 9, '', 3, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 700867.00, 'en_attente', NULL, NULL, NULL, NULL, NULL, 1),
+(7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 7, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
 (8, 'DOS-2026-0005', '2026-03-31', 9, NULL, NULL, '', 8, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
-(9, 'DOS-2026-0006', '2026-04-02', 9, NULL, NULL, '', 2, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 55.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
+(9, 'DOS-2026-0006', '2026-04-02', 9, '2026-04-19', 9, '', 4, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 649155.00, 'valide', '2026-04-19', NULL, NULL, NULL, 2, 2),
 (10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 8, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'valide', '2026-04-04', NULL, NULL, NULL, NULL, 3),
-(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 7, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, NULL, NULL, NULL, 5),
+(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 18, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, NULL, NULL, NULL, 5),
 (12, 'DOS-2026-0009', '2026-04-03', 10, NULL, NULL, '', 9, 1, 5, '2026-03-30', 'ALGER', 'HG', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 4);
 
 -- --------------------------------------------------------
@@ -246,7 +249,14 @@ CREATE TABLE IF NOT EXISTS `encaissement` (
   PRIMARY KEY (`id_encaissement`),
   KEY `id_dossier` (`id_dossier`),
   KEY `fk_encaissement_tiers` (`id_tiers`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `encaissement`
+--
+
+INSERT INTO `encaissement` (`id_encaissement`, `id_dossier`, `montant`, `date_encaissement`, `id_tiers`, `type`, `commentaire`) VALUES
+(1, 11, 10.00, '2026-04-21', 7, 'recours', '');
 
 -- --------------------------------------------------------
 
@@ -304,7 +314,7 @@ CREATE TABLE IF NOT EXISTS `expert` (
   `id_personne` int DEFAULT NULL,
   PRIMARY KEY (`id_expert`),
   KEY `fk_expert_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `expert`
@@ -316,7 +326,8 @@ INSERT INTO `expert` (`id_expert`, `nom`, `prenom`, `telephone`, `email`, `activ
 (3, 'Mansouri', 'Nadia', '0550000003', 'expert3@mail.dz', 'Expert automobile', NULL),
 (4, 'Ferhat', 'Samir', '0550000004', 'expert4@mail.dz', 'Expert automobile', 17),
 (5, 'Saadi', 'Lina', '0550000005', 'expert5@mail.dz', 'Expert automobile', 18),
-(7, 'warda', 'gjhkj', '0541775494', 'warda.moufouki@esst-sup.com', 'Expert automobile', 29);
+(7, 'warda', 'gjhkj', '0541775494', 'warda.moufouki@esst-sup.com', 'Expert automobile', 29),
+(8, 'aidni', 'aida', '0541375494', 'aida.moufouki@esst-sup.com', 'Expert automobile', 31);
 
 -- --------------------------------------------------------
 
@@ -336,7 +347,7 @@ CREATE TABLE IF NOT EXISTS `expertise` (
   PRIMARY KEY (`id_expertise`),
   KEY `id_dossier` (`id_dossier`),
   KEY `id_expert` (`id_expert`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `expertise`
@@ -355,7 +366,9 @@ INSERT INTO `expertise` (`id_expertise`, `id_dossier`, `id_expert`, `date_expert
 (17, 7, 1, '2026-04-23', 'BDAU9862.JPG', 5000000.00, ''),
 (18, 4, 2, '2026-05-02', 'BDAU9862.JPG', 300.00, ''),
 (19, 9, 2, '2026-04-23', 'BDAU9862.JPG', 45.00, ''),
-(20, 11, 5, '2026-04-02', 'BDAU9862.JPG', 10000.00, '');
+(20, 11, 5, '2026-04-02', 'BDAU9862.JPG', 10000.00, ''),
+(21, 9, 2, '2026-04-16', 'DING2023.JPG', 100.00, ''),
+(22, 9, 2, '2026-04-09', 'BDAU9862.JPG', 499000.00, '');
 
 -- --------------------------------------------------------
 
@@ -383,38 +396,6 @@ INSERT INTO `formule` (`id_formule`, `nom_formule`) VALUES
 -- --------------------------------------------------------
 
 --
--- Structure de la table `formule_garantie`
---
-
-DROP TABLE IF EXISTS `formule_garantie`;
-CREATE TABLE IF NOT EXISTS `formule_garantie` (
-  `id_formule` int NOT NULL,
-  `id_garantie` int NOT NULL,
-  PRIMARY KEY (`id_formule`,`id_garantie`),
-  KEY `id_garantie` (`id_garantie`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Déchargement des données de la table `formule_garantie`
---
-
-INSERT INTO `formule_garantie` (`id_formule`, `id_garantie`) VALUES
-(1, 1),
-(2, 1),
-(3, 1),
-(4, 1),
-(2, 2),
-(4, 2),
-(3, 3),
-(4, 3),
-(3, 4),
-(4, 4),
-(4, 5),
-(4, 6);
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `garantie`
 --
 
@@ -424,20 +405,25 @@ CREATE TABLE IF NOT EXISTS `garantie` (
   `nom_garantie` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `description` text COLLATE utf8mb4_general_ci,
   `code_garantie` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `prix` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`id_garantie`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `garantie`
 --
 
-INSERT INTO `garantie` (`id_garantie`, `nom_garantie`, `description`, `code_garantie`) VALUES
-(1, 'Responsabilité civile', 'Couvre les dommages causés aux tiers', 'RC'),
-(2, 'Défense recours', 'Frais d avocat et recours', 'DR'),
-(3, 'Vol', 'Vol du véhicule', 'VOL'),
-(4, 'Incendie', 'Incendie du véhicule', 'INC'),
-(5, 'Bris de glace', 'Vitres et pare-brise', 'BG'),
-(6, 'Tous risques', 'Tous les dommages', 'TR');
+INSERT INTO `garantie` (`id_garantie`, `nom_garantie`, `description`, `code_garantie`, `prix`) VALUES
+(1, 'Responsabilité civile', 'Couvre les dommages causés aux tiers', 'RC', 7000.00),
+(2, 'Défense recours', 'Frais d avocat et recours', 'DR', 1000.00),
+(3, 'Vol', 'Vol du véhicule', 'VOL', 3000.00),
+(4, 'Incendie', 'Incendie du véhicule', 'INC', 2000.00),
+(5, 'Bris de glace', 'Vitres et pare-brise', 'BG', 1500.00),
+(7, 'Dommage collision', 'Dommages en cas de collision', 'DOM', 4000.00),
+(8, 'Tierce', 'Garantie tierce', 'TIERCE', 5000.00),
+(9, 'Assistance', 'Assistance en cas de panne', 'ASSIST', 1500.00),
+(10, 'Personnes transportées', 'Protection des passagers', 'PERS', 2000.00),
+(11, 'Dépannage automobile', 'Dépannage du véhicule', 'DEP', 1000.00);
 
 -- --------------------------------------------------------
 
@@ -462,7 +448,7 @@ CREATE TABLE IF NOT EXISTS `historique` (
   KEY `fk_ancien_etat` (`ancien_etat`),
   KEY `fk_nouvel_etat` (`nouvel_etat`),
   KEY `fk_historique_motif` (`id_motif`)
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `historique`
@@ -541,7 +527,19 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (85, 4, 'Suppression règlement', '2026-04-05 20:19:36', 9, 8, 8, NULL, NULL),
 (86, 11, 'Suppression règlement', '2026-04-05 20:22:13', 13, 7, 7, NULL, NULL),
 (87, 10, 'Suppression règlement', '2026-04-07 15:20:50', 9, 8, 8, NULL, NULL),
-(88, 11, 'Règlement partiel', '2026-04-17 14:34:41', 9, 7, 7, NULL, NULL);
+(88, 11, 'Règlement partiel', '2026-04-17 14:34:41', 9, 7, 7, NULL, NULL),
+(89, 9, 'Classé en attente recours', '2026-04-17 18:16:29', 9, 2, 13, 'attente', NULL),
+(90, 9, 'Repris', '2026-04-17 18:29:50', 9, 13, 15, '', 32),
+(91, 9, 'Expertise validée CRMA', '2026-04-17 18:38:53', 9, 15, 2, NULL, NULL),
+(92, 7, 'Règlement partiel', '2026-04-17 19:07:10', 9, 4, 7, NULL, NULL),
+(93, 11, 'Gestion pour recours', '2026-04-17 19:40:12', 9, 7, 20, '', 34),
+(94, 9, 'Expertise validée CRMA', '2026-04-19 10:34:26', 9, 2, 2, NULL, NULL),
+(95, 9, 'Transmission CNMA - Dépassement seuil', '2026-04-19 10:34:55', 9, 2, 3, NULL, NULL),
+(96, 9, 'Validation CNMA', '2026-04-19 10:35:17', 2, 3, 4, 'Dossier validé par la CNMA — règlement autorisé', NULL),
+(97, 6, 'Transmission CNMA - Dépassement seuil', '2026-04-19 12:00:48', 9, 2, 3, NULL, NULL),
+(98, 11, 'Encaissement enregistré — recours', '2026-04-21 10:48:17', 9, 20, 20, NULL, NULL),
+(99, 11, 'Repris pour recours abouti', '2026-04-21 14:52:23', 9, 20, 18, '', NULL),
+(100, 7, 'Règlement partiel', '2026-04-21 14:56:28', 9, 7, 7, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -601,7 +599,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_expediteur` (`id_expediteur`),
   KEY `id_destinataire` (`id_destinataire`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `notification`
@@ -613,7 +611,9 @@ INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `i
 (3, 10, 9, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0007. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-04 14:15:18', 1),
 (4, 4, 9, 13, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0001. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:19:54', 1),
 (5, 4, 9, 13, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0001. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:19:59', 1),
-(6, 8, 8, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0005. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:32:51', 0);
+(6, 8, 8, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0005. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:32:51', 0),
+(7, 9, 9, 13, 'cloture', 'Votre dossier DOS-2026-0006 a changé d\'état : Classé en attente recours. Contactez votre agence pour plus d\'informations.', '2026-04-17 18:16:29', 0),
+(8, 9, 2, 9, 'validation', 'Le dossier DOS-2026-0006 a été VALIDÉ par la CNMA. Vous pouvez procéder au règlement.', '2026-04-19 10:35:17', 0);
 
 -- --------------------------------------------------------
 
@@ -663,7 +663,7 @@ CREATE TABLE IF NOT EXISTS `personne` (
   `statut_personne` enum('assure','expert','adversaire') COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_personne`),
   UNIQUE KEY `num_identite` (`num_identite`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `personne`
@@ -682,7 +682,8 @@ INSERT INTO `personne` (`id_personne`, `type_personne`, `nom`, `prenom`, `raison
 (26, 'physique', 'warda', 'faten', '', '026736614', '0541775499', 'alger', 'faten.moufouki@esst-sup.com', '2004-03-10', 'biar', NULL, NULL, NULL, NULL, 'assure'),
 (27, 'physique', 'SALM', 'SLMNI', NULL, NULL, '0541775494', 'ALGER', 'SALIM.moufouki@esst-sup.com', NULL, NULL, NULL, NULL, NULL, NULL, 'adversaire'),
 (29, 'physique', 'warda', 'gjhkj', '', '026737698', '0541775494', 'ALGER', 'warda.moufouki@esst-sup.com', '2004-03-10', 'H', NULL, NULL, NULL, NULL, 'expert'),
-(30, 'physique', 'kalem', 'zohra', '', '737693617', '0541775494', 'ALGER', 'kalemzohra70@gmail.com', '2000-04-16', 'biar', NULL, NULL, NULL, NULL, 'assure');
+(30, 'physique', 'kalem', 'zohra', '', '737693617', '0541775494', 'ALGER', 'kalemzohra70@gmail.com', '2000-04-16', 'biar', NULL, NULL, NULL, NULL, 'assure'),
+(31, 'physique', 'aidni', 'aida', NULL, '026733618', '0541375494', 'Butte des deux bassins - Résidence Sahraoui, El Achour 16104', 'aida.moufouki@esst-sup.com', '2000-03-31', 'biar', NULL, NULL, NULL, NULL, 'expert');
 
 -- --------------------------------------------------------
 
@@ -706,7 +707,7 @@ CREATE TABLE IF NOT EXISTS `reglement` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `saisi_par` (`saisi_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reglement`
@@ -720,7 +721,9 @@ INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`,
 (5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
 (6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
 (7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
-(11, 11, NULL, 10.00, '2026-04-17', 'Chèque', 9, 'en_attente', NULL, '');
+(11, 11, NULL, 10.00, '2026-04-17', 'Chèque', 9, 'en_attente', NULL, ''),
+(12, 7, NULL, 300.00, '2026-04-17', 'Chèque', 9, 'en_attente', NULL, ''),
+(13, 7, NULL, 600000.00, '2026-04-21', 'Chèque', 9, 'en_attente', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -744,7 +747,7 @@ CREATE TABLE IF NOT EXISTS `reserve` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `cree_par` (`cree_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reserve`
@@ -790,7 +793,11 @@ INSERT INTO `reserve` (`id_reserve`, `id_dossier`, `id_garantie`, `montant`, `da
 (44, 11, 1, 400.00, '2026-04-02', 'initiale', 9, '2026-04-02', NULL, 'actif'),
 (45, 11, 1, 10000.00, '2026-04-02', 'expertise', 9, '2026-04-02', 'Réserve après expertise', 'actif'),
 (46, 11, 1, 10.00, '2026-04-02', 'ajustement', 9, '2026-04-02', '', 'actif'),
-(47, 6, 1, 90.00, '2026-04-02', 'ajustement', 2, '2026-04-02', 'UNPEU', 'actif');
+(47, 6, 1, 90.00, '2026-04-02', 'ajustement', 2, '2026-04-02', 'UNPEU', 'actif'),
+(48, 9, 1, 100.00, '2026-04-17', 'expertise', 9, '2026-04-17', 'Réserve après expertise', 'actif'),
+(49, 9, 1, 499000.00, '2026-04-19', 'expertise', 9, '2026-04-19', 'Réserve après expertise', 'actif'),
+(50, 9, 1, 150000.00, '2026-04-19', 'ajustement', 9, '2026-04-19', '', 'actif'),
+(51, 6, 1, 100000.00, '2026-04-19', 'ajustement', 9, '2026-04-19', '', 'actif');
 
 -- --------------------------------------------------------
 
@@ -885,6 +892,7 @@ CREATE TABLE IF NOT EXISTS `utilisateur` (
   `id_agence` int DEFAULT NULL,
   `actif` tinyint(1) DEFAULT '1',
   `id_personne` int DEFAULT NULL,
+  `telephone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_user`),
   UNIQUE KEY `email` (`email`),
   KEY `id_agence` (`id_agence`),
@@ -895,14 +903,14 @@ CREATE TABLE IF NOT EXISTS `utilisateur` (
 -- Déchargement des données de la table `utilisateur`
 --
 
-INSERT INTO `utilisateur` (`id_user`, `nom`, `prenom`, `email`, `mot_de_passe`, `role`, `id_agence`, `actif`, `id_personne`) VALUES
-(2, 'Admin CNMA', NULL, 'admin@cnma.dz', '$2y$10$SGV3kl4Q1PAdY6lKs3XTRefMCmq.IYZ2OcmGijgxQ2DhEHnNajrou', 'CNMA', NULL, 1, NULL),
-(8, NULL, NULL, 'medecin@gmail.com', '$2y$10$0s91L7PPUpFwEdwuMKLXS.a2q8UFt5gDmaqRB4ib3FGPfsQBj6Ccq', 'ASSURE', NULL, 1, 7),
-(9, 'Agent Alger', NULL, 'alger@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 1, 1, NULL),
-(10, 'Agent Oran', NULL, 'oran@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 2, 1, NULL),
-(11, 'Agent Constantine', NULL, 'constantine@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 3, 1, NULL),
-(12, 'Agent Ouargla', NULL, 'ouargla@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 5, 1, NULL),
-(13, NULL, NULL, 'warda.moufouki@esst-sup.com', '$2y$10$a/lCJPeGNRJS07fCPJA4cOPn5sZtS9i93kyaEZM1qChFjsTWeEJ7C', 'ASSURE', NULL, 1, 2);
+INSERT INTO `utilisateur` (`id_user`, `nom`, `prenom`, `email`, `mot_de_passe`, `role`, `id_agence`, `actif`, `id_personne`, `telephone`) VALUES
+(2, 'Admin CNMA', NULL, 'admin@cnma.dz', '$2y$10$SGV3kl4Q1PAdY6lKs3XTRefMCmq.IYZ2OcmGijgxQ2DhEHnNajrou', 'CNMA', NULL, 1, NULL, '021 74 50 21'),
+(8, NULL, NULL, 'medecin@gmail.com', '$2y$10$0s91L7PPUpFwEdwuMKLXS.a2q8UFt5gDmaqRB4ib3FGPfsQBj6Ccq', 'ASSURE', NULL, 1, 7, NULL),
+(9, 'Agent Alger', NULL, 'alger@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 1, 1, NULL, '023321597'),
+(10, 'Agent Oran', NULL, 'oran@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 2, 1, NULL, NULL),
+(11, 'Agent Constantine', NULL, 'constantine@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 3, 1, NULL, NULL),
+(12, 'Agent Ouargla', NULL, 'ouargla@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 5, 1, NULL, NULL),
+(13, NULL, NULL, 'warda.moufouki@esst-sup.com', '$2y$10$a/lCJPeGNRJS07fCPJA4cOPn5sZtS9i93kyaEZM1qChFjsTWeEJ7C', 'ASSURE', NULL, 1, 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -948,7 +956,6 @@ ALTER TABLE `assure`
 --
 ALTER TABLE `contrat`
   ADD CONSTRAINT `contrat_ibfk_1` FOREIGN KEY (`id_assure`) REFERENCES `assure` (`id_assure`),
-  ADD CONSTRAINT `contrat_ibfk_2` FOREIGN KEY (`id_formule`) REFERENCES `formule` (`id_formule`),
   ADD CONSTRAINT `fk_contrat_agence` FOREIGN KEY (`id_agence`) REFERENCES `agence` (`id_agence`),
   ADD CONSTRAINT `fk_contrat_vehicule` FOREIGN KEY (`id_vehicule`) REFERENCES `vehicule` (`id_vehicule`);
 
@@ -994,13 +1001,6 @@ ALTER TABLE `expert`
 ALTER TABLE `expertise`
   ADD CONSTRAINT `expertise_ibfk_1` FOREIGN KEY (`id_dossier`) REFERENCES `dossier` (`id_dossier`),
   ADD CONSTRAINT `expertise_ibfk_2` FOREIGN KEY (`id_expert`) REFERENCES `expert` (`id_expert`);
-
---
--- Contraintes pour la table `formule_garantie`
---
-ALTER TABLE `formule_garantie`
-  ADD CONSTRAINT `formule_garantie_ibfk_1` FOREIGN KEY (`id_formule`) REFERENCES `formule` (`id_formule`),
-  ADD CONSTRAINT `formule_garantie_ibfk_2` FOREIGN KEY (`id_garantie`) REFERENCES `garantie` (`id_garantie`);
 
 --
 -- Contraintes pour la table `historique`
