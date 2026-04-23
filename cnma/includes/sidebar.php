@@ -27,8 +27,8 @@ function nav_link(string $href, string $icon, string $label, string $current, in
     <div class="sidebar-brand">
         <img src="<?= $base ?>/images/logo.webp" alt="CNMA">
         <div class="sidebar-brand-text">
-            <h2>CNMA</h2>
-            <span>Espace CRMA</span>
+          <SPAN>  <h2>CRMA</h2></SPAN>
+         
         </div>
     </div>
 
@@ -40,7 +40,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
     </div>
 
     <div class="sidebar-section">
-        <div class="sidebar-section-label">Référentiel</div>
+        <div class="sidebar-section-label">Production</div>
         <nav class="sidebar-nav">
             <?php nav_link("$base/crma/gerer_personnes.php",  'fa-users',        'Personnes',       $current); ?>
             <?php nav_link("$base/crma/gerer_assures.php",    'fa-id-card',      'Assurés',         $current); ?>
@@ -65,7 +65,12 @@ function nav_link(string $href, string $icon, string $label, string $current, in
             <?php nav_link("$base/crma/notifications.php",    'fa-bell',         'Notifications',   $current, $nb_notifs); ?>
         </nav>
     </div>
-
+<div class="sidebar-section">
+    <div class="sidebar-section-label">Compte</div>
+    <nav class="sidebar-nav">
+        <?php nav_link("$base/crma/profil_crma.php", 'fa-user', 'Profil', $current); ?>
+    </nav>
+</div>
     <div class="sidebar-footer">
         <a href="<?= $base ?>/pages/logout.php">
             <i class="fa fa-sign-out-alt"></i> Déconnexion

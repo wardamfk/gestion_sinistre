@@ -8,70 +8,120 @@ $success = $error = '';
 
 /* ======= AJOUTER ASSURÉ (personne + assuré en une seule étape) ======= */
 if (isset($_POST['ajouter'])) {
-    // --- Données PERSONNE ---
-    $nom            = mysqli_real_escape_string($conn, trim($_POST['nom']));
-    $prenom         = mysqli_real_escape_string($conn, trim($_POST['prenom']));
-    $cin            = mysqli_real_escape_string($conn, trim($_POST['num_identite']));
-    $tel            = mysqli_real_escape_string($conn, trim($_POST['telephone']));
-    $email_p        = mysqli_real_escape_string($conn, trim($_POST['email']));
-    $adresse        = mysqli_real_escape_string($conn, trim($_POST['adresse']));
+
+    $type = $_POST['type_personne'];
+
+    // ===== PERSONNE =====
+    $nom     = mysqli_real_escape_string($conn, trim($_POST['nom'] ?? ''));
+    $prenom  = mysqli_real_escape_string($conn, trim($_POST['prenom'] ?? ''));
+    $raison  = mysqli_real_escape_string($conn, trim($_POST['raison_sociale'] ?? ''));
+
+    $cin = null;
+    $nif = null;
+
+    if ($type == 'physique') {
+        $cin = mysqli_real_escape_string($conn, trim($_POST['num_identite']));
+    } else {
+        $nif = mysqli_real_escape_string($conn, trim($_POST['nif']));
+    }
+
+    $tel     = mysqli_real_escape_string($conn, trim($_POST['telephone']));
+    $email_p = mysqli_real_escape_string($conn, trim($_POST['email']));
+    $adresse = mysqli_real_escape_string($conn, trim($_POST['adresse']));
     $date_naissance = !empty($_POST['date_naissance']) ? $_POST['date_naissance'] : null;
     $lieu_naissance = mysqli_real_escape_string($conn, trim($_POST['lieu_naissance'] ?? ''));
 
-    // --- Données ASSURÉ ---
-    $date_creation  = $_POST['date_creation'];
-    $actif          = intval($_POST['actif']);
-    $num_permis     = mysqli_real_escape_string($conn, trim($_POST['num_permis']));
-    $date_deliv     = $_POST['date_delivrance_permis'];
-    $lieu_deliv     = mysqli_real_escape_string($conn, trim($_POST['lieu_delivrance_permis']));
-    $type_permis    = $_POST['type_permis'];
+    // ===== ASSURE =====
+    $date_creation = $_POST['date_creation'];
+    $actif = intval($_POST['actif']);
 
-    // Vérifications doublons
-    $checkCIN    = mysqli_num_rows(mysqli_query($conn, "SELECT id_personne FROM personne WHERE num_identite='$cin'"));
-    $checkPermis = $num_permis ? mysqli_num_rows(mysqli_query($conn, "SELECT id_assure FROM assure WHERE num_permis='$num_permis'")) : 0;
+    // IMPORTANT
+    $num_permis = null;
+    $c_nom = $c_prenom = $c_permis = $c_type = null;
+
+    if ($type == 'physique') {
+
+        $num_permis = mysqli_real_escape_string($conn, trim($_POST['num_permis']));
+
+        $date_deliv  = $_POST['date_delivrance_permis'];
+        $lieu_deliv  = mysqli_real_escape_string($conn, trim($_POST['lieu_delivrance_permis']));
+        $type_permis = $_POST['type_permis'];
+
+    } else {
+
+        $c_nom    = mysqli_real_escape_string($conn, $_POST['chauffeur_nom']);
+        $c_prenom = mysqli_real_escape_string($conn, $_POST['chauffeur_prenom']);
+        $c_permis = mysqli_real_escape_string($conn, $_POST['chauffeur_permis']);
+        $c_type   = $_POST['chauffeur_type_permis'];
+
+        $date_deliv = $lieu_deliv = $type_permis = null;
+    }
+
+    // ===== VALIDATION =====
+    if ($type == 'physique' && empty($num_permis)) {
+        $error = "Permis obligatoire.";
+    }
+
+    if ($type == 'morale' && empty($c_permis)) {
+        $error = "Permis chauffeur obligatoire.";
+    }
+
+    // ===== DOUBLONS =====
+    if ($type == 'physique') {
+        $checkCIN = mysqli_num_rows(mysqli_query($conn,
+            "SELECT id_personne FROM personne WHERE num_identite='$cin'"));
+    } else {
+        $checkCIN = 0;
+    }
+
+    $checkPermis = ($type == 'physique' && $num_permis)
+        ? mysqli_num_rows(mysqli_query($conn, "SELECT id_assure FROM assure 
+ WHERE num_permis='$num_permis' 
+ OR chauffeur_permis='$num_permis'"))
+        : 0;
 
     if ($checkCIN > 0) {
-        $error = "❌ Ce numéro d'identité (CIN) est déjà utilisé.";
+        $error = "❌ CIN déjà utilisé.";
     } elseif ($checkPermis > 0) {
-        $error = "❌ Ce numéro de permis est déjà enregistré.";
-    } else {
-        // 1. Créer la personne
+        $error = "❌ Permis déjà utilisé.";
+    }
+
+    // ===== INSERT =====
+    if (!$error) {
+
         $dn_sql = $date_naissance ? "'$date_naissance'" : "NULL";
-        $type = $_POST['type_personne'];
-       if ($type == 'physique') {
 
-    mysqli_query($conn, "INSERT INTO personne
-    (type_personne, nom, prenom, num_identite, date_naissance, lieu_naissance, telephone, adresse, email, statut_personne)
-    VALUES ('physique','$nom','$prenom','$cin',$dn_sql,'$lieu_naissance','$tel','$adresse','$email_p','assure')");
+        if ($type == 'physique') {
 
-} else {
+            mysqli_query($conn, "INSERT INTO personne
+            (type_personne, nom, prenom, num_identite, date_naissance, lieu_naissance, telephone, adresse, email, statut_personne)
+            VALUES ('physique','$nom','$prenom','$cin',$dn_sql,'$lieu_naissance','$tel','$adresse','$email_p','assure')");
 
-    $raison = mysqli_real_escape_string($conn, $_POST['raison_sociale']);
+        } else {
 
-    mysqli_query($conn, "INSERT INTO personne
-    (type_personne, raison_sociale, telephone, adresse, email, statut_personne)
-    VALUES ('morale','$raison','$tel','$adresse','$email_p','assure')");
-}
-        // 2. Créer l'assuré lié
-       $id_personne = mysqli_insert_id($conn);
+            mysqli_query($conn, "INSERT INTO personne
+            (type_personne, raison_sociale, nif, telephone, adresse, email, statut_personne)
+            VALUES ('morale','$raison','$nif','$tel','$adresse','$email_p','assure')");
+        }
 
-if ($type == 'physique') {
+        $id_personne = mysqli_insert_id($conn);
 
-    mysqli_query($conn, "INSERT INTO assure
-    (id_personne, date_creation, actif, num_permis, date_delivrance_permis, lieu_delivrance_permis, type_permis)
-    VALUES ($id_personne,'$date_creation',$actif,'$num_permis','$date_deliv','$lieu_deliv','$type_permis')");
-
-} else {
-
-    mysqli_query($conn, "INSERT INTO assure
-    (id_personne, date_creation, actif)
-    VALUES ($id_personne,'$date_creation',$actif)");
-}
-       if ($type == 'morale') {
-    $success = "Assuré <b>$raison</b> créé avec succès.";
-} else {
-    $success = "Assuré <b>$nom $prenom</b> créé avec succès.";
-}
+        // INSERT ASSURE UNIQUE
+      mysqli_query($conn, "INSERT INTO assure
+(id_personne, date_creation, actif,
+ num_permis, date_delivrance_permis, lieu_delivrance_permis, type_permis,
+ chauffeur_nom, chauffeur_prenom, chauffeur_permis, chauffeur_type_permis)
+VALUES
+($id_personne, '$date_creation', $actif,
+ ".($num_permis ? "'$num_permis'" : "NULL").",
+ ".($date_deliv ? "'$date_deliv'" : "NULL").",
+ ".($lieu_deliv ? "'$lieu_deliv'" : "NULL").",
+ ".($type_permis ? "'$type_permis'" : "NULL").",
+ ".($c_nom ? "'$c_nom'" : "NULL").",
+ ".($c_prenom ? "'$c_prenom'" : "NULL").",
+ ".($c_permis ? "'$c_permis'" : "NULL").",
+ ".($c_type ? "'$c_type'" : "NULL")."
+)");
     }
 }
 
@@ -128,7 +178,7 @@ if ($filtre_q)             $where .= " AND (p.nom LIKE '%".mysqli_real_escape_st
 if ($filtre_actif !== '')  $where .= " AND a.actif=".intval($filtre_actif);
 
 $assures = mysqli_query($conn, "
-    SELECT a.*,p.nom,p.prenom,p.telephone,p.email,p.adresse,p.num_identite,
+    SELECT a.*,p.nom,p.prenom,p.telephone,p.email,p.adresse,p.num_identite,nif,type_personne,p.raison_sociale,
            (SELECT COUNT(*) FROM contrat c WHERE c.id_assure=a.id_assure) as nb_contrats,
            (SELECT COUNT(*) FROM utilisateur u WHERE u.id_personne=a.id_personne) as a_compte
     FROM assure a
@@ -214,7 +264,15 @@ if (isset($_GET['compte'])) {
         <?php while ($a = mysqli_fetch_assoc($assures)): ?>
         <tr>
             <td>
-                <div style="font-weight:500"><?= htmlspecialchars($a['nom'].' '.$a['prenom']) ?></div>
+                <div style="font-weight:500">
+
+<?php if ($a['type_personne'] == 'physique'): ?>
+    <?= htmlspecialchars($a['nom'].' '.$a['prenom']) ?>
+<?php else: ?>
+    <?= htmlspecialchars($a['raison_sociale']) ?>
+<?php endif; ?>
+
+</div>
                 <div style="font-size:11px;color:var(--gray-400)">CIN: <?= htmlspecialchars($a['num_identite']) ?></div>
                 <div style="font-size:11px;color:var(--gray-400)">#<?= $a['id_assure'] ?> · <?= $a['date_creation'] ?></div>
             </td>
@@ -222,12 +280,25 @@ if (isset($_GET['compte'])) {
                 <div><?= htmlspecialchars($a['telephone'] ?? '') ?></div>
                 <div style="font-size:12px;color:var(--blue-700)"><?= htmlspecialchars($a['email']) ?></div>
             </td>
-            <td>
-                <?php if ($a['num_permis']): ?>
-                <div class="num-cell" style="font-size:12px"><?= htmlspecialchars($a['num_permis'] ?? '') ?></div>
-                <div style="font-size:11px;color:var(--gray-400)"><?= $a['type_permis'] ?></div>
-                <?php else: echo '<span style="color:var(--gray-300)">—</span>'; endif; ?>
-            </td>
+           <td>
+
+<?php if ($a['type_personne'] == 'physique'): ?>
+
+    <div class="num-cell"><?= htmlspecialchars($a['num_permis'] ?? '') ?></div>
+    <div style="font-size:11px;color:var(--gray-400)">
+        <?= $a['type_permis'] ?>
+    </div>
+
+<?php else: ?>
+
+    <div><?= htmlspecialchars($a['chauffeur_nom'].' '.$a['chauffeur_prenom']) ?></div>
+    <div style="font-size:11px;color:gray">
+        Permis: <?= htmlspecialchars($a['chauffeur_permis']) ?>
+    </div>
+
+<?php endif; ?>
+
+</td>
             <td style="text-align:center">
                 <?php if ($a['nb_contrats'] > 0): ?>
                 <span class="badge badge-blue"><?= $a['nb_contrats'] ?></span>
@@ -328,24 +399,45 @@ if (isset($_GET['compte'])) {
         <input type="text" name="raison_sociale" id="raison_sociale">
     </div>
 </div>
+<div class="form-group" id="cin_field">
+    <label>N° identité (CIN) <span style="color:red">*</span></label>
+    <input type="text" name="num_identite" id="cin_add" placeholder="Ex: 026737698">
+    <small id="cin-error" style="color:red;font-size:12px;"></small>
+</div>
+<div class="form-group" id="nif_field" style="display:none">
+    <label>NIF <span style="color:red">*</span></label>
+    <input type="text" name="nif" id="nif_add" placeholder="Ex: 123456789">
+</div>
+<div class="section-divider">
+    <i class="fa fa-phone"></i> Coordonnées
+</div>
 
-        <div class="form-group">
-            <label>N° identité (CIN) <span style="color:red">*</span></label>
-            <input type="text" name="num_identite" id="cin_add" required placeholder="Ex: 026737698">
-            <small id="cin-error" class="error-text"></small>
-        </div>
+<div class="form-grid-2">
 
+    <div class="form-group">
+        <label>Téléphone <span style="color:red">*</span></label>
+      <input type="text"
+       name="telephone"
+       pattern="[0-9]{10}"
+       title="Entrer 10 chiffres"
+         id="telephone_add"
+         placeholder="Ex: 0550123456"
+       required>
+              
+    </div>
 
-        <div class="form-grid-2">
-            <div class="form-group">
-                <label>Téléphone <span style="color:red">*</span></label>
-                <input type="text" name="telephone" required placeholder="Ex: 0550 00 00 00">
-            </div>
-            <div class="form-group">
-                <label>Email <span style="color:red">*</span></label>
-                <input type="email" name="email" required placeholder="exemple@mail.com">
-            </div>
-        </div>
+    <div class="form-group">
+        <label>Email <span style="color:red">*</span></label>
+        <input type="email"
+               name="email"
+               id="email_add"
+               required
+               placeholder="exemple@mail.com">
+    </div>
+
+</div>
+
+  
 
         <div class="form-group">
             <label>Adresse</label>
@@ -372,33 +464,76 @@ if (isset($_GET['compte'])) {
             </div>
         </div>
 
-        <div class="form-grid-2">
-            <div class="form-group">
-                <label>N° Permis <span style="color:red">*</span></label>
-                <input type="text" name="num_permis" id="permis_add" required placeholder="Ex: AB123456">
-                <small id="permis-error" class="error-text"></small>
-            </div>
-            <div class="form-group">
-                <label>Type permis</label>
-                <select name="type_permis">
-                    <option value="B">B</option>
-                    <option value="A">A</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                </select>
-            </div>
+  <div id="permis_fields">
+
+    <div class="form-grid-2">
+        <div class="form-group">
+            <label>N° Permis <span style="color:red">*</span></label>
+            <input type="text" name="num_permis" id="permis_add" placeholder="Ex: AB123456">
+            <small id="permis-error" style="color:red;font-size:12px;"></small>
         </div>
 
-        <div class="form-grid-2">
-            <div class="form-group">
-                <label>Date délivrance permis <span style="color:red">*</span></label>
-                <input type="date" name="date_delivrance_permis" required>
-            </div>
-            <div class="form-group">
-                <label>Lieu délivrance permis <span style="color:red">*</span></label>
-                <input type="text" name="lieu_delivrance_permis" required placeholder="Ex: Alger">
-            </div>
+        <div class="form-group">
+            <label>Type permis</label>
+            <select name="type_permis">
+                <option value="B">B</option>
+                <option value="A">A</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
         </div>
+    </div>
+
+    <div class="form-grid-2">
+        <div class="form-group">
+            <label>Date délivrance permis</label>
+            <input type="date" name="date_delivrance_permis">
+        </div>
+
+        <div class="form-group">
+            <label>Lieu délivrance permis</label>
+            <input type="text" name="lieu_delivrance_permis">
+        </div>
+    </div>
+
+</div>
+            <div id="conducteur_fields" style="display:none">
+
+    <div class="section-divider">
+        <i class="fa fa-user"></i> Chauffeur
+    </div>
+
+    <div class="form-grid-2">
+        <div class="form-group">
+            <label>Nom chauffeur</label>
+            <input type="text" name="chauffeur_nom">
+        </div>
+
+        <div class="form-group">
+            <label>Prénom chauffeur</label>
+            <input type="text" name="chauffeur_prenom">
+        </div>
+    </div>
+
+    <div class="form-grid-2">
+        <div class="form-group">
+            <label>N° permis chauffeur</label>
+            <input type="text" name="chauffeur_permis">
+            <small id="chauffeur-error" style="color:red;font-size:12px;"></small>
+        </div>
+
+        <div class="form-group">
+            <label>Type permis</label>
+            <select name="chauffeur_type_permis">
+                <option>B</option>
+                <option>C</option>
+                <option>D</option>
+            </select>
+        </div>
+    </div>
+
+</div>
+      
 
         <div style="display:flex;gap:10px;margin-top:20px">
             <button type="submit" name="ajouter" class="btn btn-primary" style="flex:1">
@@ -549,15 +684,56 @@ cinInput.addEventListener('input', () => {
     }, 400);
 });
 
-// ── Vérification Permis en temps réel ──
 const permisInput = document.getElementById('permis_add');
+const chauffeurError = document.getElementById('chauffeur-error');
+
+if (chauffeurInput) {
+    chauffeurInput.addEventListener('input', () => {
+
+        const type = document.getElementById('type_personne').value;
+        if (type !== 'morale') return;
+
+        const val = chauffeurInput.value.trim();
+        if (val.length < 3) {
+            chauffeurError.textContent = '';
+            return;
+        }
+
+        fetch('check_permis.php?num=' + encodeURIComponent(val))
+        .then(r => r.json())
+        .then(d => {
+            if (d.exists) {
+                chauffeurInput.classList.add('input-error');
+                chauffeurError.innerHTML = '❌ Permis déjà utilisé';
+                permisInvalid = true;
+            } else {
+                chauffeurInput.classList.remove('input-error');
+                chauffeurError.textContent = '';
+                permisInvalid = false;
+            }
+        });
+    });
+}
 const permisError = document.getElementById('permis-error');
 let permisInvalid = false;
 let permisTimeout = null;
+
 permisInput.addEventListener('input', () => {
+
+    const type = document.getElementById('type_personne').value;
+
+    // Ne vérifier que pour physique
+    if (type !== 'physique') return;
+
     clearTimeout(permisTimeout);
     const val = permisInput.value.trim();
-    if (val.length < 3) { permisInput.classList.remove('input-error'); permisError.textContent = ''; return; }
+
+    if (val.length < 3) {
+        permisInput.classList.remove('input-error');
+        permisError.textContent = '';
+        return;
+    }
+
     permisTimeout = setTimeout(() => {
         fetch('check_permis.php?num=' + encodeURIComponent(val))
         .then(r => r.json())
@@ -575,14 +751,14 @@ permisInput.addEventListener('input', () => {
     }, 400);
 });
 
-// ── Bloquer soumission si erreurs ──
-document.querySelector('#modal-add form').addEventListener('submit', function(e) {
-    if (cinInvalid || permisInvalid) e.preventDefault();
-});
 function toggleTypeAssure() {
 
     const type = document.getElementById('type_personne').value;
+
+    const cinField = document.getElementById('cin_field');
+    const nifField = document.getElementById('nif_field');
     const cin = document.getElementById('cin_add');
+    const nif = document.getElementById('nif_add');
 
     const nom = document.getElementById('nom');
     const prenom = document.getElementById('prenom');
@@ -593,39 +769,59 @@ function toggleTypeAssure() {
 
     const physique = document.getElementById('physique_fields');
     const morale = document.getElementById('morale_fields');
-    const permis = document.getElementById('permis_fields');
-if (type === 'physique') {
-    cin.required = true;
-} else {
-    cin.required = false;
-    cin.value = '';
-}
+
+    const permis = document.getElementById('permis_add');
+    const permisFields = document.getElementById('permis_fields'); // 🔥 AJOUT IMPORTANT
+
+    const conducteur = document.getElementById('conducteur_fields');
+    const chauffeurPermis = document.querySelector('[name="chauffeur_permis"]');
+
+    // ===== CIN / NIF =====
+    if (type === 'physique') {
+        cinField.style.display = '';
+        nifField.style.display = 'none';
+
+        cin.required = true;
+        nif.required = false;
+        nif.value = '';
+    } else {
+        cinField.style.display = 'none';
+        nifField.style.display = '';
+
+        cin.required = false;
+        cin.value = '';
+
+        nif.required = true;
+    }
+
+    // ===== CHAMPS =====
     if (type === 'physique') {
 
-        // affichage
         physique.style.display = '';
         morale.style.display = 'none';
-        permis.style.display = '';
 
-        // required
         nom.required = true;
         prenom.required = true;
         date.required = true;
         lieu.required = true;
 
         raison.required = false;
-
-        // nettoyage
         raison.value = '';
+
+        // 🔥 PERMIS
+        permisFields.style.display = '';
+        permis.required = true;
+
+        // 🔥 CHAUFFEUR
+        conducteur.style.display = 'none';
+        chauffeurPermis.required = false;
+        chauffeurPermis.value = '';
 
     } else {
 
-        // affichage
         physique.style.display = 'none';
         morale.style.display = '';
-        permis.style.display = 'none';
 
-        // required
         nom.required = false;
         prenom.required = false;
         date.required = false;
@@ -633,14 +829,21 @@ if (type === 'physique') {
 
         raison.required = true;
 
-        // nettoyage
         nom.value = '';
         prenom.value = '';
         date.value = '';
         lieu.value = '';
-    } 
-   
-} 
+
+        // 🔥 PERMIS
+        permisFields.style.display = 'none';
+        permis.required = false;
+        permis.value = '';
+
+        // 🔥 CHAUFFEUR
+        conducteur.style.display = '';
+        chauffeurPermis.required = true;
+    }
+}
 window.onload = toggleTypeAssure;
 function confirmDeleteAssure(e, id) {
     e.preventDefault();

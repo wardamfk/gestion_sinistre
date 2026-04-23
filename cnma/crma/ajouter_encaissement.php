@@ -16,18 +16,18 @@ $dossier = mysqli_fetch_assoc(mysqli_query($conn,"SELECT id_etat FROM dossier WH
 
 // 🔴 AJOUT ICI (NE BOUGE PAS CET EMPLACEMENT)
 $tiers = mysqli_fetch_assoc(mysqli_query($conn,"
-    SELECT responsabilite 
+    SELECT responsable 
     FROM tiers 
     WHERE id_tiers = $id_tiers
 "));
 
-if (!$tiers || $tiers['responsabilite'] != 1) {
+if (!$tiers || !in_array($tiers['responsable'], ['oui','partiel'])) {
     header("Location: voir_dossier.php?id=$id_dossier&tab=encaissements&err=tiers_non_responsable");
     exit();
 }
 
 // Vérifier état autorisé
-if(!in_array($dossier['id_etat'], [7,8,13,14])) {
+if(!in_array($dossier['id_etat'], [7,8,13,14,19,20])) {
     header("Location: voir_dossier.php?id=$id_dossier&tab=encaissements&err=etat");
     exit();
 }

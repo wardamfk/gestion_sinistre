@@ -36,7 +36,16 @@ if(isset($_POST['creer'])) {
 
 // === ACTIVER / DÉSACTIVER ===
 if(isset($_GET['toggle'], $_GET['uid'])) {
-    $uid = intval($_GET['uid']);
+  $uid = intval($_GET['uid']);
+
+// récupérer rôle cible
+$res = mysqli_query($conn, "SELECT role FROM utilisateur WHERE id_user=$uid");
+$target = mysqli_fetch_assoc($res);
+
+// ❌ bloquer CRMA
+if($target['role'] != 'ASSURE'){
+    die("Action interdite");
+}
     if($uid != $_SESSION['id_user']) {
         $actuel = mysqli_fetch_assoc(mysqli_query($conn, "SELECT actif FROM utilisateur WHERE id_user=$uid"))['actif'];
         mysqli_query($conn, "UPDATE utilisateur SET actif=".($actuel ? 0 : 1)." WHERE id_user=$uid");
@@ -45,25 +54,13 @@ if(isset($_GET['toggle'], $_GET['uid'])) {
 }
 
 // === SUPPRIMER ===
-if(isset($_GET['del'], $_GET['uid'])) {
-    $uid = intval($_GET['uid']);
-    if($uid != $_SESSION['id_user']) {
-        // Vérifier qu'il n'a pas de dossiers
-        $nb_dossiers = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE cree_par=$uid"))['n'];
-        if($nb_dossiers > 0) {
-            header("Location: gestion_utilisateurs.php?err=has_dossiers"); exit();
-        }
-        mysqli_query($conn, "DELETE FROM utilisateur WHERE id_user=$uid");
-    }
-    header("Location: gestion_utilisateurs.php?ok=del"); exit();
+if(isset($_GET['del'])){
+    die("Suppression interdite");
 }
 
 // === MODIFIER MOT DE PASSE ===
-if(isset($_POST['reset_pwd'])) {
-    $uid  = intval($_POST['uid']);
-    $pwd  = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-    mysqli_query($conn, "UPDATE utilisateur SET mot_de_passe='$pwd' WHERE id_user=$uid");
-    $success = "Mot de passe réinitialisé avec succès.";
+if(isset($_POST['reset_pwd'])){
+    die("Action interdite");
 }
 
 // Lire utilisateurs
@@ -150,7 +147,7 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
     <div class="user-stats">
         <div class="u-stat">
             <div class="n"><?php echo $nb_cnma + $nb_crma + $nb_assure; ?></div>
-            <div class="l">Total comptes</div>
+            <div class="l">Total utilisateurs </div>
         </div>
         <div class="u-stat">
             <div class="n" style="color:#283593;"><?php echo $nb_cnma; ?></div>
@@ -162,7 +159,7 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
         </div>
         <div class="u-stat">
             <div class="n" style="color:#2e7d32;"><?php echo $nb_actifs; ?></div>
-            <div class="l">Comptes actifs</div>
+            <div class="l">utilisateurs actifs</div>
         </div>
     </div>
 
@@ -322,44 +319,29 @@ $wilaya = $u['wilaya_user'] ?? $u['wilaya_assure'] ?? '';
                                 <?php echo $u['actif'] ? 'Actif' : 'Inactif'; ?>
                             </span>
                         </td>
-                        <td>
-                            <?php if($u['id_user'] != $_SESSION['id_user']): ?>
-                            <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                                <!-- Activer/Désactiver -->
-                                <a href="gestion_utilisateurs.php?toggle=1&uid=<?php echo $u['id_user']; ?>"
-                                   class="cnma-btn sm <?php echo $u['actif'] ? 'danger' : 'success'; ?>"
-                                   onclick="return confirm('<?php echo $u['actif'] ? 'Désactiver' : 'Activer'; ?> ce compte ?')"
-                                   title="<?php echo $u['actif'] ? 'Désactiver' : 'Activer'; ?>">
-                                    <i class="fa <?php echo $u['actif'] ? 'fa-ban' : 'fa-check'; ?>"></i>
-                                    <?php echo $u['actif'] ? 'Désactiver' : 'Activer'; ?>
-                                </a>
+<td>
+<?php if($u['id_user'] != $_SESSION['id_user']): ?>
 
-                                <!-- Réinitialiser MDP -->
-                                <button type="button" class="cnma-btn sm warning"
-                                     onclick="openPwd(<?php echo $u['id_user']; ?>, '<?php echo htmlspecialchars($nom); ?>')"
-                                        title="Réinitialiser mot de passe">
-                                    <i class="fa fa-key"></i>
-                                </button>
+    <?php if($_SESSION['role'] == 'CNMA' && $u['role'] == 'ASSURE'): ?>
 
-                                <!-- Supprimer -->
-                                <?php if($u['nb_dossiers'] == 0): ?>
-                                <a href="gestion_utilisateurs.php?del=1&uid=<?php echo $u['id_user']; ?>"
-                                   class="cnma-btn sm secondary"
-                                   onclick="return confirm('Supprimer définitivement ce compte ?')"
-                                   title="Supprimer">
-                                    <i class="fa fa-trash"></i>
-                                </a>
-                                <?php else: ?>
-                                <span class="cnma-btn sm secondary" style="opacity:0.4; cursor:not-allowed;" title="Impossible — a des dossiers">
-                                    <i class="fa fa-trash"></i>
-                                </span>
-                                <?php endif; ?>
-                            </div>
-                            <?php else: ?>
-                            <span style="color:#90a4ae; font-size:12px; font-style:italic;">Votre compte</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
+        <?php if($u['actif'] == 1): ?>
+            <a href="gestion_utilisateurs.php?toggle=1&uid=<?php echo $u['id_user']; ?>"
+               class="cnma-btn sm danger"
+               onclick="return confirm('Désactiver ce compte ?')">
+                <i class="fa fa-ban"></i> Désactiver
+            </a>
+        <?php else: ?>
+            <span style="color:#90a4ae;">Désactivé</span>
+        <?php endif; ?>
+
+    <?php else: ?>
+        <span style="color:#b0bec5;">Aucune action</span>
+    <?php endif; ?>
+
+<?php else: ?>
+    <span style="color:#90a4ae;">Votre compte</span>
+<?php endif; ?>
+</td>                    </tr>
                     <?php endwhile; ?>
                     <?php if($count == 0): ?>
                     <tr><td colspan="7"><div class="empty-state"><i class="fa fa-users"></i><p>Aucun utilisateur trouvé</p></div></td></tr>

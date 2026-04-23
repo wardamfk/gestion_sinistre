@@ -25,18 +25,27 @@ $current = basename($_SERVER['PHP_SELF']);
             <i class="fa fa-chart-pie"></i> Tableau de bord
         </a>
 
-        <a href="/PfeCnma/cnma/pages/dossiers_attente.php"
-           class="<?php echo ($current=='dossiers_attente.php') ? 'active' : ''; ?>">
-            <i class="fa fa-clock"></i> En attente
-            <?php if($nb_attente > 0): ?>
-            <span class="notif-badge"><?php echo $nb_attente; ?></span>
-            <?php endif; ?>
-        </a>
+    <div class="menu-item" onclick="toggleMenu('gestion')">
+    <i class="fa fa-folder"></i> Gestion
+    <i class="fa fa-chevron-down" style="margin-left:auto; font-size:11px;"></i>
+</div>
+<div class="submenu" id="gestion"
+     style="<?php echo in_array($current, ['dossiers_attente.php','tous_dossiers_cnma.php']) ? 'display:block;' : ''; ?>">
 
-        <a href="/PfeCnma/cnma/pages/tous_dossiers_cnma.php"
-           class="<?php echo ($current=='tous_dossiers_cnma.php') ? 'active' : ''; ?>">
-            <i class="fa fa-folder-open"></i> Tous les dossiers
-        </a>
+    <a href="/PfeCnma/cnma/pages/dossiers_attente.php"
+       class="<?php echo ($current=='dossiers_attente.php') ? 'active' : ''; ?>">
+        <i class="fa fa-clock"></i> Dossiers en attente
+        <?php if($nb_attente > 0): ?>
+        <span class="notif-badge"><?php echo $nb_attente; ?></span>
+        <?php endif; ?>
+    </a>
+
+    <a href="/PfeCnma/cnma/pages/tous_dossiers_cnma.php"
+       class="<?php echo ($current=='tous_dossiers_cnma.php') ? 'active' : ''; ?>">
+        <i class="fa fa-folder-open"></i> Tous les dossiers
+    </a>
+
+</div>
 
         <a href="/PfeCnma/cnma/pages/statistiques_cnma.php"
            class="<?php echo ($current=='statistiques_cnma.php') ? 'active' : ''; ?>">
@@ -45,10 +54,16 @@ $current = basename($_SERVER['PHP_SELF']);
 
         <div class="nav-section" style="margin-top:10px;">Administration</div>
 
+       
         <a href="/PfeCnma/cnma/pages/gestion_utilisateurs.php"
-           class="<?php echo ($current=='gestion_utilisateurs.php') ? 'active' : ''; ?>">
-            <i class="fa fa-users"></i> Utilisateurs
-        </a>
+   class="<?php echo ($current=='gestion_utilisateurs.php') ? 'active' : ''; ?>">
+    <i class="fa fa-users"></i> Utilisateurs
+</a>
+
+<a href="/PfeCnma/cnma/pages/profil_cnma.php"
+   class="<?php echo ($current=='profil_cnma.php') ? 'active' : ''; ?>">
+    <i class="fa fa-user"></i> Profil
+</a>
 
         <a href="/PfeCnma/cnma/pages/historique_global.php"
            class="<?php echo ($current=='historique_global.php') ? 'active' : ''; ?>">
@@ -62,3 +77,10 @@ $current = basename($_SERVER['PHP_SELF']);
         </a>
     </div>
 </div>
+<script>
+
+function toggleMenu(id) {
+    let menu = document.getElementById(id);
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+</script>

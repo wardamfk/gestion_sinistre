@@ -9,7 +9,7 @@ $current = basename($_SERVER['PHP_SELF']);
 <div class="assure-sidebar">
     <div class="assure-brand">
         <img src="/PfeCnma/cnma/images/logo.webp" alt="CNMA">
-        <h2>Mon Espace</h2>
+        <h2></h2>
         <span class="assure-role-badge">Assuré</span>
     </div>
     <nav class="assure-nav">
