@@ -12,14 +12,13 @@ $dossier = mysqli_fetch_assoc(mysqli_query($conn,"
            p.nom AS nom_assure, p.prenom AS prenom_assure, p.telephone,
            pt.nom AS nom_tiers, pt.prenom AS prenom_tiers,
            t.compagnie_assurance, t.responsable,
-           c.numero_police, f.nom_formule,
+           c.numero_police,
            v.marque, v.modele, v.matricule,
            ex.nom AS nom_expert, ex.prenom AS prenom_expert,
            ag.nom_agence, ag.wilaya
     FROM dossier d
     LEFT JOIN etat_dossier e ON d.id_etat=e.id_etat
     LEFT JOIN contrat c ON d.id_contrat=c.id_contrat
-    LEFT JOIN formule f ON c.id_formule=f.id_formule
     LEFT JOIN assure ass ON c.id_assure=ass.id_assure
     LEFT JOIN personne p ON ass.id_personne=p.id_personne
     LEFT JOIN tiers t ON d.id_tiers=t.id_tiers
@@ -441,7 +440,6 @@ if ($role === 'CNMA') {
     <div class="info-row-crma"><span>Assuré</span><span><?= $dossier['nom_assure'].' '.$dossier['prenom_assure']; ?></span></div>
     <div class="info-row-crma"><span>Téléphone</span><span><?= $dossier['telephone']; ?></span></div>
     <div class="info-row-crma"><span>N° Police</span><span><?= $dossier['numero_police']; ?></span></div>
-    <div class="info-row-crma"><span>Formule</span><span><?= $dossier['nom_formule']; ?></span></div>
     <div class="info-row-crma"><span>Véhicule</span><span><?= $dossier['marque'].' '.$dossier['modele'].' — '.$dossier['matricule']; ?></span></div>
   </div>
   <div class="crma-card">

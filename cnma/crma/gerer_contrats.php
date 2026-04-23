@@ -19,7 +19,6 @@ if (isset($_POST['ajouter'])) {
     $id_assure     = intval($_POST['id_assure']);
     $id_vehicule   = intval($_POST['id_vehicule']);
     $id_agence     = intval($_POST['id_agence']);
-    $id_formule    = intval($_POST['id_formule']);
     $date_effet    = $_POST['date_effet'];
     $date_exp      = $_POST['date_expiration'];
     $prime_base    = (float)$_POST['prime_base'];
@@ -42,18 +41,12 @@ if (isset($_POST['ajouter'])) {
         mysqli_query($conn, "INSERT INTO contrat
             (numero_police,id_assure,id_vehicule,date_effet,date_expiration,
              prime_base,reduction,majoration,prime_nette,complement,
-             total_taxes,total_timbres,net_a_payer,statut,date_creation,id_agence,id_formule)
+             total_taxes,total_timbres,net_a_payer,statut,date_creation,id_agence)
             VALUES ('$numero_police',$id_assure,$id_vehicule,'$date_effet','$date_exp',
                     $prime_base,$reduction,$majoration,$prime_nette,$complement,
-                    $total_taxes,$total_timbres,$net_a_payer,'$statut','$date_creation',$id_agence,$id_formule)");
+                    $total_taxes,$total_timbres,$net_a_payer,'$statut','$date_creation',$id_agence)");
         $id_contrat = mysqli_insert_id($conn);
-
-        $gars = mysqli_query($conn, "SELECT id_garantie FROM formule_garantie WHERE id_formule=$id_formule");
-        while ($g = mysqli_fetch_assoc($gars)) {
-            mysqli_query($conn, "INSERT IGNORE INTO contrat_garantie (id_contrat,id_garantie)
-                VALUES ($id_contrat,{$g['id_garantie']})");
-        }
-        $success = "Contrat créé avec succès — garanties associées automatiquement.";
+        $success = "Contrat créé avec succès.";
     }
 }
 
@@ -73,19 +66,14 @@ if (isset($_GET['dup'])) {
             mysqli_query($conn, "INSERT INTO contrat
                 (numero_police,id_assure,id_vehicule,date_effet,date_expiration,
                  prime_base,reduction,majoration,prime_nette,complement,
-                 total_taxes,total_timbres,net_a_payer,statut,date_creation,id_agence,id_formule)
+                 total_taxes,total_timbres,net_a_payer,statut,date_creation,id_agence)
                 VALUES (
                     '$nouveau_num',{$src['id_assure']},{$src['id_vehicule']},
                     '$date_effet_new','$date_exp_new',
                     {$src['prime_base']},{$src['reduction']},{$src['majoration']},{$src['prime_nette']},
                     {$src['complement']},{$src['total_taxes']},{$src['total_timbres']},{$src['net_a_payer']},
-                    'actif','".date('Y-m-d')."',{$src['id_agence']},{$src['id_formule']})");
+                    'actif','".date('Y-m-d')."',{$src['id_agence']})");
             $new_id = mysqli_insert_id($conn);
-            // Copier les garanties
-            $gars_src = mysqli_query($conn, "SELECT id_garantie FROM contrat_garantie WHERE id_contrat=$id_src");
-            while ($g = mysqli_fetch_assoc($gars_src)) {
-                mysqli_query($conn, "INSERT IGNORE INTO contrat_garantie (id_contrat,id_garantie) VALUES ($new_id,{$g['id_garantie']})");
-            }
             $success = "Contrat dupliqué avec succès — N° police : <b>$nouveau_num</b>.";
         }
     }
@@ -107,7 +95,6 @@ if (isset($_GET['del'])) {
     if ($usage > 0) {
         $error = "Impossible : ce contrat a $usage dossier(s) sinistre associé(s).";
     } else {
-        mysqli_query($conn, "DELETE FROM contrat_garantie WHERE id_contrat=$id");
         mysqli_query($conn, "DELETE FROM contrat WHERE id_contrat=$id");
         $success = "Contrat supprimé.";
     }
@@ -127,13 +114,11 @@ $contrats = mysqli_query($conn, "
     SELECT c.*,
            p.nom AS nom_assure, p.prenom AS prenom_assure,
            v.marque, v.modele, v.matricule,
-           f.nom_formule,
            (SELECT COUNT(*) FROM dossier d WHERE d.id_contrat=c.id_contrat) as nb_dossiers
     FROM contrat c
     JOIN assure a ON c.id_assure=a.id_assure
     JOIN personne p ON a.id_personne=p.id_personne
     JOIN vehicule v ON c.id_vehicule=v.id_vehicule
-    JOIN formule f ON c.id_formule=f.id_formule
     $where
     ORDER BY c.id_contrat DESC");
 $total = mysqli_num_rows($contrats);
@@ -148,7 +133,6 @@ $nb_resilie  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM co
 $assures  = mysqli_query($conn, "SELECT a.id_assure,p.nom,p.prenom FROM assure a JOIN personne p ON a.id_personne=p.id_personne WHERE a.actif=1 ORDER BY p.nom");
 $vehicules= mysqli_query($conn, "SELECT id_vehicule,matricule,marque,modele FROM vehicule ORDER BY marque");
 $agences  = mysqli_query($conn, "SELECT id_agence,nom_agence FROM agence WHERE type_agence='CRMA'");
-$formules = mysqli_query($conn, "SELECT id_formule,nom_formule FROM formule");
 
 $statut_badge = [
     'actif'    => ['badge-green', 'Actif'],
@@ -157,10 +141,7 @@ $statut_badge = [
     'resilie'  => ['badge-gray',  'Résilié'],
 ];
 
-/* Garanties map pour JS */
-$fg = mysqli_query($conn, "SELECT fg.id_formule,g.nom_garantie,g.code_garantie FROM formule_garantie fg JOIN garantie g ON fg.id_garantie=g.id_garantie");
-$garanties_map = [];
-while ($r = mysqli_fetch_assoc($fg)) $garanties_map[$r['id_formule']][] = ['n'=>$r['nom_garantie'],'c'=>$r['code_garantie']];
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -254,7 +235,7 @@ while ($r = mysqli_fetch_assoc($fg)) $garanties_map[$r['id_formule']][] = ['n'=>
     </div>
     <table class="crma-table">
         <thead>
-            <tr><th>N° Police</th><th>Assuré</th><th>Véhicule</th><th>Formule</th><th>Effet</th><th>Expiration</th><th>Net à payer</th><th>Statut</th><th>Actions</th></tr>
+            <tr><th>N° Police</th><th>Assuré</th><th>Véhicule</th><th>Effet</th><th>Expiration</th><th>Net à payer</th><th>Statut</th><th>Actions</th></tr>
         </thead>
         <tbody>
         <?php while ($c = mysqli_fetch_assoc($contrats)):
@@ -273,7 +254,6 @@ while ($r = mysqli_fetch_assoc($fg)) $garanties_map[$r['id_formule']][] = ['n'=>
                 <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600"><?= htmlspecialchars($c['matricule']) ?></div>
                 <div style="font-size:11px;color:var(--gray-400)"><?= htmlspecialchars($c['marque'].' '.$c['modele']) ?></div>
             </td>
-            <td><span class="badge badge-purple" style="font-size:11px"><?= htmlspecialchars($c['nom_formule']) ?></span></td>
             <td class="num-cell" style="font-size:12px"><?= $c['date_effet'] ?></td>
             <td class="num-cell" style="font-size:12px;color:<?= $expire_bientot?'var(--amber-600)':'inherit' ?>">
                 <?= $c['date_expiration'] ?>
@@ -353,18 +333,7 @@ while ($r = mysqli_fetch_assoc($fg)) $garanties_map[$r['id_formule']][] = ['n'=>
                         <div class="num-cell" style="color:var(--green-700);font-size:16px;font-weight:700"><?= number_format($c['net_a_payer'],2,',',' ') ?> DA</div>
                     </div>
                 </div>
-                <?php
-                $gars_c = mysqli_query($conn, "SELECT g.nom_garantie,g.code_garantie FROM contrat_garantie cg JOIN garantie g ON cg.id_garantie=g.id_garantie WHERE cg.id_contrat={$c['id_contrat']}");
-                $gar_list = [];
-                while ($g = mysqli_fetch_assoc($gars_c)) $gar_list[] = $g;
-                if ($gar_list): ?>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                    <span style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase">Garanties :</span>
-                    <?php foreach ($gar_list as $g): ?>
-                    <span class="badge badge-teal" style="font-size:11px"><?= htmlspecialchars($g['code_garantie']) ?> — <?= htmlspecialchars($g['nom_garantie']) ?></span>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
+
             </td>
         </tr>
         <?php endwhile; ?>
@@ -424,20 +393,6 @@ while ($r = mysqli_fetch_assoc($fg)) $garanties_map[$r['id_formule']][] = ['n'=>
                     <?php endwhile; ?>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Formule <span style="color:red">*</span></label>
-                <select name="id_formule" required onchange="updateFormule(this.value)">
-                    <option value="">— Sélectionner —</option>
-                    <?php while ($f = mysqli_fetch_assoc($formules)): ?>
-                    <option value="<?= $f['id_formule'] ?>"><?= htmlspecialchars($f['nom_formule']) ?></option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
-        </div>
-        <!-- Garanties preview -->
-        <div id="garanties-preview" style="display:none;margin-bottom:16px;padding:12px;background:var(--teal-50);border:1px solid var(--teal-100);border-radius:var(--radius)">
-            <div style="font-size:10px;font-weight:700;color:var(--teal-700);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Garanties incluses automatiquement</div>
-            <div id="garanties-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
         <div class="form-grid-2">
             <div class="form-group">
@@ -510,16 +465,6 @@ function calculer() {
     document.getElementById('r_taxes').textContent      = fmt(taxes);
     document.getElementById('r_complement').textContent = fmt(comp);
     document.getElementById('r_net').textContent        = fmt(net);
-}
-
-const garantiesMap = <?= json_encode($garanties_map) ?>;
-function updateFormule(id) {
-    const box  = document.getElementById('garanties-preview');
-    const list = document.getElementById('garanties-list');
-    const gars = garantiesMap[id];
-    if (!gars || !gars.length) { box.style.display='none'; return; }
-    list.innerHTML = gars.map(g => `<span class="badge badge-teal" style="font-size:11px">${g.c} — ${g.n}</span>`).join('');
-    box.style.display = 'block';
 }
 
 function toggleDetail(id) {

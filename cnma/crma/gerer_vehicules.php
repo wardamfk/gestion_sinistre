@@ -107,11 +107,10 @@ if (isset($_GET['contrats'])) {
     $voir_contrats = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT * FROM vehicule WHERE id_vehicule=$vid"));
     $res_c = mysqli_query($conn, "
-        SELECT c.*, p.nom, p.prenom, f.nom_formule, ag.nom_agence
+        SELECT c.*, p.nom, p.prenom, ag.nom_agence
         FROM contrat c
         JOIN assure a ON c.id_assure=a.id_assure
         JOIN personne p ON a.id_personne=p.id_personne
-        JOIN formule f ON c.id_formule=f.id_formule
         JOIN agence ag ON c.id_agence=ag.id_agence
         WHERE c.id_vehicule = $vid ORDER BY c.id_contrat DESC
     ");
@@ -426,7 +425,7 @@ $type_icons = [
     <?php else: ?>
     <table class="crma-table">
         <thead>
-            <tr><th>N° Police</th><th>Assuré</th><th>Formule</th><th>Agence</th><th>Effet</th><th>Expiration</th><th>Net à payer</th><th>Statut</th></tr>
+            <tr><th>N° Police</th><th>Assuré</th><th>Agence</th><th>Effet</th><th>Expiration</th><th>Net à payer</th><th>Statut</th></tr>
         </thead>
         <tbody>
         <?php
@@ -437,7 +436,6 @@ $type_icons = [
         <tr>
             <td style="font-family:'DM Mono',monospace;font-weight:700;color:var(--green-700)"><?= htmlspecialchars($c['numero_police']) ?></td>
             <td style="font-weight:500"><?= htmlspecialchars($c['nom'].' '.$c['prenom']) ?></td>
-            <td><span class="badge badge-purple" style="font-size:11px"><?= htmlspecialchars($c['nom_formule']) ?></span></td>
             <td style="font-size:12px"><?= htmlspecialchars($c['nom_agence']) ?></td>
             <td style="font-size:12px;font-family:'DM Mono',monospace"><?= $c['date_effet'] ?></td>
             <td style="font-size:12px;font-family:'DM Mono',monospace"><?= $c['date_expiration'] ?></td>

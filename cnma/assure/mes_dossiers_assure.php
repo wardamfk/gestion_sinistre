@@ -45,12 +45,11 @@ $dossier_detail = null;
 
 if($id_voir > 0) {
     $dossier_detail = mysqli_fetch_assoc(mysqli_query($conn, "
-        SELECT d.*, v.marque, v.modele, v.matricule, c.numero_police, f.nom_formule,
+        SELECT d.*, v.marque, v.modele, v.matricule, c.numero_police,
                exp.nom AS nom_expert, exp.prenom AS prenom_expert
         FROM dossier d
         JOIN contrat c ON d.id_contrat=c.id_contrat
         LEFT JOIN vehicule v ON c.id_vehicule=v.id_vehicule
-        LEFT JOIN formule f ON c.id_formule=f.id_formule
         LEFT JOIN expert exp ON d.id_expert=exp.id_expert
         WHERE d.id_dossier=$id_voir AND c.id_assure=$id_assure
     "));

@@ -9,9 +9,8 @@ $assure = mysqli_fetch_assoc(mysqli_query($conn,"SELECT a.id_assure FROM assure 
 $id_assure = $assure ? $assure['id_assure'] : 0;
 
 $contrats = mysqli_query($conn,"
-    SELECT c.*, f.nom_formule, v.marque, v.modele, v.matricule, v.annee, ag.nom_agence, ag.wilaya
+    SELECT c.*, v.marque, v.modele, v.matricule, v.annee, ag.nom_agence, ag.wilaya
     FROM contrat c
-    LEFT JOIN formule f ON c.id_formule=f.id_formule
     LEFT JOIN vehicule v ON c.id_vehicule=v.id_vehicule
     LEFT JOIN agence ag ON c.id_agence=ag.id_agence
     WHERE c.id_assure=$id_assure ORDER BY c.id_contrat DESC
@@ -57,10 +56,6 @@ $contrats = mysqli_query($conn,"
             </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:20px;">
-            <div>
-                <div style="font-size:11px;color:#78909c;font-weight:700;text-transform:uppercase;">Formule</div>
-                <div style="font-weight:600;margin-top:4px;"><?= $c['nom_formule']; ?></div>
-            </div>
             <div>
                 <div style="font-size:11px;color:#78909c;font-weight:700;text-transform:uppercase;">Date d'effet</div>
                 <div style="font-weight:600;margin-top:4px;"><?= $c['date_effet']; ?></div>

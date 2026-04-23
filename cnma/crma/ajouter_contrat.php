@@ -23,7 +23,6 @@ $result_agence = mysqli_query($conn, $sql_agence);
 
 // Ajouter contrat
 if(isset($_POST['ajouter'])) {
-  $id_formule = $_POST['id_formule'];
     $numero_police = $_POST['numero_police'];
     $id_assure = $_POST['id_assure'];
     $id_vehicule = $_POST['id_vehicule'];
@@ -65,29 +64,14 @@ $net_a_payer = $prime_nette + $total_taxes + $total_timbres + $complement;
     $id_agence = $_POST['id_agence'];
 
    $insert = "INSERT INTO contrat 
-(numero_police, id_assure, id_vehicule, date_effet, date_expiration, prime_base, reduction, majoration, prime_nette, complement, total_taxes, total_timbres, net_a_payer, statut, date_creation, id_agence, id_formule)
+(numero_police, id_assure, id_vehicule, date_effet, date_expiration, prime_base, reduction, majoration, prime_nette, complement, total_taxes, total_timbres, net_a_payer, statut, date_creation, id_agence)
 VALUES
-('$numero_police', '$id_assure', '$id_vehicule', '$date_effet', '$date_expiration', '$prime_base', '$reduction', '$majoration', '$prime_nette', '$complement', '$total_taxes', '$total_timbres', '$net_a_payer', '$statut', '$date_creation', '$id_agence', '$id_formule')";
+('$numero_police', '$id_assure', '$id_vehicule', '$date_effet', '$date_expiration', '$prime_base', '$reduction', '$majoration', '$prime_nette', '$complement', '$total_taxes', '$total_timbres', '$net_a_payer', '$statut', '$date_creation', '$id_agence')";
   if(mysqli_query($conn, $insert)) {
-
-    $id_contrat = mysqli_insert_id($conn);
-
-    // récupérer garanties liées à la formule
-    $sql_gar = "SELECT id_garantie FROM formule_garantie WHERE id_formule = '$id_formule'";
-    $result_gar = mysqli_query($conn, $sql_gar);
-
-    while($row = mysqli_fetch_assoc($result_gar)){
-        $id_garantie = $row['id_garantie'];
-
-        $sql_insert_gar = "INSERT INTO contrat_garantie (id_contrat, id_garantie)
-                           VALUES ('$id_contrat', '$id_garantie')";
-        mysqli_query($conn, $sql_insert_gar);
-    }
-
-    $success = "Contrat + garanties ajoutés automatiquement";
+    $success = "Contrat ajouté avec succès";
 } else {
     $error = "Erreur lors de l'ajout du contrat";
-}}
+}
 ?>
 
 <!DOCTYPE html>
@@ -172,18 +156,7 @@ VALUES
 
         <label>Net à payer</label>
         <input type="number" step="0.01" name="net_a_payer" readonly>
-<label>Formule</label>
-<select name="id_formule" required>
-<?php
-$sql_formule = "SELECT id_formule, nom_formule FROM formule";
-$result_formule = mysqli_query($conn, $sql_formule);
-while($f = mysqli_fetch_assoc($result_formule)) {
-?>
-    <option value="<?php echo $f['id_formule']; ?>">
-        <?php echo $f['nom_formule']; ?>
-    </option>
-<?php } ?>
-</select>
+
         <label>Statut</label>
         <select name="statut">
             <option value="actif">Actif</option>

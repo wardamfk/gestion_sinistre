@@ -2,7 +2,7 @@
 session_start();
 include('../includes/config.php');
 
-// Récupérer contrat depuis GET pour afficher garanties sans perdre expert
+// Récupérer contrat depuis GET
 if(isset($_GET['id_contrat'])){
     $id_contrat = $_GET['id_contrat'];
 } else {
@@ -80,34 +80,6 @@ foreach($documents as $input => $id_type){
 
     // RESPONSABILITE TIERS
     mysqli_query($conn, "UPDATE tiers SET responsable='$responsable' WHERE id_tiers='$id_tiers'");
-
-    // =======================
-    // RESERVES INITIALES
-    // =======================
-    if(isset($_POST['garantie'])){
-        foreach($_POST['garantie'] as $id_garantie){
-            $montant = $_POST['montant'][$id_garantie];
-
-            if($montant != "" && $montant > 0){
-                $date = date('Y-m-d');
-
-                $sql_reserve = "INSERT INTO reserve
-                (id_dossier, id_garantie, montant, date_reserve, type_reserve, cree_par, date_creation)
-                VALUES
-                ('$id_dossier', '$id_garantie', '$montant', '$date', 'initiale', '$cree_par', '$date')";
-
-                mysqli_query($conn, $sql_reserve);
-            }
-        }
-    }
-
-    // TOTAL RESERVE
-    $sql_total = "SELECT SUM(montant) as total FROM reserve WHERE id_dossier='$id_dossier'";
-    $res_total = mysqli_query($conn, $sql_total);
-    $row_total = mysqli_fetch_assoc($res_total);
-    $total_reserve = $row_total['total'];
-
-    mysqli_query($conn, "UPDATE dossier SET total_reserve='$total_reserve' WHERE id_dossier='$id_dossier'");
 
    // HISTORIQUE CREATION
 mysqli_query($conn, "INSERT INTO historique
@@ -247,31 +219,6 @@ if($id_expert != ""){
     }
     ?>
 </select>
-
-<h3>Garanties et réserve initiale</h3>
-
-<?php
-if($id_contrat != ""){
-    $sql = "
-        SELECT g.id_garantie, g.nom_garantie
-        FROM contrat_garantie cg
-        JOIN garantie g ON cg.id_garantie = g.id_garantie
-        WHERE cg.id_contrat = '$id_contrat'
-    ";
-
-    $res = mysqli_query($conn, $sql);
-
-    while($g = mysqli_fetch_assoc($res)){
-        echo "<div class='garantie-item'>";
-        echo "<input type='checkbox' name='garantie[]' value='".$g['id_garantie']."'>";
-        echo "<span>".$g['nom_garantie']."</span>";
-        echo "<input type='number' name='montant[".$g['id_garantie']."]' placeholder='Montant'>";
-        echo "</div>";
-    }
-} else {
-    echo "<p style='color:gray'>Sélectionnez un contrat pour afficher les garanties</p>";
-}
-?>
 
 <button type="submit" name="creer" class="btn">Créer dossier</button>
 
