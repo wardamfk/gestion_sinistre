@@ -288,7 +288,7 @@ body {
 
 /* ===== HERO DOSSIER ===== */
 .dossier-hero {
-background: linear-gradient(90deg, #4CAF7A, #E8F5EC);
+background: linear-gradient(90deg, #4CAF7A, #5d896a);
   border-radius: var(--radius-lg); padding: 22px 26px;
   margin-bottom: 20px; color: #fff;
   display: flex; justify-content: space-between; align-items: center;

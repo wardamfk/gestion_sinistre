@@ -1,7 +1,6 @@
 <?php
 // ============================================================
-// changer_etat_dossier.php
-// Handler générique de changement d'état avec gestion des motifs
+// changer_etat_dossier.php — Changement d'état simplifié
 // POST: id_dossier, nouvel_etat, id_motif (optionnel), commentaire
 // ============================================================
 session_start();
@@ -21,7 +20,7 @@ if (!$id_dossier || !$nouvel_etat) {
     header("Location: voir_dossier.php?id=$id_dossier&err=invalid"); exit();
 }
 
-// ---- 1. Vérifier que le motif est fourni quand obligatoire ----
+// Vérifier que le motif est fourni si l'état en a des obligatoires
 $etat_config = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT motif_obligatoire FROM etat_dossier WHERE id_etat = $nouvel_etat"));
 
@@ -29,7 +28,7 @@ if ($etat_config && $etat_config['motif_obligatoire'] && !$id_motif) {
     header("Location: voir_dossier.php?id=$id_dossier&err=motif_required&tab=info"); exit();
 }
 
-// ---- 2. Récupérer l'état actuel ----
+// Récupérer l'état actuel
 $dossier = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT id_etat, numero_dossier, cree_par FROM dossier WHERE id_dossier = $id_dossier"));
 
@@ -41,46 +40,34 @@ $ancien_etat = $dossier['id_etat'];
 $numero      = $dossier['numero_dossier'];
 $id_agent    = $dossier['cree_par'];
 
-// ---- 3. Libellé de l'action pour l'historique ----
-$action_labels = [
-    2  => 'Retour en cours CRMA',
-    3  => 'Transmission CNMA',
-    9  => 'En cours d\'expertise',
-    11 => 'Classé sans suite',
-    12 => 'Classé après rejet',
-    13 => 'Classé en attente recours',
-    14 => 'Clôturé',
-    15 => 'Repris',
-    16 => 'En cours de contre-expertise',
-    17 => 'Règlement définitif judiciaire',
-    18 => 'Repris pour recours abouti',
-    19 => 'Classé après recours abouti',
-    20 => 'Gestion pour recours',
-];
-$action = $action_labels[$nouvel_etat] ?? "Changement état vers ID $nouvel_etat";
+// Libellé de l'action pour l'historique
+$nouvel_etat_nom = mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT nom_etat FROM etat_dossier WHERE id_etat = $nouvel_etat"))['nom_etat'] ?? "État $nouvel_etat";
+$action = "Changement d'état → $nouvel_etat_nom";
 
-// ---- 4. Champs supplémentaires selon le nouvel état ----
+// Champs supplémentaires selon l'état
 $extra_fields = '';
 switch ($nouvel_etat) {
-    case 11: // Classé sans suite
-    case 12: // Classé après rejet
-    case 13: // Classé en attente recours
-    case 14: // Clôturé
-    case 19: // Classé après recours abouti
+    case 11: case 12: case 13: case 14: case 19:
         $extra_fields = ", date_cloture = CURDATE()";
         break;
-    case 15: // Repris
-    case 18: // Repris pour recours abouti
-        $extra_fields = ", date_cloture = NULL"; // réouverture
+    case 15: case 18:
+        $extra_fields = ", date_cloture = NULL";
+        break;
+    case 3:
+        $extra_fields = ", date_transmission = CURDATE(), transmis_par = $user_id";
+        break;
+    case 4:
+        $extra_fields = ", statut_validation = 'valide', date_validation = CURDATE(), valide_par = $user_id";
         break;
 }
 
-// ---- 5. Mettre à jour le dossier ----
+// Mettre à jour le dossier
 $comm_sql = mysqli_real_escape_string($conn, $commentaire);
 mysqli_query($conn,
     "UPDATE dossier SET id_etat = $nouvel_etat $extra_fields WHERE id_dossier = $id_dossier");
 
-// ---- 6. Insérer dans l'historique (avec id_motif) ----
+// Insérer dans l'historique
 $motif_sql  = $id_motif ? $id_motif : 'NULL';
 mysqli_query($conn, "
     INSERT INTO historique
@@ -89,9 +76,8 @@ mysqli_query($conn, "
         ($id_dossier, '$action', NOW(), $user_id, $ancien_etat, $nouvel_etat, '$comm_sql', $motif_sql)
 ");
 
-// ---- 7. Notifications selon le nouvel état ----
+// Notifications selon le nouvel état
 if (in_array($nouvel_etat, [11, 12, 13, 14, 19])) {
-    // Notifier l'assuré si clôturé/classé
     $assure_user = mysqli_fetch_assoc(mysqli_query($conn, "
         SELECT u.id_user FROM utilisateur u
         JOIN assure a ON u.id_personne = a.id_personne
@@ -100,11 +86,8 @@ if (in_array($nouvel_etat, [11, 12, 13, 14, 19])) {
         WHERE d.id_dossier = $id_dossier AND u.role = 'ASSURE' LIMIT 1
     "));
     if ($assure_user) {
-        $nom_etat_res = mysqli_fetch_assoc(mysqli_query($conn,
-            "SELECT nom_etat FROM etat_dossier WHERE id_etat = $nouvel_etat"));
-        $nom_etat_str = $nom_etat_res['nom_etat'] ?? '';
         $msg_assure = mysqli_real_escape_string($conn,
-            "Votre dossier $numero a changé d'état : $nom_etat_str. Contactez votre agence pour plus d'informations.");
+            "Votre dossier $numero a changé d'état : $nouvel_etat_nom. Contactez votre agence pour plus d'informations.");
         mysqli_query($conn, "
             INSERT INTO notification (id_dossier, id_expediteur, id_destinataire, type, message)
             VALUES ($id_dossier, $user_id, {$assure_user['id_user']}, 'cloture', '$msg_assure')
@@ -112,18 +95,13 @@ if (in_array($nouvel_etat, [11, 12, 13, 14, 19])) {
     }
 }
 
-if ($nouvel_etat == 15 || $nouvel_etat == 18) {
-    // Notifier l'agent CRMA si le dossier est repris (depuis CNMA)
-    if ($_SESSION['role'] == 'CNMA' && $id_agent != $user_id) {
-        $nom_etat_res = mysqli_fetch_assoc(mysqli_query($conn,
-            "SELECT nom_etat FROM etat_dossier WHERE id_etat = $nouvel_etat"));
-        $msg_agent = mysqli_real_escape_string($conn,
-            "Le dossier $numero a été repris : {$nom_etat_res['nom_etat']}.");
-        mysqli_query($conn, "
-            INSERT INTO notification (id_dossier, id_expediteur, id_destinataire, type, message)
-            VALUES ($id_dossier, $user_id, $id_agent, 'validation', '$msg_agent')
-        ");
-    }
+if (in_array($nouvel_etat, [4])) {
+    $msg_agent = mysqli_real_escape_string($conn,
+        "Le dossier $numero a été VALIDÉ par la CNMA. Vous pouvez procéder au règlement.");
+    mysqli_query($conn, "
+        INSERT INTO notification (id_dossier, id_expediteur, id_destinataire, type, message)
+        VALUES ($id_dossier, $user_id, $id_agent, 'validation', '$msg_agent')
+    ");
 }
 
 header("Location: voir_dossier.php?id=$id_dossier&tab=info&ok=etat_change"); exit();
