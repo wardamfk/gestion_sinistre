@@ -389,7 +389,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
             </select>
         </div>
         <div class="form-group" style="margin:0"><label>Date expertise</label><input type="date" name="date_expertise" required></div>
-        <div class="form-group" style="margin:0"><label>Montant indemnité (DA)</label><input type="number" step="0.01" name="montant_indemnite" required></div>
+        <div class="form-group" style="margin:0"><label>Montant indemnité (DA)</label><input type="number" step="1" onwheel="this.blur()" name="montant_indemnite" required></div>
         <div class="form-group" style="margin:0"><label>Rapport (fichier)</label><input type="file" name="rapport"></div>
         <div class="form-group" style="margin:0"><label>Commentaire</label><input type="text" name="commentaire"></div>
         <div style="display:flex;align-items:flex-end;">
@@ -432,10 +432,16 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
     <form action="ajouter_reserve.php" method="POST"
           style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end;">
         <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
-        <div class="form-group" style="margin:0"><label>Montant (DA)</label><input type="number" step="0.01" name="montant" required></div>
+        <div class="form-group" style="margin:0"><label>Montant (DA)</label><input type="number" step="1" onwheel="this.blur()" name="montant" required></div>
         <div class="form-group" style="margin:0"><label>Garantie</label>
             <select name="id_garantie">
-                <?php $gar = mysqli_query($conn, "SELECT * FROM garantie");
+                <?php $gar = mysqli_query($conn, "
+    SELECT g.*
+    FROM garantie g
+    JOIN contrat_garantie cg ON g.id_garantie = cg.id_garantie
+    JOIN dossier d ON d.id_contrat = cg.id_contrat
+    WHERE d.id_dossier = $id_dossier
+");
                 while ($g = mysqli_fetch_assoc($gar))
                     echo "<option value='{$g['id_garantie']}'>{$g['nom_garantie']}</option>"; ?>
             </select>
@@ -461,7 +467,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
         <td><?= htmlspecialchars($r['nom_garantie']); ?></td>
         <td class="num-cell" style="font-weight:600;"><?= number_format($r['montant'],2,',',' '); ?> DA</td>
         <td><span class="badge <?= $tb; ?>" style="font-size:11px;"><?= $r['type_reserve']; ?></span></td>
-        <td style="font-size:12px;"><?= htmlspecialchars($r['commentaire']); ?></td>
+        <td style="font-size:12px;"><?= htmlspecialchars($r['commentaire'] ?? ''); ?></td>
         <td style="display:flex;gap:4px;">
             <a href="modifier_reserve.php?id=<?= $r['id_reserve']; ?>" class="btn btn-outline btn-xs"><i class="fa fa-pen"></i></a>
             <a href="supprimer_reserve.php?id=<?= $r['id_reserve']; ?>&dossier=<?= $id_dossier; ?>" onclick="return confirm('Supprimer ?')" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
@@ -487,7 +493,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
     <form action="ajouter_reglement.php" method="POST"
           style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end;">
         <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
-        <div class="form-group" style="margin:0"><label>Montant (DA)</label><input type="number" step="0.01" name="montant" required></div>
+        <div class="form-group" style="margin:0"><label>Montant (DA)</label><input type="number" step="1" onwheel="this.blur()" name="montant" required></div>
         <div class="form-group" style="margin:0"><label>Mode</label>
             <select name="mode"><option>Chèque</option><option>Virement</option></select>
         </div>
@@ -540,7 +546,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
     <form action="ajouter_encaissement.php" method="POST">
         <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
         <div class="enc-form-grid">
-            <div class="fg"><label>Montant (DA) *</label><input type="number" step="0.01" name="montant" required></div>
+            <div class="fg"><label>Montant (DA) *</label><input type="number" step="1" onwheel="this.blur()" name="montant" required></div>
             <div class="fg"><label>Date *</label><input type="date" name="date_encaissement" value="<?= date('Y-m-d'); ?>" required></div>
             <div class="fg"><label>Tiers *</label>
                 <select name="id_tiers" required>

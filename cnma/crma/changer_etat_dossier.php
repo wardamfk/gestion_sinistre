@@ -68,12 +68,17 @@ mysqli_query($conn,
     "UPDATE dossier SET id_etat = $nouvel_etat $extra_fields WHERE id_dossier = $id_dossier");
 
 // Insérer dans l'historique
-$motif_sql  = $id_motif ? $id_motif : 'NULL';
+$action = "Changement d'état → $nouvel_etat_nom";
+$action_sql = mysqli_real_escape_string($conn, $action);
+$comm_sql   = mysqli_real_escape_string($conn, $commentaire);
+
+$motif_sql = $id_motif !== null ? $id_motif : "NULL";
+
 mysqli_query($conn, "
     INSERT INTO historique
-        (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat, commentaire, id_motif)
+    (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat, commentaire, id_motif)
     VALUES
-        ($id_dossier, '$action', NOW(), $user_id, $ancien_etat, $nouvel_etat, '$comm_sql', $motif_sql)
+    ($id_dossier, '$action_sql', NOW(), $user_id, $ancien_etat, $nouvel_etat, '$comm_sql', $motif_sql)
 ");
 
 // Notifications selon le nouvel état
