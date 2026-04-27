@@ -13,6 +13,17 @@ $en_cours = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossie
 $envoyes  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=3 AND cree_par='$id_user'"))['n'];
 $valides  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=4 AND cree_par='$id_user'"))['n'];
 $regles   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat IN(7,8) AND cree_par='$id_user'"))['n'];
+$expertise = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=9 AND cree_par='$id_user'"))['n'];
+
+$refuses = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=5 AND cree_par='$id_user'"))['n'];
+
+$partiel = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=7 AND cree_par='$id_user'"))['n'];
+
+$total_regle_dossiers = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=8 AND cree_par='$id_user'"))['n'];
 $clotures = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=14 AND cree_par='$id_user'"))['n'];
 
 // Finances
@@ -79,15 +90,19 @@ $etat_badge_map = [
 
 <!-- STATS GRID -->
 <div class="stats-grid">
-    <div class="stat-card sc-blue">
+   <div class="stat-card sc-total">
         <div class="sc-icon"><i class="fa fa-folder"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $total ?></div><div class="sc-l">Mes dossiers</div></div>
     </div>
-    <div class="stat-card sc-amber">
+   <div class="stat-card sc-blue">
         <div class="sc-icon"><i class="fa fa-clock"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $en_cours ?></div><div class="sc-l">En cours</div></div>
     </div>
-    <div class="stat-card sc-teal">
+    <div class="stat-card sc-amber">
+    <div class="sc-icon"><i class="fa fa-search"></i></div>
+    <div class="sc-body"><div class="sc-n"><?= $expertise ?></div><div class="sc-l">Expertise</div></div>
+</div>
+<div class="stat-card sc-purple">
         <div class="sc-icon"><i class="fa fa-paper-plane"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $envoyes ?></div><div class="sc-l">Envoyés CNMA</div></div>
     </div>
@@ -95,14 +110,23 @@ $etat_badge_map = [
         <div class="sc-icon"><i class="fa fa-check-circle"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $valides ?></div><div class="sc-l">Validés</div></div>
     </div>
-    <div class="stat-card sc-green">
-        <div class="sc-icon"><i class="fa fa-money-bill"></i></div>
-        <div class="sc-body"><div class="sc-n"><?= $regles ?></div><div class="sc-l">Réglés</div></div>
-    </div>
+   <div class="stat-card sc-teal">
+    <div class="sc-icon"><i class="fa fa-hourglass-half"></i></div>
+    <div class="sc-body"><div class="sc-n"><?= $partiel ?></div><div class="sc-l">Règlement partiel</div></div>
+</div>
+
+<div class="stat-card sc-green">
+    <div class="sc-icon"><i class="fa fa-money-bill"></i></div>
+    <div class="sc-body"><div class="sc-n"><?= $total_regle_dossiers ?></div><div class="sc-l">Réglés</div></div>
+</div>
     <div class="stat-card sc-gray">
         <div class="sc-icon"><i class="fa fa-archive"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $clotures ?></div><div class="sc-l">Clôturés</div></div>
     </div>
+</div>
+<div class="stat-card sc-red">
+    <div class="sc-icon"><i class="fa fa-times-circle"></i></div>
+    <div class="sc-body"><div class="sc-n"><?= $refuses ?></div><div class="sc-l">Refusés</div></div>
 </div>
 
 <!-- FINANCE BAR -->

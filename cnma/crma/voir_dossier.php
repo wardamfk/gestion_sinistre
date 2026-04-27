@@ -38,7 +38,11 @@ $dossier = mysqli_fetch_assoc(mysqli_query($conn, "
 if (!$dossier) { die("Dossier introuvable"); }
 
 // Totaux financiers
-$total_reserve = floatval($dossier['total_reserve']);
+$total_reserve = floatval(mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT IFNULL(SUM(montant),0) as total 
+     FROM reserve 
+     WHERE id_dossier=$id_dossier AND statut='actif'"
+))['total']);
 $total_regle   = floatval(mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT IFNULL(SUM(montant),0) as t FROM reglement WHERE id_dossier=$id_dossier"))['t']);
 $total_enc     = floatval(mysqli_fetch_assoc(mysqli_query($conn,
@@ -49,7 +53,7 @@ $reste = max(0, $total_reserve - $total_regle);
 $tous_etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
 
 // Règlement autorisé si état validé ou en règlement partiel
-$reglement_ok = in_array($dossier['id_etat'], [2, 4, 7, 15, 18]);
+$reglement_ok = in_array($dossier['id_etat'], [2, 4, 7,9,15, 18]);
 // Encaissement autorisé si tiers responsable ET dossier en règlement
 $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
        && in_array($dossier['id_etat'], [7, 8, 13, 14, 19, 20]);
@@ -185,7 +189,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
     <div class="kpi-item kpi-reste<?= $reste <= 0 ? ' ok' : ''; ?>">
         <div class="kpi-icon"><i class="fa fa-scale-balanced"></i></div>
         <div>
-            <div class="kpi-label">Reste</div>
+            <div class="kpi-label">Reste a payé</div>
             <div class="kpi-value"><?= number_format($reste,0,',',' '); ?><small>DA</small></div>
         </div>
     </div>
