@@ -33,7 +33,7 @@ try {
     $res = $conn->query("SELECT SUM(montant) as total FROM reserve WHERE id_dossier = $id_dossier AND statut = 'actif'");
     $total = $res->fetch_assoc()['total'] ?? 0;
 
-    $conn->query("UPDATE dossier SET total_reserve = $total WHERE id_dossier = $id_dossier");
+   
 
     // 3. Historique (sans changement d'état)
     $ancien_etat = mysqli_fetch_assoc(mysqli_query($conn,

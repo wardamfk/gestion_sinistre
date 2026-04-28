@@ -110,7 +110,7 @@ if ($checkCIN > 0) {
 if ($checkPermis > 0) {
     $error .= "❌ Permis déjà utilisé.<br>";
 }
-}
+
 
 
     // ===== INSERT =====
@@ -157,6 +157,7 @@ VALUES
 
 /* ======= MODIFIER ASSURÉ ======= */
 if (isset($_POST['modifier'])) {
+
     $id          = intval($_POST['id_assure']);
     $actif       = intval($_POST['actif']);
     $num_permis  = mysqli_real_escape_string($conn, $_POST['num_permis']);

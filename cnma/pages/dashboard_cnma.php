@@ -11,13 +11,24 @@ $total    = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM do
 $attente  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE id_etat = 3"))['n'];
 $valides  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE id_etat = 4"))['n'];
 $refuses  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE id_etat = 5"))['n'];
-$regles   = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE id_etat = 8"))['n'];
-$clotures = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE id_etat = 14"))['n'];
-$expertise= mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier WHERE id_etat = 9"))['n'];
+$total_decision = $valides + $refuses;
+$taux = $total_decision > 0 ? round(($valides / $total_decision) * 100, 1) : null;
 
 $total_reserve = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(montant),0) as n FROM reserve"))['n'];
 $total_regle   = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(montant),0) as n FROM reglement"))['n'];
-
+$delais = mysqli_fetch_assoc(mysqli_query($conn,"
+    SELECT 
+        AVG(DATEDIFF(date_transmission, date_creation)) as crma,
+        AVG(DATEDIFF(date_validation, date_transmission)) as cnma,
+        AVG(DATEDIFF(date_validation, date_creation)) as total
+    FROM dossier
+    WHERE date_creation IS NOT NULL
+      AND date_transmission IS NOT NULL
+      AND date_validation IS NOT NULL
+"));
+$delai_crma  = $delais['crma'] ?? 0;
+$delai_cnma  = $delais['cnma'] ?? 0;
+$delai_total = $delais['total'] ?? 0;
 // Dossiers en attente (5 derniers)
 $derniers = mysqli_query($conn, "
     SELECT d.id_dossier, d.numero_dossier, d.date_creation, d.date_transmission, d.total_reserve,
@@ -31,7 +42,17 @@ $derniers = mysqli_query($conn, "
     WHERE d.id_etat = 3
     ORDER BY d.date_creation ASC LIMIT 5
 ");
-
+// === DOSSIERS LENTS CRMA ===
+$dossiers_lents = mysqli_query($conn,"
+    SELECT 
+        id_dossier,
+        numero_dossier,
+        DATEDIFF(date_transmission, date_creation) as delai
+    FROM dossier
+    WHERE date_transmission IS NOT NULL
+    ORDER BY delai DESC
+    LIMIT 5
+");
 // Répartition par agence
 $par_agence = mysqli_query($conn, "
     SELECT ag.nom_agence, COUNT(d.id_dossier) as total
@@ -63,70 +84,37 @@ $par_agence = mysqli_query($conn, "
         </a>
     </div>
 
-    <!-- STATISTIQUES -->
+  
     <div class="stats-grid">
-        <div class="stat-card blue">
-            <div class="stat-icon"><i class="fa fa-folder"></i></div>
-            <div class="stat-value"><?php echo $total; ?></div>
-            <div class="stat-label">Total dossiers</div>
-        </div>
+
         <div class="stat-card orange">
             <div class="stat-icon"><i class="fa fa-clock"></i></div>
             <div class="stat-value"><?php echo $attente; ?></div>
             <div class="stat-label">En attente</div>
             <div class="stat-sub">À traiter</div>
         </div>
+
         <div class="stat-card green">
             <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
             <div class="stat-value"><?php echo $valides; ?></div>
             <div class="stat-label">Validés CNMA</div>
         </div>
+
         <div class="stat-card red">
             <div class="stat-icon"><i class="fa fa-times-circle"></i></div>
             <div class="stat-value"><?php echo $refuses; ?></div>
             <div class="stat-label">Refusés</div>
         </div>
-        <div class="stat-card teal">
-            <div class="stat-icon"><i class="fa fa-sack-dollar"></i></div>
-            <div class="stat-value"><?php echo $regles; ?></div>
-            <div class="stat-label">Réglés</div>
+
+        <div class="stat-card blue">
+            <div class="stat-icon"><i class="fa fa-percent"></i></div>
+            <div class="stat-value"><?php echo $taux !== null ? $taux.'%' : '—'; ?></div>
+            <div class="stat-label">Taux validation</div>
         </div>
-        <div class="stat-card gray">
-            <div class="stat-icon"><i class="fa fa-archive"></i></div>
-            <div class="stat-value"><?php echo $clotures; ?></div>
-            <div class="stat-label">Clôturés</div>
-        </div>
+
     </div>
 
-    <!-- BILAN FINANCIER -->
-    <div class="finance-bar">
-        <div class="finance-card reserve">
-            <div class="finance-icon"><i class="fa fa-shield-halved"></i></div>
-            <div class="finance-body">
-                <div class="finance-label">Total Réserves</div>
-                <div class="finance-amount"><?php echo number_format($total_reserve, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
-                <div class="finance-sub">Toutes réserves actives</div>
-            </div>
-        </div>
-        <div class="finance-card regle">
-            <div class="finance-icon"><i class="fa fa-money-bill-wave"></i></div>
-            <div class="finance-body">
-                <div class="finance-label">Total Réglé</div>
-                <div class="finance-amount"><?php echo number_format($total_regle, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
-                <div class="finance-sub">Tous règlements effectués</div>
-            </div>
-        </div>
-        <div class="finance-card reste">
-            <div class="finance-icon"><i class="fa fa-scale-balanced"></i></div>
-            <div class="finance-body">
-                <div class="finance-label">Reste à régler</div>
-                <div class="finance-amount"><?php echo number_format($total_reserve - $total_regle, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
-                <div class="finance-sub">Solde global</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- DOSSIERS EN ATTENTE -->
+    <!-- 2. DOSSIERS URGENTS -->
     <?php if($attente > 0): ?>
     <div class="section-title"><i class="fa fa-exclamation-circle" style="color:#f57c00;"></i> Dossiers urgents — En attente de décision</div>
     <table class="cnma-table">
@@ -172,6 +160,87 @@ $par_agence = mysqli_query($conn, "
     <?php else: ?>
     <div class="msg success"><i class="fa fa-check-circle"></i> Aucun dossier en attente — Tout est traité !</div>
     <?php endif; ?>
+
+    <!-- 3. DOSSIERS LES PLUS LENTS -->
+    <div class="section-title">
+        <i class="fa fa-hourglass-half" style="color:#d32f2f;"></i>
+        Dossiers les plus lents CRMA (inclus non validé)
+    </div>
+
+    <table class="cnma-table">
+        <thead>
+            <tr>
+                <th>Dossier</th>
+                <th>Délai</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        <?php while($d = mysqli_fetch_assoc($dossiers_lents)): ?>
+        <tr>
+            <td><b><?php echo $d['numero_dossier']; ?></b></td>
+            <td style="color:#d32f2f;"><?php echo $d['delai']; ?> j</td>
+            <td>
+                <a href="voir_dossier_cnma.php?id=<?php echo $d['id_dossier']; ?>" class="cnma-btn primary sm">
+                    Ouvrir
+                </a>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+
+        </tbody>
+    </table>
+
+    <!-- 4. DÉLAIS MOYENS -->
+    <div class="section-title"><i class="fa fa-clock"></i> Délais moyens</div>
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <div class="stat-value"><?php echo round((float)$delai_crma,1); ?> j</div>
+            <div class="stat-label">Délai moyen CRMA</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value"><?php echo round((float)$delai_cnma,1); ?> j</div>
+            <div class="stat-label">Délai moyen CNMA</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-value"><?php echo round((float)$delai_total,1); ?> j</div>
+            <div class="stat-label">Délai moyen total</div>
+        </div>
+
+    </div>
+
+    <!-- 5. FINANCES -->
+    <div class="section-title"><i class="fa fa-money-bill-wave"></i> Finances</div>
+    <div class="finance-bar">
+        <div class="finance-card reserve">
+            <div class="finance-icon"><i class="fa fa-shield-halved"></i></div>
+            <div class="finance-body">
+                <div class="finance-label">Total Réserves</div>
+                <div class="finance-amount"><?php echo number_format($total_reserve, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
+                <div class="finance-sub">Toutes réserves actives</div>
+            </div>
+        </div>
+        <div class="finance-card regle">
+            <div class="finance-icon"><i class="fa fa-money-bill-wave"></i></div>
+            <div class="finance-body">
+                <div class="finance-label">Total Réglé</div>
+                <div class="finance-amount"><?php echo number_format($total_regle, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
+                <div class="finance-sub">Tous règlements effectués</div>
+            </div>
+        </div>
+        <div class="finance-card reste">
+            <div class="finance-icon"><i class="fa fa-scale-balanced"></i></div>
+            <div class="finance-body">
+                <div class="finance-label">Reste à régler</div>
+                <div class="finance-amount"><?php echo number_format($total_reserve - $total_regle, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
+                <div class="finance-sub">Solde global</div>
+            </div>
+        </div>
+    </div>
 
     <!-- ACTIONS RAPIDES -->
     <div class="section-title"><i class="fa fa-bolt"></i> Actions rapides</div>

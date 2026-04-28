@@ -36,15 +36,33 @@ $nb_notifs = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM notif
 
 // Dossiers récents
 $derniers = mysqli_query($conn,"
-    SELECT d.id_dossier,d.numero_dossier,d.date_creation,d.id_etat,d.total_reserve,e.nom_etat,
-           p.nom AS na,p.prenom AS pa,d.date_sinistre
+    SELECT 
+        d.id_dossier,
+        d.numero_dossier,
+        d.date_creation,
+        d.id_etat,
+        IFNULL(SUM(r.montant),0) AS total_reserve,
+        e.nom_etat,
+        p.nom AS na,
+        p.prenom AS pa,
+        d.date_sinistre
+
     FROM dossier d
-    LEFT JOIN etat_dossier e ON d.id_etat=e.id_etat
-    LEFT JOIN contrat c ON d.id_contrat=c.id_contrat
-    LEFT JOIN assure ass ON c.id_assure=ass.id_assure
-    LEFT JOIN personne p ON ass.id_personne=p.id_personne
-    WHERE d.cree_par='$id_user'
-    ORDER BY d.id_dossier DESC LIMIT 8");
+
+    LEFT JOIN etat_dossier e ON d.id_etat = e.id_etat
+    LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
+    LEFT JOIN assure ass ON c.id_assure = ass.id_assure
+    LEFT JOIN personne p ON ass.id_personne = p.id_personne
+
+    LEFT JOIN reserve r ON r.id_dossier = d.id_dossier
+
+    WHERE d.cree_par = '$id_user'
+
+    GROUP BY d.id_dossier
+
+    ORDER BY d.id_dossier DESC
+    LIMIT 8
+");
 
 // Dossiers complement demandé (à traiter)
 $a_completer = mysqli_fetch_assoc(mysqli_query($conn,
@@ -110,6 +128,10 @@ $etat_badge_map = [
         <div class="sc-icon"><i class="fa fa-check-circle"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $valides ?></div><div class="sc-l">Validés</div></div>
     </div>
+    <div class="stat-card sc-red">
+    <div class="sc-icon"><i class="fa fa-times-circle"></i></div>
+    <div class="sc-body"><div class="sc-n"><?= $refuses ?></div><div class="sc-l">Refusés</div></div>
+</div>
    <div class="stat-card sc-teal">
     <div class="sc-icon"><i class="fa fa-hourglass-half"></i></div>
     <div class="sc-body"><div class="sc-n"><?= $partiel ?></div><div class="sc-l">Règlement partiel</div></div>
@@ -124,10 +146,7 @@ $etat_badge_map = [
         <div class="sc-body"><div class="sc-n"><?= $clotures ?></div><div class="sc-l">Clôturés</div></div>
     </div>
 </div>
-<div class="stat-card sc-red">
-    <div class="sc-icon"><i class="fa fa-times-circle"></i></div>
-    <div class="sc-body"><div class="sc-n"><?= $refuses ?></div><div class="sc-l">Refusés</div></div>
-</div>
+
 
 <!-- FINANCE BAR -->
 <div class="finance-bar">
@@ -191,7 +210,7 @@ $etat_badge_map = [
         <td><?= htmlspecialchars($d['na'].' '.$d['pa']) ?></td>
         <td style="font-size:12px;color:var(--gray-500);font-family:'DM Mono',monospace"><?= $d['date_sinistre'] ?></td>
         <td><span class="badge <?= $bc ?>"><?= htmlspecialchars($d['nom_etat']) ?></span></td>
-        <td class="num-cell"><?= number_format($d['total_reserve'],0,',',' ') ?> DA</td>
+        <td class="num-cell"><?= number_format($d['total_reserve'] ?? 0, 0, ',', ' ') ?> DA </td>
         <td>
             <a href="voir_dossier.php?id=<?= $d['id_dossier'] ?>" class="btn btn-primary btn-xs">
                 <i class="fa fa-eye"></i> Ouvrir

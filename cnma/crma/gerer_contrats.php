@@ -333,7 +333,7 @@ $statut_badge = [
 <!-- Stat pills -->
 <div class="stat-pills">
     <div class="stat-pill" style="background:var(--blue-50);color:var(--blue-700);border-color:var(--blue-100)"><i class="fa fa-list"></i> Total : <strong><?= $total ?></strong></div>
-    <div class="stat-pill" style="background:var(--red-50);color:var(--red-700);border-color:var(--red-100)"><i class="fa fa-ban"></i> Résilié : <strong><?= $nb_resilie ?></strong></div>
+  
     <div class="stat-pill" style="background:var(--red-50);color:var(--red-700);border-color:var(--red-100)"><i class="fa fa-calendar-xmark"></i> Expiré : <strong><?= $nb_expire ?></strong></div>
 </div>
 
@@ -388,7 +388,7 @@ $statut_badge = [
                     <button class="btn btn-ghost btn-xs" onclick="toggleDetail(<?= $c['id_contrat'] ?>)" title="Voir">
                         <i class="fa fa-eye"></i>
                     </button>
-                    <!-- RÉSILIER = ARCHIVER -->
+                    <!--  ARCHIVER -->
                     <?php if ($c['statut'] == 'actif'): ?>
                     <button class="btn btn-danger btn-xs" onclick="confirmResilier(<?= $c['id_contrat'] ?>, '<?= htmlspecialchars($c['numero_police']) ?>')" title="Archiver">
                         <i class="fa fa-ban"></i>
