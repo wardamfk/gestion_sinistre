@@ -62,6 +62,24 @@ $par_agence = mysqli_query($conn, "
     GROUP BY ag.nom_agence
     ORDER BY total DESC
 ");
+// === ACTIVITÉ RÉCENTE ===
+$activite = mysqli_query($conn, "
+    SELECT h.action, h.date_action, d.id_dossier, d.numero_dossier
+    FROM historique h
+    LEFT JOIN dossier d ON h.id_dossier = d.id_dossier
+    ORDER BY h.date_action DESC
+    LIMIT 5
+");
+
+// === DOSSIERS LES PLUS ANCIENS ===
+$dossiers_anciens = mysqli_query($conn, "
+    SELECT id_dossier, numero_dossier,
+           DATEDIFF(NOW(), date_creation) as delai
+    FROM dossier
+    WHERE id_etat != 4 AND id_etat != 5
+    ORDER BY delai DESC
+    LIMIT 5
+");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -89,26 +107,35 @@ $par_agence = mysqli_query($conn, "
 
         <div class="stat-card orange">
             <div class="stat-icon"><i class="fa fa-clock"></i></div>
-            <div class="stat-value"><?php echo $attente; ?></div>
+           <div class="stat-value text-orange"><?php echo $attente; ?></div>
             <div class="stat-label">En attente</div>
             <div class="stat-sub">À traiter</div>
         </div>
 
         <div class="stat-card green">
             <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
-            <div class="stat-value"><?php echo $valides; ?></div>
+            <div class="stat-value text-green"><?php echo $valides; ?></div>
             <div class="stat-label">Validés CNMA</div>
         </div>
 
         <div class="stat-card red">
             <div class="stat-icon"><i class="fa fa-times-circle"></i></div>
-            <div class="stat-value"><?php echo $refuses; ?></div>
+         <div class="stat-value text-red"><?php echo $refuses; ?></div>
             <div class="stat-label">Refusés</div>
         </div>
 
         <div class="stat-card blue">
             <div class="stat-icon"><i class="fa fa-percent"></i></div>
-            <div class="stat-value"><?php echo $taux !== null ? $taux.'%' : '—'; ?></div>
+           <div class="stat-value 
+<?php 
+if($taux !== null){
+    if($taux >= 80) echo 'text-green';
+    elseif($taux >= 50) echo 'text-orange';
+    else echo 'text-red';
+}
+?>">
+<?php echo $taux !== null ? $taux.'%' : '—'; ?>
+</div>
             <div class="stat-label">Taux validation</div>
         </div>
 
@@ -160,6 +187,50 @@ $par_agence = mysqli_query($conn, "
     <?php else: ?>
     <div class="msg success"><i class="fa fa-check-circle"></i> Aucun dossier en attente — Tout est traité !</div>
     <?php endif; ?>
+
+
+<!-- ACTIONS RAPIDES -->
+<div class="section-title">
+    <i class="fa fa-bolt"></i> Actions rapides
+</div>
+
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px;">
+
+    <!-- 🔥 PRINCIPAL -->
+    <a href="dossiers_attente.php" class="cnma-btn success">
+        <i class="fa fa-gavel"></i> Dossiers en attente
+    </a>
+
+    <!-- 📂 DOSSIERS -->
+    <a href="tous_dossiers_cnma.php" class="cnma-btn neutral">
+        <i class="fa fa-folder-open"></i> Tous les dossiers
+    </a>
+
+
+
+    <!-- 📊 ANALYSE -->
+    <a href="statistiques_cnma.php" class="cnma-btn neutral">
+        <i class="fa fa-chart-bar"></i> Statistiques
+    </a>
+
+    <!-- ⚙️ ADMIN -->
+    <a href="gestion_utilisateurs.php" class="cnma-btn neutral">
+        <i class="fa fa-users"></i> Utilisateurs
+    </a>
+
+    <a href="historique_global.php" class="cnma-btn neutral">
+        <i class="fa fa-history"></i> Historique global
+    </a>
+
+    <!-- 👤 USER -->
+    <a href="profil_cnma.php" class="cnma-btn neutral">
+        <i class="fa fa-user"></i> Mon profil
+    </a>
+
+ 
+</div>
+
+
 
     <!-- 3. DOSSIERS LES PLUS LENTS -->
     <div class="section-title">
@@ -241,16 +312,89 @@ $par_agence = mysqli_query($conn, "
             </div>
         </div>
     </div>
+    <!-- DOSSIERS LES PLUS ANCIENS -->
+<div class="section-title">
+    <i class="fa fa-exclamation-triangle" style="color:#d32f2f;"></i>
+    Dossiers les plus anciens — À surveiller
+</div>
 
-    <!-- ACTIONS RAPIDES -->
-    <div class="section-title"><i class="fa fa-bolt"></i> Actions rapides</div>
-    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px;">
-        <a href="dossiers_attente.php" class="cnma-btn warning"><i class="fa fa-clock"></i> Dossiers en attente</a>
-        <a href="tous_dossiers_cnma.php" class="cnma-btn primary"><i class="fa fa-folder-open"></i> Tous les dossiers</a>
-        <a href="statistiques_cnma.php" class="cnma-btn teal"><i class="fa fa-chart-bar"></i> Statistiques</a>
-        <a href="gestion_utilisateurs.php" class="cnma-btn purple"><i class="fa fa-users"></i> Gérer utilisateurs</a>
-        <a href="historique_global.php" class="cnma-btn secondary"><i class="fa fa-history"></i> Historique global</a>
+<table class="cnma-table">
+    <thead>
+        <tr>
+            <th>Dossier</th>
+            <th>Délai</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    <?php while($d = mysqli_fetch_assoc($dossiers_anciens)): ?>
+    <tr>
+        <td>
+            <a href="voir_dossier_cnma.php?id=<?php echo $d['id_dossier']; ?>" style="color:#1a237e;font-weight:bold;">
+                <?php echo $d['numero_dossier']; ?>
+            </a>
+        </td>
+
+        <td style="
+            color: <?php echo ($d['delai'] >= 25) ? '#c62828' : '#f57c00'; ?>;
+            font-weight:bold;
+        ">
+            <?php echo $d['delai']; ?> j
+        </td>
+
+        <td>
+            <a href="voir_dossier_cnma.php?id=<?php echo $d['id_dossier']; ?>" class="cnma-btn primary sm">
+                Ouvrir
+            </a>
+        </td>
+    </tr>
+    <?php endwhile; ?>
+
+    </tbody>
+</table>
+<!-- ACTIVITÉ RÉCENTE -->
+<div class="section-title">
+    <i class="fa fa-clock"></i> Dernières actions sur les dossiers
+</div>
+<div style="color:#6b7280; font-size:13px; margin-bottom:10px;">
+    Actions réalisées par CRMA et CNMA
+</div>
+
+<div style="background:white; padding:15px; border-radius:10px; margin-bottom:25px;">
+
+<?php while($a = mysqli_fetch_assoc($activite)): ?>
+    <div style="margin-bottom:12px; display:flex; align-items:center; gap:10px;">
+
+        <div style="
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:#1b5e20;
+        "></div>
+
+        <div>
+            <div style="font-weight:500;">
+                <?php echo $a['action']; ?>
+            </div>
+
+            <small style="color:#607d8b;">
+                <?php echo $a['date_action']; ?> 
+
+                <?php if($a['id_dossier']): ?>
+                    — 
+                    <a href="voir_dossier_cnma.php?id=<?php echo $a['id_dossier']; ?>" style="color:#1a237e;">
+                        <?php echo $a['numero_dossier']; ?>
+                    </a>
+                <?php endif; ?>
+            </small>
+        </div>
+
     </div>
+<?php endwhile; ?>
+
+</div>
+
 </div>
 </body>
 </html>

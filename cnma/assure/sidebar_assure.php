@@ -17,16 +17,16 @@ $current = basename($_SERVER['PHP_SELF']);
             <i class="fa fa-home"></i> Tableau de bord
         </a>
         <a href="/PfeCnma/cnma/assure/mes_contrats.php" class="<?= $current=='mes_contrats.php'?'active':'' ?>">
-            <i class="fa fa-file-contract"></i> Mes contrats
+            <i class="fa fa-file-contract"></i> contrats
         </a>
         <a href="/PfeCnma/cnma/assure/mes_dossiers_assure.php" class="<?= $current=='mes_dossiers_assure.php'?'active':'' ?>">
-            <i class="fa fa-folder-open"></i> Mes dossiers
+            <i class="fa fa-folder-open"></i>  dossiers
         </a>
         <a href="/PfeCnma/cnma/assure/mes_paiements.php" class="<?= $current=='mes_paiements.php'?'active':'' ?>">
-            <i class="fa fa-money-check-alt"></i> Mes paiements
+            <i class="fa fa-money-check-alt"></i>  paiements
         </a>
         <a href="/PfeCnma/cnma/assure/mes_documents_assure.php" class="<?= $current=='mes_documents_assure.php'?'active':'' ?>">
-            <i class="fa fa-file-alt"></i> Mes documents
+            <i class="fa fa-file-alt"></i>  documents
         </a>
         <a href="/PfeCnma/cnma/assure/notifications_assure.php" class="<?= $current=='notifications_assure.php'?'active':'' ?>" style="position:relative;">
             <i class="fa fa-bell"></i> Notifications
@@ -35,7 +35,7 @@ $current = basename($_SERVER['PHP_SELF']);
             <?php endif; ?>
         </a>
         <a href="/PfeCnma/cnma/assure/mon_profil.php" class="<?= $current=='mon_profil.php'?'active':'' ?>">
-            <i class="fa fa-user-circle"></i> Mon profil
+            <i class="fa fa-user-circle"></i> profil
         </a>
     </nav>
     <div class="assure-footer">
