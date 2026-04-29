@@ -14,8 +14,6 @@ $refuses  = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM do
 $total_decision = $valides + $refuses;
 $taux = $total_decision > 0 ? round(($valides / $total_decision) * 100, 1) : null;
 
-$total_reserve = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(montant),0) as n FROM reserve"))['n'];
-$total_regle   = mysqli_fetch_assoc(mysqli_query($conn, "SELECT IFNULL(SUM(montant),0) as n FROM reglement"))['n'];
 $delais = mysqli_fetch_assoc(mysqli_query($conn,"
     SELECT 
         AVG(DATEDIFF(date_transmission, date_creation)) as crma,
@@ -263,55 +261,10 @@ if($taux !== null){
         </tbody>
     </table>
 
-    <!-- 4. DÉLAIS MOYENS -->
-    <div class="section-title"><i class="fa fa-clock"></i> Délais moyens</div>
-    <div class="stats-grid">
+  
+     
 
-        <div class="stat-card">
-            <div class="stat-value"><?php echo round((float)$delai_crma,1); ?> j</div>
-            <div class="stat-label">Délai moyen CRMA</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-value"><?php echo round((float)$delai_cnma,1); ?> j</div>
-            <div class="stat-label">Délai moyen CNMA</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-value"><?php echo round((float)$delai_total,1); ?> j</div>
-            <div class="stat-label">Délai moyen total</div>
-        </div>
-
-    </div>
-
-    <!-- 5. FINANCES -->
-    <div class="section-title"><i class="fa fa-money-bill-wave"></i> Finances</div>
-    <div class="finance-bar">
-        <div class="finance-card reserve">
-            <div class="finance-icon"><i class="fa fa-shield-halved"></i></div>
-            <div class="finance-body">
-                <div class="finance-label">Total Réserves</div>
-                <div class="finance-amount"><?php echo number_format($total_reserve, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
-                <div class="finance-sub">Toutes réserves actives</div>
-            </div>
-        </div>
-        <div class="finance-card regle">
-            <div class="finance-icon"><i class="fa fa-money-bill-wave"></i></div>
-            <div class="finance-body">
-                <div class="finance-label">Total Réglé</div>
-                <div class="finance-amount"><?php echo number_format($total_regle, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
-                <div class="finance-sub">Tous règlements effectués</div>
-            </div>
-        </div>
-        <div class="finance-card reste">
-            <div class="finance-icon"><i class="fa fa-scale-balanced"></i></div>
-            <div class="finance-body">
-                <div class="finance-label">Reste à régler</div>
-                <div class="finance-amount"><?php echo number_format($total_reserve - $total_regle, 2, ',', ' '); ?><span class="finance-da">DA</span></div>
-                <div class="finance-sub">Solde global</div>
-            </div>
-        </div>
-    </div>
+  
     <!-- DOSSIERS LES PLUS ANCIENS -->
 <div class="section-title">
     <i class="fa fa-exclamation-triangle" style="color:#d32f2f;"></i>

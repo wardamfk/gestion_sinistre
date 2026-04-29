@@ -27,10 +27,37 @@ $total_regle_dossiers = mysqli_fetch_assoc(mysqli_query($conn,
 $clotures = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=14 AND cree_par='$id_user'"))['n'];
 
 // Finances
-$total_reserve = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(d.total_reserve),0) n FROM dossier d WHERE d.cree_par='$id_user'"))['n'];
-$total_regle   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(r.montant),0) n FROM reglement r JOIN dossier d ON r.id_dossier=d.id_dossier WHERE d.cree_par='$id_user'"))['n'];
-$total_enc     = mysqli_fetch_assoc(mysqli_query($conn,"SELECT IFNULL(SUM(e.montant),0) n FROM encaissement e JOIN dossier d ON e.id_dossier=d.id_dossier WHERE d.cree_par='$id_user'"))['n'];
+// ================= FINANCES =================
 
+// Réserves (VRAIE source)
+$total_reserve = mysqli_fetch_assoc(mysqli_query($conn,"
+SELECT IFNULL(SUM(r.montant),0) n
+FROM reserve r
+JOIN dossier d ON r.id_dossier = d.id_dossier
+WHERE d.cree_par = '$id_user'
+"))['n'];
+
+// Réglé
+$total_regle = mysqli_fetch_assoc(mysqli_query($conn,"
+SELECT IFNULL(SUM(rg.montant),0) n
+FROM reglement rg
+JOIN dossier d ON rg.id_dossier = d.id_dossier
+WHERE d.cree_par = '$id_user'
+"))['n'];
+
+// Encaissement
+$total_enc = mysqli_fetch_assoc(mysqli_query($conn,"
+SELECT IFNULL(SUM(e.montant),0) n
+FROM encaissement e
+JOIN dossier d ON e.id_dossier = d.id_dossier
+WHERE d.cree_par = '$id_user'
+"))['n'];
+
+// Reste à régler
+$reste = $total_reserve - $total_regle;
+
+// Taux
+$taux = $total_reserve > 0 ? round(($total_regle / $total_reserve) * 100,1) : 0;
 // Notifications
 $nb_notifs = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM notification WHERE id_destinataire=$id_user AND lu=0"))['n'];
 
