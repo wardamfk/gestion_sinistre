@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 23 avr. 2026 à 17:39
+-- Généré le : jeu. 30 avr. 2026 à 13:05
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -30,9 +30,9 @@ SET time_zone = "+00:00";
 DROP TABLE IF EXISTS `agence`;
 CREATE TABLE IF NOT EXISTS `agence` (
   `id_agence` int NOT NULL AUTO_INCREMENT,
-  `nom_agence` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `type_agence` enum('CRMA','CNMA') COLLATE utf8mb4_general_ci NOT NULL,
-  `wilaya` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom_agence` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `type_agence` enum('CRMA','CNMA') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `wilaya` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_agence`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -59,15 +59,15 @@ CREATE TABLE IF NOT EXISTS `assure` (
   `id_personne` int DEFAULT NULL,
   `date_creation` date DEFAULT NULL,
   `actif` tinyint(1) DEFAULT '1',
-  `num_permis` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `num_permis` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_delivrance_permis` date DEFAULT NULL,
-  `lieu_delivrance_permis` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `type_permis` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `piece_identite` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `chauffeur_nom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `chauffeur_prenom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `chauffeur_permis` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `chauffeur_type_permis` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `lieu_delivrance_permis` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `type_permis` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `piece_identite` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_nom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_prenom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_permis` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chauffeur_type_permis` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_assure`),
   UNIQUE KEY `id_personne` (`id_personne`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -90,7 +90,7 @@ INSERT INTO `assure` (`id_assure`, `id_personne`, `date_creation`, `actif`, `num
 DROP TABLE IF EXISTS `contrat`;
 CREATE TABLE IF NOT EXISTS `contrat` (
   `id_contrat` int NOT NULL AUTO_INCREMENT,
-  `numero_police` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `numero_police` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `id_assure` int DEFAULT NULL,
   `date_effet` date DEFAULT NULL,
   `date_expiration` date DEFAULT NULL,
@@ -100,13 +100,13 @@ CREATE TABLE IF NOT EXISTS `contrat` (
   `prime_nette` decimal(12,2) DEFAULT NULL,
   `complement` decimal(12,2) DEFAULT NULL,
   `net_a_payer` decimal(12,2) DEFAULT NULL,
-  `statut` enum('actif','expire','suspendu') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `statut` enum('actif','expire','suspendu') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_creation` date DEFAULT NULL,
   `id_vehicule` int DEFAULT NULL,
   `id_agence` int DEFAULT NULL,
   `duree` int NOT NULL,
   `capital` decimal(12,2) NOT NULL,
-  `taxe` decimal(5,2),
+  `taxe` decimal(5,2) DEFAULT NULL,
   PRIMARY KEY (`id_contrat`),
   UNIQUE KEY `numero_police` (`numero_police`),
   KEY `id_assure` (`id_assure`),
@@ -155,7 +155,7 @@ DROP TABLE IF EXISTS `document`;
 CREATE TABLE IF NOT EXISTS `document` (
   `id_document` int NOT NULL AUTO_INCREMENT,
   `id_dossier` int DEFAULT NULL,
-  `nom_fichier` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom_fichier` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_upload` date DEFAULT NULL,
   `upload_par` int DEFAULT NULL,
   `id_type_document` int DEFAULT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `document` (
   KEY `id_dossier` (`id_dossier`),
   KEY `upload_par` (`upload_par`),
   KEY `fk_type_document` (`id_type_document`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `document`
@@ -177,7 +177,12 @@ INSERT INTO `document` (`id_document`, `id_dossier`, `nom_fichier`, `date_upload
 (13, 10, 'BDAU9862.JPG', '2026-04-02', 9, 3),
 (14, 11, 'DING2023.JPG', '2026-04-02', 9, 1),
 (15, 7, 'BDAU9862.JPG', '2026-04-02', 2, 1),
-(16, 6, 'BDAU9862.JPG', '2026-04-03', 2, 1);
+(16, 6, 'BDAU9862.JPG', '2026-04-03', 2, 1),
+(17, 13, 'BDAU9862.JPG', '2026-04-27', 9, 1),
+(18, 14, 'BDAU9862.JPG', '2026-04-27', 9, 1),
+(19, 15, 'BDAU9862.JPG', '2026-04-27', 9, 1),
+(20, 16, 'BDAU9862.JPG', '2026-04-27', 9, 1),
+(21, 17, 'BDAU9862.JPG', '2026-04-27', 9, 1);
 
 -- --------------------------------------------------------
 
@@ -188,25 +193,25 @@ INSERT INTO `document` (`id_document`, `id_dossier`, `nom_fichier`, `date_upload
 DROP TABLE IF EXISTS `dossier`;
 CREATE TABLE IF NOT EXISTS `dossier` (
   `id_dossier` int NOT NULL AUTO_INCREMENT,
-  `numero_dossier` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `numero_dossier` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_creation` date DEFAULT NULL,
   `cree_par` int DEFAULT NULL,
   `date_transmission` date DEFAULT NULL,
   `transmis_par` int DEFAULT NULL,
-  `info_complementaire` text COLLATE utf8mb4_general_ci,
+  `info_complementaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `id_etat` int DEFAULT NULL,
   `id_contrat` int DEFAULT NULL,
   `id_tiers` int DEFAULT NULL,
   `date_sinistre` date DEFAULT NULL,
-  `lieu_sinistre` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
+  `lieu_sinistre` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `delai_declaration` int DEFAULT NULL,
   `total_reserve` decimal(10,2) DEFAULT NULL,
-  `statut_validation` enum('non_soumis','en_attente','valide','refuse') COLLATE utf8mb4_general_ci DEFAULT 'non_soumis',
+  `statut_validation` enum('non_soumis','en_attente','valide','refuse') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'non_soumis',
   `date_validation` date DEFAULT NULL,
   `date_refus` date DEFAULT NULL,
   `date_cloture` date DEFAULT NULL,
-  `commentaire_cnma` text COLLATE utf8mb4_general_ci,
+  `commentaire_cnma` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `valide_par` int DEFAULT NULL,
   `id_expert` int DEFAULT NULL,
   PRIMARY KEY (`id_dossier`),
@@ -214,7 +219,7 @@ CREATE TABLE IF NOT EXISTS `dossier` (
   KEY `cree_par` (`cree_par`),
   KEY `transmis_par` (`transmis_par`),
   KEY `fk_etat_dossier` (`id_etat`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `dossier`
@@ -222,14 +227,19 @@ CREATE TABLE IF NOT EXISTS `dossier` (
 
 INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_par`, `date_transmission`, `transmis_par`, `info_complementaire`, `id_etat`, `id_contrat`, `id_tiers`, `date_sinistre`, `lieu_sinistre`, `description`, `delai_declaration`, `total_reserve`, `statut_validation`, `date_validation`, `date_refus`, `date_cloture`, `commentaire_cnma`, `valide_par`, `id_expert`) VALUES
 (4, 'DOS-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 8, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-05', NULL, '2026-04-03', NULL, NULL, 2),
-(5, 'DOS-2026-0002', '2026-03-30', 9, NULL, NULL, 'HKJ', 2, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, '', NULL, NULL, NULL, NULL, NULL, NULL),
-(6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-19', 9, '', 3, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 700867.00, 'en_attente', NULL, NULL, NULL, NULL, NULL, 1),
-(7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 7, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5050000.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
+(5, 'DOS-2026-0002', '2026-03-30', 9, NULL, NULL, 'HKJ', 7, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, '', NULL, NULL, NULL, NULL, NULL, NULL),
+(6, 'DOS-2026-0003', '2026-03-30', 9, '2026-04-19', 9, '', 2, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 700867.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
+(7, 'DOS-2026-0004', '2026-03-31', 9, NULL, NULL, '', 9, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5600290.00, 'valide', '2026-04-02', NULL, NULL, NULL, 2, 1),
 (8, 'DOS-2026-0005', '2026-03-31', 9, NULL, NULL, '', 8, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
 (9, 'DOS-2026-0006', '2026-04-02', 9, '2026-04-19', 9, '', 4, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 649155.00, 'valide', '2026-04-19', NULL, NULL, NULL, 2, 2),
-(10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 8, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'valide', '2026-04-04', NULL, NULL, NULL, NULL, 3),
-(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 18, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10410.00, 'valide', NULL, NULL, NULL, NULL, NULL, 5),
-(12, 'DOS-2026-0009', '2026-04-03', 10, NULL, NULL, '', 9, 1, 5, '2026-03-30', 'ALGER', 'HG', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 4);
+(10, 'DOS-2026-0007', '2026-04-02', 9, NULL, NULL, '', 7, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 0.00, 'valide', '2026-04-04', NULL, NULL, NULL, NULL, 3),
+(11, 'DOS-2026-0008', '2026-04-02', 9, NULL, NULL, '', 8, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10500.00, 'valide', '2026-04-24', NULL, NULL, NULL, NULL, 5),
+(12, 'DOS-2026-0009', '2026-04-03', 10, NULL, NULL, '', 9, 1, 5, '2026-03-30', 'ALGER', 'HG', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 4),
+(13, 'DOS-2026-0010', '2026-04-27', 9, NULL, NULL, 'S', 11, 1, 8, '2026-04-21', 'ALGER', 'ACCIDENT', 3, 900.00, 'non_soumis', NULL, NULL, '2026-04-28', NULL, NULL, 4),
+(14, 'DOS-2026-0011', '2026-04-27', 9, NULL, NULL, 'BNB', 8, 2, 6, '2026-04-27', 'ALGER', 'ACCIENT', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
+(15, 'DOS-2026-0012', '2026-04-27', 9, NULL, NULL, '', 14, 1, 5, '2026-04-15', 'ALGER', 'ACCIDNT', 12, NULL, 'non_soumis', NULL, NULL, '2026-04-29', NULL, NULL, 2),
+(16, 'DOS-2026-0013', '2026-04-27', 9, NULL, NULL, '', 8, 2, 5, '2026-04-15', 'ALGER', 'ACCIDENT', 8, NULL, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 2),
+(17, 'DOS-2026-0014', '2026-04-27', 9, NULL, NULL, '', 8, 2, 5, '2026-04-23', 'ALGER', 'ACIDENT', 4, NULL, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 2);
 
 -- --------------------------------------------------------
 
@@ -244,8 +254,8 @@ CREATE TABLE IF NOT EXISTS `encaissement` (
   `montant` decimal(12,2) DEFAULT NULL,
   `date_encaissement` date DEFAULT NULL,
   `id_tiers` int DEFAULT NULL,
-  `type` enum('recours','franchise','epave','autre') COLLATE utf8mb4_general_ci DEFAULT 'recours',
-  `commentaire` text COLLATE utf8mb4_general_ci,
+  `type` enum('recours','franchise','epave','autre') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'recours',
+  `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`id_encaissement`),
   KEY `id_dossier` (`id_dossier`),
   KEY `fk_encaissement_tiers` (`id_tiers`)
@@ -267,7 +277,7 @@ INSERT INTO `encaissement` (`id_encaissement`, `id_dossier`, `montant`, `date_en
 DROP TABLE IF EXISTS `etat_dossier`;
 CREATE TABLE IF NOT EXISTS `etat_dossier` (
   `id_etat` int NOT NULL AUTO_INCREMENT,
-  `nom_etat` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `nom_etat` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `motif_obligatoire` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id_etat`)
 ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -281,8 +291,8 @@ INSERT INTO `etat_dossier` (`id_etat`, `nom_etat`, `motif_obligatoire`) VALUES
 (2, 'En cours CRMA', 0),
 (3, 'Transmis CNMA', 0),
 (4, 'Validé CNMA', 0),
-(5, 'Refusé CNMA', 0),
-(6, 'Complément demandé', 0),
+(5, 'Refusé CNMA', 1),
+(6, 'Complément demandé', 1),
 (7, 'Règlement partiel', 0),
 (8, 'Règlement définitif amiable', 0),
 (9, 'En cours d\'expertise', 0),
@@ -306,11 +316,11 @@ INSERT INTO `etat_dossier` (`id_etat`, `nom_etat`, `motif_obligatoire`) VALUES
 DROP TABLE IF EXISTS `expert`;
 CREATE TABLE IF NOT EXISTS `expert` (
   `id_expert` int NOT NULL AUTO_INCREMENT,
-  `nom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `prenom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `telephone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `activite` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `prenom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `telephone` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `activite` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `id_personne` int DEFAULT NULL,
   PRIMARY KEY (`id_expert`),
   KEY `fk_expert_personne` (`id_personne`)
@@ -341,9 +351,9 @@ CREATE TABLE IF NOT EXISTS `expertise` (
   `id_dossier` int DEFAULT NULL,
   `id_expert` int DEFAULT NULL,
   `date_expertise` date DEFAULT NULL,
-  `rapport_pdf` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `rapport_pdf` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `montant_indemnite` decimal(12,2) DEFAULT NULL,
-  `commentaire` text COLLATE utf8mb4_general_ci,
+  `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`id_expertise`),
   KEY `id_dossier` (`id_dossier`),
   KEY `id_expert` (`id_expert`)
@@ -379,7 +389,7 @@ INSERT INTO `expertise` (`id_expertise`, `id_dossier`, `id_expert`, `date_expert
 DROP TABLE IF EXISTS `formule`;
 CREATE TABLE IF NOT EXISTS `formule` (
   `id_formule` int NOT NULL AUTO_INCREMENT,
-  `nom_formule` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `nom_formule` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id_formule`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -402,9 +412,9 @@ INSERT INTO `formule` (`id_formule`, `nom_formule`) VALUES
 DROP TABLE IF EXISTS `garantie`;
 CREATE TABLE IF NOT EXISTS `garantie` (
   `id_garantie` int NOT NULL AUTO_INCREMENT,
-  `nom_garantie` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `code_garantie` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom_garantie` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `code_garantie` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `prix` decimal(10,2) NOT NULL DEFAULT '0.00',
   PRIMARY KEY (`id_garantie`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -435,12 +445,12 @@ DROP TABLE IF EXISTS `historique`;
 CREATE TABLE IF NOT EXISTS `historique` (
   `id_historique` int NOT NULL AUTO_INCREMENT,
   `id_dossier` int DEFAULT NULL,
-  `action` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_action` datetime DEFAULT NULL,
   `fait_par` int DEFAULT NULL,
   `ancien_etat` int DEFAULT NULL,
   `nouvel_etat` int DEFAULT NULL,
-  `commentaire` text COLLATE utf8mb4_general_ci,
+  `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `id_motif` int DEFAULT NULL,
   PRIMARY KEY (`id_historique`),
   KEY `id_dossier` (`id_dossier`),
@@ -448,7 +458,7 @@ CREATE TABLE IF NOT EXISTS `historique` (
   KEY `fk_ancien_etat` (`ancien_etat`),
   KEY `fk_nouvel_etat` (`nouvel_etat`),
   KEY `fk_historique_motif` (`id_motif`)
-) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `historique`
@@ -539,7 +549,36 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (97, 6, 'Transmission CNMA - Dépassement seuil', '2026-04-19 12:00:48', 9, 2, 3, NULL, NULL),
 (98, 11, 'Encaissement enregistré — recours', '2026-04-21 10:48:17', 9, 20, 20, NULL, NULL),
 (99, 11, 'Repris pour recours abouti', '2026-04-21 14:52:23', 9, 20, 18, '', NULL),
-(100, 7, 'Règlement partiel', '2026-04-21 14:56:28', 9, 7, 7, NULL, NULL);
+(100, 7, 'Règlement partiel', '2026-04-21 14:56:28', 9, 7, 7, NULL, NULL),
+(101, 11, 'Règlement définitif amiable', '2026-04-24 10:22:01', 9, 18, 8, NULL, NULL),
+(102, 7, 'Règlement partiel', '2026-04-24 10:50:32', 9, 7, 7, NULL, NULL),
+(103, 7, 'Ajout réserve', '2026-04-26 20:07:15', 9, 7, 7, NULL, NULL),
+(104, 7, 'Ajout réserve', '2026-04-26 20:13:53', 9, 7, 7, NULL, NULL),
+(105, 7, 'Règlement partiel', '2026-04-26 20:14:50', 9, 7, 7, NULL, NULL),
+(106, 7, 'Changement d\'état → Complément demandé', '2026-04-26 20:31:45', 9, 6, 6, '', NULL),
+(107, 7, 'Changement d\'état → En cours d\'expertise', '2026-04-26 20:33:01', 9, 6, 9, '', NULL),
+(108, 10, 'Changement d\'état → Règlement partiel', '2026-04-27 21:16:32', 9, 2, 7, '', NULL),
+(109, 13, 'Création dossier', '2026-04-27 21:19:00', 9, NULL, 2, NULL, NULL),
+(110, 13, 'Affectation expert', '2026-04-27 21:19:00', 9, 2, 9, NULL, NULL),
+(111, 13, 'Ajout réserve', '2026-04-27 21:19:43', 9, 9, 9, NULL, NULL),
+(112, 13, 'Règlement partiel', '2026-04-27 21:29:35', 9, 9, 7, NULL, NULL),
+(113, 13, 'Règlement partiel', '2026-04-27 21:30:14', 9, 7, 7, NULL, NULL),
+(114, 14, 'Création dossier', '2026-04-27 21:50:32', 9, NULL, 2, NULL, NULL),
+(115, 14, 'Affectation expert', '2026-04-27 21:50:32', 9, 2, 9, NULL, NULL),
+(116, 14, 'Règlement partiel', '2026-04-27 21:50:57', 9, 9, 7, NULL, NULL),
+(117, 14, 'Règlement total', '2026-04-27 21:53:08', 9, 7, 8, NULL, NULL),
+(118, 15, 'Création dossier', '2026-04-27 22:04:16', 9, NULL, 2, NULL, NULL),
+(119, 15, 'Affectation expert', '2026-04-27 22:04:16', 9, 2, 9, NULL, NULL),
+(120, 15, 'Règlement total', '2026-04-27 22:04:34', 9, 9, 8, NULL, NULL),
+(121, 16, 'Création dossier', '2026-04-27 22:35:10', 9, NULL, 2, NULL, NULL),
+(122, 16, 'Affectation expert', '2026-04-27 22:35:10', 9, 2, 9, NULL, NULL),
+(123, 16, 'Règlement total', '2026-04-27 22:35:57', 9, 9, 8, NULL, NULL),
+(124, 17, 'Création dossier', '2026-04-27 22:48:19', 9, NULL, 2, NULL, NULL),
+(125, 17, 'Affectation expert', '2026-04-27 22:48:19', 9, 2, 9, NULL, NULL),
+(126, 17, 'Règlement total', '2026-04-27 22:48:43', 9, 9, 8, NULL, NULL),
+(127, 13, 'Changement d\'état → Classé sans suite', '2026-04-28 16:26:11', 9, 7, 11, '', 26),
+(128, 6, 'Demande de complément CNMA', '2026-04-28 19:23:42', 2, 3, 2, 'Dossier renvoyé au CRMA pour complément de documents', NULL),
+(129, 15, 'Changement d\'état → Clôturé', '2026-04-29 14:35:40', 9, 8, 14, '', NULL);
 
 -- --------------------------------------------------------
 
@@ -551,10 +590,10 @@ DROP TABLE IF EXISTS `motif`;
 CREATE TABLE IF NOT EXISTS `motif` (
   `id_motif` int NOT NULL AUTO_INCREMENT,
   `id_etat` int DEFAULT NULL,
-  `nom_motif` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom_motif` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_motif`),
   KEY `id_etat` (`id_etat`)
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `motif`
@@ -577,7 +616,18 @@ INSERT INTO `motif` (`id_motif`, `id_etat`, `nom_motif`) VALUES
 (31, 15, 'Réouverture pour recours'),
 (32, 15, 'Réouverture pour erreur de classement'),
 (33, 19, 'Encaissement du recours'),
-(34, 20, 'Responsabilité de l\'assuré dégagée entièrement');
+(34, 20, 'Responsabilité de l\'assuré dégagée entièrement'),
+(35, 6, 'PV de police manquant'),
+(36, 6, 'Facture de réparation manquante'),
+(37, 6, 'Carte grise manquante'),
+(40, 6, 'Photos du sinistre insuffisantes'),
+(41, 6, 'Montant à réévaluer'),
+(43, 6, 'Informations du sinistre incomplètes'),
+(44, 6, 'Coordonnées tiers manquantes'),
+(45, 6, 'Rapport d’expertise manquant'),
+(46, 5, 'Sinistre non couvert par le contrat'),
+(48, 5, 'Déclaration hors délai'),
+(50, 5, 'Montant du dommage inférieur à la franchise');
 
 -- --------------------------------------------------------
 
@@ -591,15 +641,15 @@ CREATE TABLE IF NOT EXISTS `notification` (
   `id_dossier` int NOT NULL,
   `id_expediteur` int NOT NULL,
   `id_destinataire` int NOT NULL,
-  `type` enum('validation','refus','complement','reglement','cloture') COLLATE utf8mb4_general_ci NOT NULL,
-  `message` text COLLATE utf8mb4_general_ci NOT NULL,
+  `type` enum('validation','refus','complement','reglement','cloture') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `date_notification` datetime DEFAULT CURRENT_TIMESTAMP,
   `lu` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id_notification`),
   KEY `id_dossier` (`id_dossier`),
   KEY `id_expediteur` (`id_expediteur`),
   KEY `id_destinataire` (`id_destinataire`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `notification`
@@ -611,9 +661,12 @@ INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `i
 (3, 10, 9, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0007. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-04 14:15:18', 1),
 (4, 4, 9, 13, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0001. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:19:54', 1),
 (5, 4, 9, 13, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0001. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:19:59', 1),
-(6, 8, 8, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0005. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:32:51', 0),
+(6, 8, 8, 8, 'reglement', 'Un chèque est disponible pour le dossier DOS-2026-0005. Veuillez vous présenter à votre agence CRMA pour le récupérer.', '2026-04-05 20:32:51', 1),
 (7, 9, 9, 13, 'cloture', 'Votre dossier DOS-2026-0006 a changé d\'état : Classé en attente recours. Contactez votre agence pour plus d\'informations.', '2026-04-17 18:16:29', 0),
-(8, 9, 2, 9, 'validation', 'Le dossier DOS-2026-0006 a été VALIDÉ par la CNMA. Vous pouvez procéder au règlement.', '2026-04-19 10:35:17', 0);
+(8, 9, 2, 9, 'validation', 'Le dossier DOS-2026-0006 a été VALIDÉ par la CNMA. Vous pouvez procéder au règlement.', '2026-04-19 10:35:17', 0),
+(9, 13, 9, 13, 'cloture', 'Votre dossier DOS-2026-0010 a changé d\'état : Classé sans suite. Contactez votre agence pour plus d\'informations.', '2026-04-28 16:26:11', 0),
+(10, 6, 2, 9, 'complement', 'Complément demandé pour le dossier DOS-2026-0003. Veuillez compléter les documents manquants et re-transmettre.', '2026-04-28 19:23:42', 0),
+(11, 15, 9, 13, 'cloture', 'Votre dossier DOS-2026-0012 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', '2026-04-29 14:35:40', 0);
 
 -- --------------------------------------------------------
 
@@ -624,8 +677,8 @@ INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `i
 DROP TABLE IF EXISTS `parametre`;
 CREATE TABLE IF NOT EXISTS `parametre` (
   `id_parametre` int NOT NULL AUTO_INCREMENT,
-  `nom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `valeur` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `valeur` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_parametre`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -646,21 +699,21 @@ INSERT INTO `parametre` (`id_parametre`, `nom`, `valeur`) VALUES
 DROP TABLE IF EXISTS `personne`;
 CREATE TABLE IF NOT EXISTS `personne` (
   `id_personne` int NOT NULL AUTO_INCREMENT,
-  `type_personne` enum('physique','morale') COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `nom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `prenom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `raison_sociale` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `num_identite` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `telephone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `adresse` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `type_personne` enum('physique','morale') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `prenom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `raison_sociale` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `num_identite` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `telephone` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `adresse` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_naissance` date DEFAULT NULL,
-  `lieu_naissance` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `nin` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `nif` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `num_id_fiscal` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `activite` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `statut_personne` enum('assure','expert','adversaire') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `lieu_naissance` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nin` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nif` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `num_id_fiscal` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `activite` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `statut_personne` enum('assure','expert','adversaire') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_personne`),
   UNIQUE KEY `num_identite` (`num_identite`)
 ) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -698,16 +751,16 @@ CREATE TABLE IF NOT EXISTS `reglement` (
   `id_garantie` int DEFAULT NULL,
   `montant` decimal(12,2) DEFAULT NULL,
   `date_reglement` date DEFAULT NULL,
-  `mode_paiement` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `mode_paiement` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `saisi_par` int DEFAULT NULL,
-  `statut` enum('en_attente','disponible','remis') COLLATE utf8mb4_general_ci DEFAULT 'en_attente',
-  `reference_paiement` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `commentaire` text COLLATE utf8mb4_general_ci,
+  `statut` enum('en_attente','disponible','remis') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'en_attente',
+  `reference_paiement` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`id_reglement`),
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `saisi_par` (`saisi_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reglement`
@@ -723,7 +776,17 @@ INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`,
 (7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'disponible', NULL, ''),
 (11, 11, NULL, 10.00, '2026-04-17', 'Chèque', 9, 'en_attente', NULL, ''),
 (12, 7, NULL, 300.00, '2026-04-17', 'Chèque', 9, 'en_attente', NULL, ''),
-(13, 7, NULL, 600000.00, '2026-04-21', 'Chèque', 9, 'en_attente', NULL, '');
+(13, 7, NULL, 600000.00, '2026-04-21', 'Chèque', 9, 'en_attente', NULL, ''),
+(14, 11, NULL, 10500.00, '2026-04-24', 'Chèque', 9, 'en_attente', NULL, ''),
+(15, 7, NULL, 5000000.00, '2026-04-24', 'Chèque', 9, 'en_attente', NULL, ''),
+(16, 7, NULL, 10020.00, '2026-04-26', 'Chèque', 9, 'en_attente', NULL, ''),
+(17, 13, NULL, 1000.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, ''),
+(18, 13, NULL, 300.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, ''),
+(19, 14, NULL, 600.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, ''),
+(20, 14, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, ''),
+(21, 15, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, ''),
+(22, 16, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, ''),
+(23, 17, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'en_attente', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -738,16 +801,16 @@ CREATE TABLE IF NOT EXISTS `reserve` (
   `id_garantie` int DEFAULT NULL,
   `montant` decimal(12,2) DEFAULT NULL,
   `date_reserve` date DEFAULT NULL,
-  `type_reserve` enum('initiale','expertise','ajustement') COLLATE utf8mb4_general_ci NOT NULL,
+  `type_reserve` enum('initiale','expertise','ajustement') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `cree_par` int DEFAULT NULL,
   `date_creation` date DEFAULT NULL,
-  `commentaire` text COLLATE utf8mb4_general_ci,
-  `statut` enum('actif','annule') COLLATE utf8mb4_general_ci DEFAULT 'actif',
+  `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `statut` enum('actif','annule') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'actif',
   PRIMARY KEY (`id_reserve`),
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `cree_par` (`cree_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reserve`
@@ -797,7 +860,21 @@ INSERT INTO `reserve` (`id_reserve`, `id_dossier`, `id_garantie`, `montant`, `da
 (48, 9, 1, 100.00, '2026-04-17', 'expertise', 9, '2026-04-17', 'Réserve après expertise', 'actif'),
 (49, 9, 1, 499000.00, '2026-04-19', 'expertise', 9, '2026-04-19', 'Réserve après expertise', 'actif'),
 (50, 9, 1, 150000.00, '2026-04-19', 'ajustement', 9, '2026-04-19', '', 'actif'),
-(51, 6, 1, 100000.00, '2026-04-19', 'ajustement', 9, '2026-04-19', '', 'actif');
+(51, 6, 1, 100000.00, '2026-04-19', 'ajustement', 9, '2026-04-19', '', 'actif'),
+(52, 11, 1, 90.00, '2026-04-24', 'ajustement', 9, '2026-04-24', 'Réserve complémentaire auto (règlement > réserve)', 'actif'),
+(53, 7, 1, 555300.00, '2026-04-26', 'ajustement', 9, '2026-04-26', 'AJUSTEMENT', 'actif'),
+(54, 7, 1, 5010.00, '2026-04-26', 'ajustement', 9, '2026-04-26', '', 'actif'),
+(55, 13, 1, 200.00, '2026-04-27', 'initiale', NULL, NULL, NULL, 'actif'),
+(56, 13, 1, 2000.00, '2026-04-27', 'ajustement', 9, '2026-04-27', '', 'actif'),
+(57, 14, 1, 1000.00, '2026-04-27', 'initiale', NULL, NULL, NULL, 'actif'),
+(58, 14, 1, 600.00, '2026-04-27', 'ajustement', 9, '2026-04-27', 'Réserve complémentaire auto (dépassement règlement)', 'actif'),
+(59, 14, 1, 500.00, '2026-04-27', 'ajustement', 9, '2026-04-27', 'Réserve complémentaire auto (dépassement règlement)', 'actif'),
+(60, 15, 1, 1000.00, '2026-04-27', 'initiale', NULL, NULL, NULL, 'actif'),
+(61, 15, 1, 500.00, '2026-04-27', 'ajustement', 9, '2026-04-27', 'Ajustement estimation après dépassement paiement', 'actif'),
+(62, 16, 1, 1000.00, '2026-04-27', 'initiale', NULL, NULL, NULL, 'actif'),
+(63, 16, 1, 500.00, '2026-04-27', 'ajustement', 9, '2026-04-27', 'Ajustement estimation après dépassement paiement', 'actif'),
+(64, 17, 1, 1000.00, '2026-04-27', 'initiale', NULL, NULL, NULL, 'actif'),
+(65, 17, 1, 500.00, '2026-04-27', '', 9, '2026-04-27', 'Réserve complémentaire après dépassement règlement', 'actif');
 
 -- --------------------------------------------------------
 
@@ -810,7 +887,7 @@ CREATE TABLE IF NOT EXISTS `seuil_validation` (
   `id_seuil` int NOT NULL AUTO_INCREMENT,
   `montant_min` decimal(12,2) DEFAULT NULL,
   `montant_max` decimal(12,2) DEFAULT NULL,
-  `niveau_validation` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `niveau_validation` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_seuil`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -832,9 +909,9 @@ DROP TABLE IF EXISTS `tiers`;
 CREATE TABLE IF NOT EXISTS `tiers` (
   `id_tiers` int NOT NULL AUTO_INCREMENT,
   `id_personne` int DEFAULT NULL,
-  `compagnie_assurance` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `numero_police` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `responsable` enum('oui','non','partiel') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `compagnie_assurance` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `numero_police` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `responsable` enum('oui','non','partiel') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_tiers`),
   KEY `id_personne` (`id_personne`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -844,10 +921,10 @@ CREATE TABLE IF NOT EXISTS `tiers` (
 --
 
 INSERT INTO `tiers` (`id_tiers`, `id_personne`, `compagnie_assurance`, `numero_police`, `responsable`) VALUES
-(5, 9, 'SAA', 'SAA123456', 'non'),
+(5, 9, 'SAA', 'SAA123456', 'oui'),
 (6, 10, 'CAAR', 'CAAR654321', 'oui'),
 (7, 11, 'GAM', 'GAM456123', 'oui'),
-(8, 27, 'SAA', 'saa23E', 'non');
+(8, 27, 'SAA', 'saa23E', 'partiel');
 
 -- --------------------------------------------------------
 
@@ -858,7 +935,7 @@ INSERT INTO `tiers` (`id_tiers`, `id_personne`, `compagnie_assurance`, `numero_p
 DROP TABLE IF EXISTS `type_document`;
 CREATE TABLE IF NOT EXISTS `type_document` (
   `id_type_document` int NOT NULL AUTO_INCREMENT,
-  `nom_type` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `nom_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id_type_document`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -884,11 +961,11 @@ INSERT INTO `type_document` (`id_type_document`, `nom_type`) VALUES
 DROP TABLE IF EXISTS `utilisateur`;
 CREATE TABLE IF NOT EXISTS `utilisateur` (
   `id_user` int NOT NULL AUTO_INCREMENT,
-  `nom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `prenom` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `mot_de_passe` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `role` enum('CNMA','CRMA','ASSURE') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `prenom` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `mot_de_passe` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `role` enum('CNMA','CRMA','ASSURE') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `id_agence` int DEFAULT NULL,
   `actif` tinyint(1) DEFAULT '1',
   `id_personne` int DEFAULT NULL,
@@ -921,17 +998,19 @@ INSERT INTO `utilisateur` (`id_user`, `nom`, `prenom`, `email`, `mot_de_passe`, 
 DROP TABLE IF EXISTS `vehicule`;
 CREATE TABLE IF NOT EXISTS `vehicule` (
   `id_vehicule` int NOT NULL AUTO_INCREMENT,
-  `marque` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `modele` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `couleur` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `marque` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `modele` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `couleur` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `nombre_places` int DEFAULT NULL,
-  `matricule` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `numero_chassis` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `numero_serie` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `matricule` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `numero_chassis` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `numero_serie` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `annee` int DEFAULT NULL,
-  `type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `carrosserie` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`id_vehicule`)
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `carrosserie` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id_vehicule`),
+  UNIQUE KEY `matricule` (`matricule`),
+  UNIQUE KEY `numero_chassis` (`numero_chassis`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -939,7 +1018,7 @@ CREATE TABLE IF NOT EXISTS `vehicule` (
 --
 
 INSERT INTO `vehicule` (`id_vehicule`, `marque`, `modele`, `couleur`, `nombre_places`, `matricule`, `numero_chassis`, `numero_serie`, `annee`, `type`, `carrosserie`) VALUES
-(1, 'KL', 'KL', 'KL', 4, '567899', '89', '8', 2005, 'Tourisme', 'Berline');
+(1, 'CLIO', 'KL', 'blanche', 4, '567899', '89', '8', 2005, 'Tourisme', 'Berline');
 
 --
 -- Contraintes pour les tables déchargées

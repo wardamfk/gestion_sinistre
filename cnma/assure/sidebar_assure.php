@@ -25,9 +25,7 @@ $current = basename($_SERVER['PHP_SELF']);
         <a href="/PfeCnma/cnma/assure/mes_paiements.php" class="<?= $current=='mes_paiements.php'?'active':'' ?>">
             <i class="fa fa-money-check-alt"></i>  paiements
         </a>
-        <a href="/PfeCnma/cnma/assure/mes_documents_assure.php" class="<?= $current=='mes_documents_assure.php'?'active':'' ?>">
-            <i class="fa fa-file-alt"></i>  documents
-        </a>
+      
         <a href="/PfeCnma/cnma/assure/notifications_assure.php" class="<?= $current=='notifications_assure.php'?'active':'' ?>" style="position:relative;">
             <i class="fa fa-bell"></i> Notifications
             <?php if($nb_notifs_assure > 0): ?>

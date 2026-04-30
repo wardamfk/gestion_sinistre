@@ -895,8 +895,8 @@ function openVehicule(id) {
                 <div class="veh-detail-card"><div class="vdc-label">N° Série</div><div class="vdc-val mono" style="font-size:12px">${v.serie || '—'}</div></div>
             </div>
             <div style="display:flex;gap:10px;margin-top:20px">
-               <button onclick="openEditVehicule(${id})" class="btn btn-primary btn-sm">
-    <i class="fa fa-pen"></i> Modifier ce véhicule
+     <button onclick="editVehicule(${id})" class="btn btn-primary btn-sm">
+    <i class="fa fa-pen"></i> Modifier
 </button>
                 <a href="print_contrat.php?id=${v.id_contrat}" target="_blank" class="btn btn-outline btn-sm"><i class="fa fa-print"></i> Imprimer le contrat</a>
                 <button onclick="closeModal('modal-vehicule')" class="btn btn-ghost btn-sm" style="margin-left:auto">Fermer</button>
@@ -904,7 +904,86 @@ function openVehicule(id) {
         </div>`;
     document.getElementById('modal-vehicule').classList.add('open');
 }
+function editVehicule(id) {
+    const v = vehicules[id];
 
+    document.getElementById('veh-modal-content').innerHTML = `
+        <div class="veh-detail-body">
+
+        <div class="section-h"><i class="fa fa-pen"></i> Modifier véhicule</div>
+
+        <div class="veh-detail-grid">
+  
+            <div class="fg">
+                <label>Marque</label>
+                <input id="marque" value="${v.marque}">
+            </div>
+
+            <div class="fg">
+                <label>Modèle</label>
+                <input id="modele" value="${v.modele}">
+            </div>
+
+            <div class="fg">
+                <label>Couleur</label>
+                <input id="couleur" value="${v.couleur}">
+            </div>
+
+            <div class="fg">
+                <label>Matricule</label>
+                <input value="${v.matricule}" readonly>
+            </div>   
+               <div class="fg">
+    <label>N° Châssis</label>
+<input value="${v.chassis}" readonly>
+</div>
+<div class="fg">  
+ <label>N° Série</label>
+<input value="${v.serie}" readonly>     
+ </div> 
+
+            <div class="fg">
+                <label>Type</label>
+                <select id="type">
+                    <option ${v.type_veh=='Tourisme'?'selected':''}>Tourisme</option>
+                    <option ${v.type_veh=='Utilitaire'?'selected':''}>Utilitaire</option>
+                    <option ${v.type_veh=='Camion'?'selected':''}>Camion</option>
+                    <option ${v.type_veh=='Bus'?'selected':''}>Bus</option>
+                    <option ${v.type_veh=='Moto'?'selected':''}>Moto</option>
+                    <option ${v.type_veh=='Agricole'?'selected':''}>Agricole</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:20px">
+            <button onclick="saveVehicule(${id})" class="btn btn-success btn-sm">
+                <i class="fa fa-save"></i> Enregistrer
+            </button>
+
+            <button onclick="openVehicule(${id})" class="btn btn-outline btn-sm">
+                Annuler
+            </button>
+        </div>
+
+        </div>
+    `;
+}
+function saveVehicule(id) {
+
+    fetch('update_vehicule.php?id=' + id, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            marque: document.getElementById('marque').value,
+            modele: document.getElementById('modele').value,
+            couleur: document.getElementById('couleur').value,
+            matricule: document.getElementById('matricule').value,
+            type: document.getElementById('type').value
+        })
+    })
+    .then(() => location.reload());
+}
 /* ── Confirmations ── */
 function confirmResilier(id, police) {
     if(confirm(`Résilier le contrat ${police} ?`)) window.location.href=`?statut=resilie&id=${id}`;

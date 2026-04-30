@@ -181,12 +181,9 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
         </a>
 
         <?php elseif($etat == 8): ?>
-        <!-- Clôturer : seulement si réglé totalement (état 8) -->
-        <a href="cloturer_dossier_cnma.php?id=<?php echo $id_dossier; ?>"
-           class="btn btn-cloturer"
-           onclick="return confirm('Clôturer définitivement ce dossier ?')">
-            <i class="fa fa-archive"></i> Clôturer dossier
-        </a>
+<span style="color:#27ae60; font-weight:bold; padding:10px;">
+    <i class="fa fa-check-circle"></i> Dossier réglé (aucune action CNMA)
+</span>
 
         <?php elseif($etat == 14): ?>
         <span style="color:#27ae60; font-weight:bold; padding:10px;">
