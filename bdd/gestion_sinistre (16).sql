@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 30 avr. 2026 à 13:05
+-- Généré le : jeu. 30 avr. 2026 à 13:25
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -591,6 +591,7 @@ CREATE TABLE IF NOT EXISTS `motif` (
   `id_motif` int NOT NULL AUTO_INCREMENT,
   `id_etat` int DEFAULT NULL,
   `nom_motif` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `message_assure` text COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`id_motif`),
   KEY `id_etat` (`id_etat`)
 ) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -599,35 +600,35 @@ CREATE TABLE IF NOT EXISTS `motif` (
 -- Déchargement des données de la table `motif`
 --
 
-INSERT INTO `motif` (`id_motif`, `id_etat`, `nom_motif`) VALUES
-(18, 11, 'Absence de garantie couvrant le sinistre'),
-(19, 11, 'Sinistre survenu hors période de couverture'),
-(20, 11, 'Exclusions de garanties mentionnées sur les conditions générales et particulières'),
-(21, 11, 'Prescription'),
-(22, 11, 'Absence de dégâts matériels engendrés par le sinistre'),
-(23, 11, 'Dégâts sous franchise'),
-(24, 11, 'Absence de PV d\'expertise ou de photos d\'expertise (matérialité non prouvée)'),
-(25, 11, 'Fausse déclaration (cas fraude à l\'assurance avéré)'),
-(26, 11, 'Absence de la réclamation du tiers dans le cas d\'un règlement au titre de la garantie RC'),
-(27, 15, 'Réception d\'une citation à comparaître'),
-(28, 15, 'Réclamation fondée de l\'assuré ou d\'une victime du sinistre'),
-(29, 15, 'Réception d\'un jugement par défaut'),
-(30, 15, 'Repris pour recours abouti'),
-(31, 15, 'Réouverture pour recours'),
-(32, 15, 'Réouverture pour erreur de classement'),
-(33, 19, 'Encaissement du recours'),
-(34, 20, 'Responsabilité de l\'assuré dégagée entièrement'),
-(35, 6, 'PV de police manquant'),
-(36, 6, 'Facture de réparation manquante'),
-(37, 6, 'Carte grise manquante'),
-(40, 6, 'Photos du sinistre insuffisantes'),
-(41, 6, 'Montant à réévaluer'),
-(43, 6, 'Informations du sinistre incomplètes'),
-(44, 6, 'Coordonnées tiers manquantes'),
-(45, 6, 'Rapport d’expertise manquant'),
-(46, 5, 'Sinistre non couvert par le contrat'),
-(48, 5, 'Déclaration hors délai'),
-(50, 5, 'Montant du dommage inférieur à la franchise');
+INSERT INTO `motif` (`id_motif`, `id_etat`, `nom_motif`, `message_assure`) VALUES
+(18, 11, 'Absence de garantie couvrant le sinistre', NULL),
+(19, 11, 'Sinistre survenu hors période de couverture', NULL),
+(20, 11, 'Exclusions de garanties mentionnées sur les conditions générales et particulières', NULL),
+(21, 11, 'Prescription', NULL),
+(22, 11, 'Absence de dégâts matériels engendrés par le sinistre', NULL),
+(23, 11, 'Dégâts sous franchise', NULL),
+(24, 11, 'Absence de PV d\'expertise ou de photos d\'expertise (matérialité non prouvée)', NULL),
+(25, 11, 'Fausse déclaration (cas fraude à l\'assurance avéré)', NULL),
+(26, 11, 'Absence de la réclamation du tiers dans le cas d\'un règlement au titre de la garantie RC', NULL),
+(27, 15, 'Réception d\'une citation à comparaître', NULL),
+(28, 15, 'Réclamation fondée de l\'assuré ou d\'une victime du sinistre', NULL),
+(29, 15, 'Réception d\'un jugement par défaut', NULL),
+(30, 15, 'Repris pour recours abouti', NULL),
+(31, 15, 'Réouverture pour recours', NULL),
+(32, 15, 'Réouverture pour erreur de classement', NULL),
+(33, 19, 'Encaissement du recours', NULL),
+(34, 20, 'Responsabilité de l\'assuré dégagée entièrement', NULL),
+(35, 6, 'PV de police manquant', NULL),
+(36, 6, 'Facture de réparation manquante', NULL),
+(37, 6, 'Carte grise manquante', NULL),
+(40, 6, 'Photos du sinistre insuffisantes', NULL),
+(41, 6, 'Montant à réévaluer', NULL),
+(43, 6, 'Informations du sinistre incomplètes', NULL),
+(44, 6, 'Coordonnées tiers manquantes', NULL),
+(45, 6, 'Rapport d’expertise manquant', NULL),
+(46, 5, 'Sinistre non couvert par le contrat', 'Ce type d’incident n’est pas couvert par votre contrat d’assurance.'),
+(48, 5, 'Déclaration hors délai', 'Votre déclaration a été faite après le délai autorisé.'),
+(50, 5, 'Montant du dommage inférieur à la franchise', 'Le montant des dommages est inférieur à la franchise.');
 
 -- --------------------------------------------------------
 
