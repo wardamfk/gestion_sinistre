@@ -50,7 +50,20 @@ $total_enc     = floatval(mysqli_fetch_assoc(mysqli_query($conn,
 $reste = max(0, $total_reserve - $total_regle);
 
 // Tous les états disponibles (pour le sélecteur)
-$tous_etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
+if($role == 'CRMA'){
+    $tous_etats = mysqli_query($conn, "
+        SELECT * FROM etat_dossier 
+        WHERE id_etat NOT IN (1,3,4,5,6) 
+        ORDER BY id_etat
+    ");
+} else {
+    // CNMA
+    $tous_etats = mysqli_query($conn, "
+        SELECT * FROM etat_dossier 
+        WHERE id_etat IN (4,5,6)
+        ORDER BY id_etat
+    ");
+}
 
 // Règlement autorisé si état validé ou en règlement partiel
 $reglement_ok = in_array($dossier['id_etat'], [2, 4, 7,9,15, 18]);

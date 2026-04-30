@@ -15,8 +15,8 @@ if(isset($_GET['read_all'])) {
     header("Location: notifications_assure.php"); exit();
 }
 
-$notifications = mysqli_query($conn,"SELECT n.*,d.numero_dossier,u.nom AS exp_nom FROM notification n LEFT JOIN dossier d ON n.id_dossier=d.id_dossier LEFT JOIN utilisateur u ON n.id_expediteur=u.id_user WHERE n.id_destinataire=$id_user ORDER BY n.date_notification DESC");
-$nb_non_lues = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as n FROM notification WHERE id_destinataire=$id_user AND lu=0"))['n'];
+$notifications = mysqli_query($conn,"SELECT n.*,d.numero_dossier,u.nom AS exp_nom FROM notification n LEFT JOIN dossier d ON n.id_dossier=d.id_dossier LEFT JOIN utilisateur u ON n.id_expediteur=u.id_user WHERE n.id_destinataire=$id_user AND n.type <> 'complement' ORDER BY n.date_notification DESC");
+$nb_non_lues = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as n FROM notification WHERE id_destinataire=$id_user AND lu=0 AND type <> 'complement'"))['n'];
 $type_icons = ['validation'=>['fa-check-circle','#2e7d32','#e8f5e9'],'refus'=>['fa-times-circle','#c62828','#ffebee'],'complement'=>['fa-paper-plane','#e65100','#fff3e0'],'reglement'=>['fa-money-bill','#0d47a1','#e3f2fd'],'cloture'=>['fa-archive','#6a1b9a','#f3e5f5']];
 ?>
 <!DOCTYPE html>

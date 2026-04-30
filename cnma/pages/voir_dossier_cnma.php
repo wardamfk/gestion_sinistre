@@ -59,6 +59,19 @@ else $badge_class.=" gray";
 
 // Message succès/info
 $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
+
+$motifs_refus = mysqli_query($conn, "
+    SELECT id_motif, nom_motif
+    FROM motif
+    WHERE id_etat = 5
+    ORDER BY id_motif
+");
+$motifs_complement = mysqli_query($conn, "
+    SELECT id_motif, nom_motif
+    FROM motif
+    WHERE id_etat = 6
+    ORDER BY id_motif
+");
 ?>
 <!DOCTYPE html>
 <html>
@@ -121,6 +134,20 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
 
         .action-disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.6; }
         .section-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .cnma-action-form {
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+            padding: 8px; border: 1px solid #eef1f4; border-radius: 8px;
+            background: #fafbfc;
+        }
+        .cnma-action-form select {
+            min-width: 220px; padding: 9px 10px; border: 1px solid #d8dee6;
+            border-radius: 6px; background: white; font-size: 13px;
+        }
+        .motif-chip {
+            display: inline-block; background: #fff3cd; color: #856404;
+            border: 1px solid #ffe8a1; border-radius: 999px;
+            padding: 3px 9px; font-size: 11.5px; font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -156,6 +183,8 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
     <div class="msg-info"><i class="fa fa-info-circle"></i> Demande de complément envoyée au CRMA.</div>
     <?php elseif($msg == 'cloture'): ?>
     <div class="msg-success"><i class="fa fa-archive"></i> Dossier clôturé avec succès.</div>
+    <?php elseif($msg == 'motif_required'): ?>
+    <div class="msg-warning"><i class="fa fa-exclamation-triangle"></i> Un motif valide est obligatoire pour cette action.</div>
     <?php endif; ?>
 
     <!-- BARRE D'ACTIONS CNMA -->
@@ -169,16 +198,33 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
            onclick="return confirm('Valider ce dossier ? Le CRMA pourra effectuer le règlement.')">
             <i class="fa fa-check-circle"></i> Valider
         </a>
-        <a href="refuser_cnma.php?id=<?php echo $id_dossier; ?>"
-           class="btn btn-refuser"
-           onclick="return confirm('Refuser ce dossier ?')">
-            <i class="fa fa-times-circle"></i> Refuser
-        </a>
-        <a href="complement_cnma.php?id=<?php echo $id_dossier; ?>"
-           class="btn btn-complement"
-           onclick="return confirm('Demander un complément au CRMA ?')">
-            <i class="fa fa-paper-plane"></i> Demander complément
-        </a>
+        <form action="refuser_cnma.php" method="POST" class="cnma-action-form"
+              onsubmit="return confirm('Refuser ce dossier avec le motif selectionne ?')">
+            <input type="hidden" name="id_dossier" value="<?php echo $id_dossier; ?>">
+            <select name="id_motif" required>
+                <option value="">Motif du refus...</option>
+                <?php while($m = mysqli_fetch_assoc($motifs_refus)): ?>
+                <option value="<?php echo $m['id_motif']; ?>"><?php echo htmlspecialchars($m['nom_motif']); ?></option>
+                <?php endwhile; ?>
+            </select>
+            <button type="submit" class="btn btn-refuser">
+                <i class="fa fa-times-circle"></i> Refuser
+            </button>
+        </form>
+
+        <form action="complement_cnma.php" method="POST" class="cnma-action-form"
+              onsubmit="return confirm('Demander un complement avec le motif selectionne ?')">
+            <input type="hidden" name="id_dossier" value="<?php echo $id_dossier; ?>">
+            <select name="id_motif" required>
+                <option value="">Motif du complement...</option>
+                <?php while($m = mysqli_fetch_assoc($motifs_complement)): ?>
+                <option value="<?php echo $m['id_motif']; ?>"><?php echo htmlspecialchars($m['nom_motif']); ?></option>
+                <?php endwhile; ?>
+            </select>
+            <button type="submit" class="btn btn-complement">
+                <i class="fa fa-paper-plane"></i> Demander complement
+            </button>
+        </form>
 
         <?php elseif($etat == 8): ?>
 <span style="color:#27ae60; font-weight:bold; padding:10px;">
@@ -408,13 +454,14 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
     <div id="historique" class="tab-content">
         <h3>Historique des actions</h3>
         <table class="table">
-            <tr><th>Date</th><th>Action</th><th>Ancien état</th><th>Nouvel état</th></tr>
+            <tr><th>Date</th><th>Action</th><th>Ancien état</th><th>Nouvel état</th><th>Motif</th></tr>
             <?php
             $hist = mysqli_query($conn, "
-                SELECT h.*, ea.nom_etat AS ancien, en.nom_etat AS nouveau
+                SELECT h.*, ea.nom_etat AS ancien, en.nom_etat AS nouveau, m.nom_motif
                 FROM historique h
                 LEFT JOIN etat_dossier ea ON h.ancien_etat = ea.id_etat
                 LEFT JOIN etat_dossier en ON h.nouvel_etat = en.id_etat
+                LEFT JOIN motif m ON h.id_motif = m.id_motif
                 WHERE h.id_dossier = $id_dossier
                 ORDER BY h.date_action DESC
             ");
@@ -425,6 +472,11 @@ $msg = isset($_GET['msg']) ? $_GET['msg'] : '';
                 <td><?php echo $h['action']; ?></td>
                 <td><?php echo $h['ancien'] ?: '—'; ?></td>
                 <td><?php echo $h['nouveau'] ?: '—'; ?></td>
+                <td>
+                    <?php if($h['nom_motif']): ?>
+                    <span class="motif-chip"><?php echo htmlspecialchars($h['nom_motif']); ?></span>
+                    <?php else: echo '—'; endif; ?>
+                </td>
             </tr>
             <?php endwhile; ?>
         </table>

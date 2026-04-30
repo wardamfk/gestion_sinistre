@@ -42,6 +42,7 @@ $etat_class_map = [
 // Voir détail dossier
 $id_voir = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $dossier_detail = null;
+$message_refus_assure = null;
 
 if($id_voir > 0) {
     $dossier_detail = mysqli_fetch_assoc(mysqli_query($conn, "
@@ -53,6 +54,22 @@ if($id_voir > 0) {
         LEFT JOIN expert exp ON d.id_expert=exp.id_expert
         WHERE d.id_dossier=$id_voir AND c.id_assure=$id_assure
     "));
+
+    if($dossier_detail && intval($dossier_detail['id_etat']) === 5) {
+        $refus = mysqli_fetch_assoc(mysqli_query($conn, "
+            SELECT m.message_assure
+            FROM historique h
+            JOIN motif m ON h.id_motif = m.id_motif
+            WHERE h.id_dossier = $id_voir
+              AND h.nouvel_etat = 5
+              AND m.id_etat = 5
+              AND m.message_assure IS NOT NULL
+              AND m.message_assure <> ''
+            ORDER BY h.date_action DESC, h.id_historique DESC
+            LIMIT 1
+        "));
+        $message_refus_assure = $refus['message_assure'] ?? null;
+    }
 }
 
 $dossiers = mysqli_query($conn, "
@@ -90,6 +107,15 @@ $dossiers = mysqli_query($conn, "
         <h2>Dossier <?php echo $dossier_detail['numero_dossier']; ?></h2>
         <a href="mes_dossiers_assure.php" class="assure-btn secondary sm">Retour</a>
     </div>
+
+    <?php if($message_refus_assure): ?>
+    <div class="assure-card">
+        <h3>Decision du dossier</h3>
+        <p style="margin:0;color:#c62828;font-weight:600;">
+            <?php echo htmlspecialchars($message_refus_assure); ?>
+        </p>
+    </div>
+    <?php endif; ?>
 
     <div class="assure-card">
         <h3>Mes paiements</h3>
