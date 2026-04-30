@@ -149,7 +149,7 @@ if($id_expert != ""){
 <head>
     <meta charset="UTF-8">
     <title>Créer dossier</title>
-    <link rel="stylesheet" href="../css/style.css">
+   
     <link rel="stylesheet" href="../css/style_crma.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -159,107 +159,151 @@ if($id_expert != ""){
 <?php include('../includes/header.php'); ?>
 <?php include('../includes/sidebar.php'); ?>
 
-<div class="main">
+<div class="crma-main">
     <h2>Créer un dossier sinistre</h2>
 
-<form method="POST" enctype="multipart/form-data" class="form-grid">
+<form method="POST" enctype="multipart/form-data">
 
-<div class="form-section">
-    <h3>Informations sinistre</h3>
+<div class="form-grid-main">
 
-<label>Contrat</label>
+    <!-- LEFT -->
+    <div class="crma-card">
 
-<select name="id_contrat" id="contrat_select" required>
-    <option value="">-- Sélectionner contrat --</option>
-    <?php
-    $res = mysqli_query($conn, "SELECT id_contrat, numero_police FROM contrat");
-    while($row = mysqli_fetch_assoc($res)){
-        $selected = ($id_contrat == $row['id_contrat']) ? "selected" : "";
-        echo "<option value='".$row['id_contrat']."' $selected>".$row['numero_police']."</option>";
-    }
-    ?>
-</select>
+        <h3>Informations sinistre</h3>
 
+        <div class="form-group">
+            <label>Contrat</label>
+            <select name="id_contrat" id="contrat_select" required>
+                <option value="">-- Sélectionner contrat --</option>
+                <?php
+                $res = mysqli_query($conn, "SELECT id_contrat, numero_police FROM contrat");
+                while($row = mysqli_fetch_assoc($res)){
+                    $selected = ($id_contrat == $row['id_contrat']) ? "selected" : "";
+                    echo "<option value='".$row['id_contrat']."' $selected>".$row['numero_police']."</option>";
+                }
+                ?>
+            </select>
+        </div>
 
-<div id="garanties_box"></div>
+        <div id="garanties_box"></div>
 
-<label>Tiers</label>
-<select name="id_tiers" required>
-    <option value="">-- Sélectionner tiers --</option>
-    <?php
-    $res = mysqli_query($conn, "SELECT t.id_tiers, p.nom, p.prenom, t.compagnie_assurance
-    FROM tiers t 
-    JOIN personne p ON t.id_personne = p.id_personne");
+        <div class="form-group">
+            <label>Tiers</label>
+            <select name="id_tiers" required>
+                <option value="">-- Sélectionner tiers --</option>
+                <?php
+                $res = mysqli_query($conn, "SELECT t.id_tiers, p.nom, p.prenom, t.compagnie_assurance
+                FROM tiers t 
+                JOIN personne p ON t.id_personne = p.id_personne");
 
-    while($row = mysqli_fetch_assoc($res)){
-        echo "<option value='".$row['id_tiers']."'>"
-        .$row['nom']." ".$row['prenom']." - ".$row['compagnie_assurance'].
-        "</option>";
-    }
-    ?>
-</select>
+                while($row = mysqli_fetch_assoc($res)){
+                    echo "<option value='".$row['id_tiers']."'>"
+                    .$row['nom']." ".$row['prenom']." - ".$row['compagnie_assurance'].
+                    "</option>";
+                }
+                ?>
+            </select>
+        </div>
 
-<label>Date sinistre</label>
-<input type="date" name="date_sinistre" required>
+        <div class="form-grid-3">
+            <div class="form-group">
+                <label>Date sinistre</label>
+                <input type="date" name="date_sinistre" required>
+            </div>
 
-<label>Date déclaration</label>
-<input type="date" name="date_declaration" required>
+            <div class="form-group">
+                <label>Date déclaration</label>
+                <input type="date" name="date_declaration" required>
+            </div>
 
-<label>Lieu sinistre</label>
-<input type="text" name="lieu" required>
+            <div class="form-group">
+                <label>Lieu sinistre</label>
+                <input type="text" name="lieu" required>
+            </div>
+        </div>
 
-<label>Responsabilité</label>
-<select name="responsable">
-    <option value="oui">Responsable</option>
-    <option value="non">Non responsable</option>
-    <option value="partiel">Responsabilité partielle</option>
-</select>
+        <div class="form-group">
+            <label>Responsabilité</label>
+            <select name="responsable">
+                <option value="oui">Responsable</option>
+                <option value="non">Non responsable</option>
+                <option value="partiel">Responsabilité partielle</option>
+            </select>
+        </div>
 
-<label>Description</label>
-<textarea name="description" required></textarea>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" required></textarea>
+        </div>
 
-<label>Informations complémentaires</label>
-<textarea name="info"></textarea>
+        <div class="form-group">
+            <label>Informations complémentaires</label>
+            <textarea name="info"></textarea>
+        </div>
 
-<h3>Documents</h3>
+        <!-- DOCUMENTS -->
+        <h3>Documents</h3>
 
-<label>Constat</label>
-<input type="file" name="constat">
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label>Constat</label>
+                <input type="file" name="constat">
+            </div>
 
-<label>Photos</label>
-<input type="file" name="photos">
+            <div class="form-group">
+                <label>Photos</label>
+                <input type="file" name="photos">
+            </div>
 
-<label>PV Police</label>
-<input type="file" name="pv">
+            <div class="form-group">
+                <label>PV Police</label>
+                <input type="file" name="pv">
+            </div>
 
-<label>Carte grise</label>
-<input type="file" name="carte_grise">
+            <div class="form-group">
+                <label>Carte grise</label>
+                <input type="file" name="carte_grise">
+            </div>
 
-<label>Permis</label>
-<input type="file" name="permis">
+            <div class="form-group">
+                <label>Permis</label>
+                <input type="file" name="permis">
+            </div>
 
-<label>Devis réparation</label>
-<input type="file" name="devis">
+            <div class="form-group">
+                <label>Devis réparation</label>
+                <input type="file" name="devis">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="crma-card">
+
+        <h3>Expertise</h3>
+
+        <div class="form-group">
+            <label>Expert</label>
+            <select name="id_expert" required>
+                <option value="">-- Sélectionner expert --</option>
+                <?php
+                $res = mysqli_query($conn, "SELECT id_expert, nom, prenom FROM expert");
+                while($row = mysqli_fetch_assoc($res)){
+                    echo "<option value='".$row['id_expert']."'>".$row['nom']." ".$row['prenom']."</option>";
+                }
+                ?>
+            </select>
+        </div>
+
+        <button type="submit" name="creer" class="btn btn-success" style="width:100%; margin-top:10px;">
+            Créer dossier
+        </button>
+
+    </div>
 
 </div>
 
-<div class="form-section">
-    <h3>Expertise</h3>
-
-<label>Expert</label>
-<select name="id_expert" required>
-    <option value="">-- Sélectionner expert --</option>
-    <?php
-    $res = mysqli_query($conn, "SELECT id_expert, nom, prenom FROM expert");
-    while($row = mysqli_fetch_assoc($res)){
-        echo "<option value='".$row['id_expert']."'>".$row['nom']." ".$row['prenom']."</option>";
-    }
-    ?>
-</select>
-
-<button type="submit" name="creer" class="btn">Créer dossier</button>
-
-</div>
 </form>
 </div>
 <script>

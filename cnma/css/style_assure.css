@@ -4,7 +4,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1a2a3a;fo
 background: linear-gradient(180deg, #1b5e20 0%, #2e7d32 40%, #1565c0 100%);
     display:flex;flex-direction:column;padding:0;overflow-y:auto;z-index:100;box-shadow:3px 0 15px rgba(0,0,0,0.2)}
 .assure-brand{padding:25px 20px 15px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1)}
-.assure-brand img{width:55px;margin-bottom:8px}
+.assure-brand img{width:55px;margin-bottom:8px
+;
+border-radius:12px;object-fit:cover}
 .assure-brand h2{color:white;font-size:20px;font-weight:700;letter-spacing:1px}
 .assure-role-badge{display:inline-block;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:11px;padding:3px 12px;border-radius:20px;margin-top:6px;letter-spacing:1px;text-transform:uppercase}
 .assure-nav{flex:1;padding:15px 10px}

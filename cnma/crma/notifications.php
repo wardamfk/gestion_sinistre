@@ -50,7 +50,8 @@ $type_icons = [
     <meta charset="UTF-8">
     <title>Notifications</title>
     <link rel="stylesheet" href="../css/style_cnma.css">
-    <link rel="stylesheet" href="../css/style.css">
+     <link rel="stylesheet" href="../css/style_crma.css">
+    
     
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -81,18 +82,11 @@ $type_icons = [
     </style>
 </head>
 <body>
-<?php
-// Inclure la bonne sidebar selon le rôle
-if($_SESSION['role'] == 'CNMA') {
-    include("../pages/sidebar_cnma.php");
-    include("../pages/header_cnma.php");
-} else {
-    include("../includes/sidebar.php");
-    include("../includes/header.php");
-}
-?>
 
-<div class="<?php echo $_SESSION['role']=='CNMA' ? 'cnma-main' : 'main'; ?>">
+<?php include("../includes/sidebar.php"); ?>
+<?php include("../includes/header.php"); ?>
+
+<div class="crma-main">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h2 style="color:#1a237e; display:flex; align-items:center; gap:10px; font-size:20px;">
             <i class="fa fa-bell"></i> Mes Notifications

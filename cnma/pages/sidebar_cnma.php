@@ -11,12 +11,17 @@ if(isset($conn)) {
 $current = basename($_SERVER['PHP_SELF']);
 ?>
 <div class="sidebar">
-    <div class="sidebar-brand">
-        <img src="/PfeCnma/cnma/images/logo.webp" alt="CNMA">
-        <h2>CNMA</h2>
-        <div class="role-badge">Administration</div>
-    </div>
+<div class="sidebar-brand centered">
+    <img src="/PfeCnma/cnma/images/logo.webp" alt="CNMA">
 
+    <h2>CNMA</h2>
+
+    <div class="role-badge">Administration</div>
+
+    <button class="sidebar-toggle">
+        <i class="fa fa-bars"></i>
+    </button>
+</div>
     <nav class="sidebar-nav">
         <div class="nav-section">Navigation</div>
 
@@ -78,6 +83,10 @@ $current = basename($_SERVER['PHP_SELF']);
     </div>
 </div>
 <script>
+
+document.querySelector('.sidebar-toggle')?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('sidebar-collapsed');
+});
 
 function toggleMenu(id) {
     let menu = document.getElementById(id);
