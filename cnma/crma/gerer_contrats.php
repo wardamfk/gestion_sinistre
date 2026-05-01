@@ -113,7 +113,14 @@ if (isset($_GET['del'])) {
 $filtre_q      = $_GET['q'] ?? '';
 $filtre_statut = $_GET['statut_f'] ?? '';
 $id_agence_sess= intval($_SESSION['id_agence']);
-$where = "WHERE c.id_agence=$id_agence_sess";
+$id_assure_filter = isset($_GET['assure']) ? intval($_GET['assure']) : 0;
+if ($id_assure_filter > 0) {
+    // 🔥 Mode recherche assuré (transverse)
+    $where = "WHERE c.id_assure = $id_assure_filter";
+} else {
+    // 🔒 Mode normal (par agence)
+    $where = "WHERE c.id_agence = $id_agence_sess";
+}
 if ($filtre_q)      $where .= " AND (c.numero_police LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%'
                                   OR p.nom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%'
                                   OR p.prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%'
@@ -122,7 +129,8 @@ if ($filtre_statut) $where .= " AND c.statut='".mysqli_real_escape_string($conn,
 
 $contrats = mysqli_query($conn, "
     SELECT c.*,
-           p.nom AS nom_assure, p.prenom AS prenom_assure, p.telephone AS tel_assure, p.adresse AS adr_assure,
+       ag.nom_agence,
+       p.nom AS nom_assure, p.prenom AS prenom_assure, p.telephone AS tel_assure, p.adresse AS adr_assure,
            v.id_vehicule, v.marque, v.modele, v.couleur, v.matricule, v.annee, v.type AS type_veh,
            v.carrosserie, v.nombre_places, v.numero_chassis, v.numero_serie,
            (SELECT COUNT(*) FROM dossier d WHERE d.id_contrat=c.id_contrat) as nb_dossiers,
@@ -130,8 +138,10 @@ $contrats = mysqli_query($conn, "
             FROM contrat_garantie cg JOIN garantie g ON cg.id_garantie=g.id_garantie
             WHERE cg.id_contrat=c.id_contrat) as garanties
     FROM contrat c
-    JOIN assure a ON c.id_assure=a.id_assure
+    JOIN assure a ON c.id_assure=a.id_assure 
+    JOIN agence ag ON c.id_agence=ag.id_agence
     JOIN personne p ON a.id_personne=p.id_personne
+   
     LEFT JOIN vehicule v ON c.id_vehicule=v.id_vehicule
     $where
     ORDER BY c.id_contrat DESC");
@@ -347,9 +357,21 @@ $type_veh_icons = [
                 <div style="font-weight:700;color:var(--green-700);font-size:14px;font-family:'DM Mono',monospace"><?= htmlspecialchars($c['numero_police']) ?></div>
                 <div style="font-size:11px;color:var(--gray-400)"><?= $c['date_creation'] ?></div>
             </td>
-            <td style="font-weight:500">
-                <?= htmlspecialchars($c['nom_assure'].' '.$c['prenom_assure']) ?>
-            </td>
+       <td style="font-weight:500">
+    <?= htmlspecialchars($c['nom_assure'].' '.$c['prenom_assure']) ?>
+
+    <div style="font-size:11px; margin-top:4px;">
+        <?php if($c['id_agence'] != $_SESSION['id_agence']): ?>
+            <span style="color:#f59e0b;">
+                ⚠ Agence: <?= htmlspecialchars($c['nom_agence']) ?>
+            </span>
+        <?php else: ?>
+            <span style="color:gray;">
+                Agence: <?= htmlspecialchars($c['nom_agence']) ?>
+            </span>
+        <?php endif; ?>
+    </div>
+</td>
             <td>
                 <div class="veh-info-mini">
                     <span class="matricule-plate"><?= htmlspecialchars($c['matricule'] ?? '—') ?></span>
