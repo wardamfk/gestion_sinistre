@@ -123,9 +123,11 @@ $etat_badge_map = [
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
         <?php if ($nb_notifs > 0): ?>
-        <a href="notifications.php" class="btn btn-danger">
-            <i class="fa fa-bell"></i> <?= $nb_notifs ?> notification(s)
-        </a>
+     <a href="notifications.php" class="notif-link">
+  <i class="fa fa-bell"></i>
+  <span class="notif-text">Notifications</span>
+  <span class="notif-badge">4</span>
+</a>
         <?php endif; ?>
         <a href="creer_dossier.php" class="btn btn-primary">
             <i class="fa fa-folder-plus"></i> Nouveau dossier
@@ -133,7 +135,11 @@ $etat_badge_map = [
     </div>
 </div>
 
-<!-- STATS GRID -->
+<!-- ===== DOSSIERS ===== -->
+<div class="section-title">
+    <i class="fa fa-folder"></i> Suivi des dossiers
+</div>
+
 <div class="stats-grid">
    <div class="stat-card sc-total">
         <div class="sc-icon"><i class="fa fa-folder"></i></div>
@@ -174,8 +180,11 @@ $etat_badge_map = [
     </div>
 </div>
 
+<!-- ===== FINANCE ===== -->
+<div class="section-title">
+    <i class="fa fa-coins"></i> Situation financière
+</div>
 
-<!-- FINANCE BAR -->
 <div class="finance-bar">
     <div class="fi-card fi-reserve">
         <div class="fi-icon"><i class="fa fa-shield-halved"></i></div>

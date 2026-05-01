@@ -39,15 +39,14 @@ function nav_link(string $href, string $icon, string $label, string $current, in
     <h2>CRMA</h2>
 
     <div class="badge-role">Gestion des sinistres</div>
-
-    <button type="button" class="sidebar-toggle">
+<button type="button" class="sidebar-toggle">
         <i class="fa fa-bars"></i>
     </button>
 </div>
 
    <!-- Tableau de bord -->
 <div class="sidebar-section">
-    <div class="sidebar-section-label">Tableau de bord</div>
+  
     <nav class="sidebar-nav">
         <?php nav_link("$base/crma/dashboard_crma.php", 'fa-chart-pie', 'Tableau de bord', $current); ?>
     </nav>
@@ -56,7 +55,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
 <!-- Production -->
 <div class="sidebar-section">
     <div class="sidebar-section-label toggle-section">
-        <span>Production</span>
+     <span><i class="fa fa-briefcase"></i> Production</span>
         <i class="fa fa-chevron-down arrow"></i>
     </div>
 
@@ -71,7 +70,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
 <!-- Sinistres -->
 <div class="sidebar-section">
     <div class="sidebar-section-label toggle-section">
-        <span>Sinistres</span>
+       <span><i class="fa fa-car-crash"></i> Sinistres</span>
         <i class="fa fa-chevron-down arrow"></i>
     </div>
 
@@ -84,7 +83,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
 <!-- Alertes -->
 <div class="sidebar-section">
     <div class="sidebar-section-label toggle-section">
-        <span>Alertes</span>
+        <span><i class="fa fa-bell"></i> Alertes</span>
         <i class="fa fa-chevron-down arrow"></i>
     </div>
 
@@ -96,7 +95,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
 <!-- Compte -->
 <div class="sidebar-section">
     <div class="sidebar-section-label toggle-section">
-        <span>Compte</span>
+        <span><i class="fa fa-user"></i>    Compte</span>
         <i class="fa fa-chevron-down arrow"></i>
     </div>
 

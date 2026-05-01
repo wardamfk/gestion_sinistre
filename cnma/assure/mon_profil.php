@@ -77,14 +77,15 @@ if(isset($_POST['changer_mdp'])) {
 <style>
 /* ===== EXTRAS PROFIL ===== */
 .profil-hero {
-    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 60%, #1976d2 100%);
+     background: linear-gradient(135deg, #2f6b4f 0%, #3c8c66 60%, #4fa37d 100%);
+    box-shadow: 0 6px 24px rgba(47,107,79,0.25);
     border-radius: 16px;
     padding: 28px 30px;
     margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 22px;
-    box-shadow: 0 6px 24px rgba(13,71,161,0.25);
+   
 }
 .profil-avatar {
     width: 72px; height: 72px;
@@ -121,8 +122,14 @@ if(isset($_POST['changer_mdp'])) {
     transition: all 0.2s;
     display: flex; align-items: center; justify-content: center; gap: 7px;
 }
-.profil-tab:hover { background: #f0f4f8; color: #0d47a1; }
-.profil-tab.active { background: #0d47a1; color: white; }
+.profil-tab.active {
+    background: #2f6b4f;
+    color: white;
+}
+
+.profil-tab:hover {
+    color: #2f6b4f;
+}
 
 .profil-section { display: none; }
 .profil-section.active { display: block; }
@@ -130,7 +137,8 @@ if(isset($_POST['changer_mdp'])) {
 /* Carte info lecture */
 .info-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    background: #e3f2fd; color: #0d47a1;
+ background: #e6f0ea;
+    color: #2f6b4f;
     padding: 5px 12px; border-radius: 20px;
     font-size: 12px; font-weight: 700;
 }

@@ -12,30 +12,64 @@ $current = basename($_SERVER['PHP_SELF']);
         <h2></h2>
         <span class="assure-role-badge">Assuré</span>
     </div>
-    <nav class="assure-nav">
+   <nav class="assure-nav">
+
+    <!-- DASHBOARD -->
+    <div class="assure-section">
         <a href="/PfeCnma/cnma/assure/dashboard_assure.php" class="<?= $current=='dashboard_assure.php'?'active':'' ?>">
-            <i class="fa fa-home"></i> Tableau de bord
+            <i class="fa fa-home"></i>
+            <span class="link-text">Tableau de bord</span>
         </a>
+    </div>
+
+    <!-- MES DONNÉES -->
+    <div class="assure-section">
+        <div class="assure-section-label">Mes données</div>
+
         <a href="/PfeCnma/cnma/assure/mes_contrats.php" class="<?= $current=='mes_contrats.php'?'active':'' ?>">
-            <i class="fa fa-file-contract"></i> contrats
+            <i class="fa fa-file-contract"></i>
+            <span class="link-text">Contrats</span>
         </a>
+
         <a href="/PfeCnma/cnma/assure/mes_dossiers_assure.php" class="<?= $current=='mes_dossiers_assure.php'?'active':'' ?>">
-            <i class="fa fa-folder-open"></i>  dossiers
+            <i class="fa fa-folder-open"></i>
+            <span class="link-text">Dossiers</span>
         </a>
+
         <a href="/PfeCnma/cnma/assure/mes_paiements.php" class="<?= $current=='mes_paiements.php'?'active':'' ?>">
-            <i class="fa fa-money-check-alt"></i>  paiements
+            <i class="fa fa-money-check-alt"></i>
+            <span class="link-text">Paiements</span>
         </a>
-      
-        <a href="/PfeCnma/cnma/assure/notifications_assure.php" class="<?= $current=='notifications_assure.php'?'active':'' ?>" style="position:relative;">
-            <i class="fa fa-bell"></i> Notifications
+    </div>
+
+    <!-- SUIVI -->
+    <div class="assure-section">
+        <div class="assure-section-label">Suivi</div>
+
+        <a href="/PfeCnma/cnma/assure/notifications_assure.php"
+           class="<?= $current=='notifications_assure.php'?'active':'' ?>"
+           style="position:relative;">
+
+            <i class="fa fa-bell"></i>
+            <span class="link-text">Notifications</span>
+
             <?php if($nb_notifs_assure > 0): ?>
-            <span class="assure-notif-badge"><?= $nb_notifs_assure ?></span>
+                <span class="assure-notif-badge"><?= $nb_notifs_assure ?></span>
             <?php endif; ?>
         </a>
+    </div>
+
+    <!-- COMPTE -->
+    <div class="assure-section">
+        <div class="assure-section-label">Compte</div>
+
         <a href="/PfeCnma/cnma/assure/mon_profil.php" class="<?= $current=='mon_profil.php'?'active':'' ?>">
-            <i class="fa fa-user-circle"></i> profil
+            <i class="fa fa-user-circle"></i>
+            <span class="link-text">Profil</span>
         </a>
-    </nav>
+    </div>
+
+</nav>
     <div class="assure-footer">
         <a href="/PfeCnma/cnma/pages/logout.php">
             <i class="fa fa-sign-out-alt"></i> Déconnexion
