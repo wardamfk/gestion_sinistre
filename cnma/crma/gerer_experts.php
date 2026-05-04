@@ -3,7 +3,7 @@ include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
 
-$page_title = 'Gestion des experts';
+
 $success = $error = '';
 
 /* ======= AJOUTER EXPERT (personne + expert en une seule étape) ======= */

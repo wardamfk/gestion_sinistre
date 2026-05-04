@@ -28,11 +28,38 @@ $nb_notifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM n
 $notifs = mysqli_query($conn, "SELECT n.*, d.numero_dossier FROM notification n LEFT JOIN dossier d ON n.id_dossier=d.id_dossier WHERE n.id_destinataire=$id_user ORDER BY n.date_notification DESC LIMIT 5");
 
 // Étas mapping
-$etat_map = [1=>'En cours de déclaration',2=>'En cours de traitement',3=>'En cours de validation',4=>'Dossier accepté',5=>'Refusé',6=>'Documents manquants',7=>'Paiement partiel',8=>'Paiement effectué',9=>'En cours de traitement',11=>'Classé sans suite',12=>'Classé',13=>'En attente',14=>'Clôturé'];
+$etat_assure = [
+1=>'En cours',
+2=>'En cours',
+3=>'En cours',
+4=>'Accepté',
+5=>'Refusé',
+6=>'Documents demandés',
+7=>'Paiement partiel',
+8=>'Paiement en cours',
+9=>'En cours',
+11=>'Clôturé',
+12=>'Clôturé',
+13=>'En attente',
+14=>'Clôturé',
+15=>'En cours'
+];
 $etat_class_map = [1=>'gray',2=>'blue',3=>'orange',4=>'green',5=>'red',6=>'orange',7=>'teal',8=>'green',9=>'blue',14=>'gray'];
 
 // Dossiers récents
-$dossiers = mysqli_query($conn, "SELECT d.id_dossier,d.numero_dossier,d.date_sinistre,d.id_etat,d.total_reserve FROM dossier d JOIN contrat c ON d.id_contrat=c.id_contrat WHERE c.id_assure=$id_assure ORDER BY d.id_dossier DESC LIMIT 5");
+$dossiers = mysqli_query($conn, "
+SELECT d.id_dossier,
+       d.numero_dossier,
+       d.date_sinistre,
+       d.id_etat,
+       e.nom_etat
+FROM dossier d 
+JOIN contrat c ON d.id_contrat=c.id_contrat
+LEFT JOIN etat_dossier e ON d.id_etat = e.id_etat
+WHERE c.id_assure=$id_assure 
+ORDER BY d.id_dossier DESC 
+LIMIT 5
+");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -51,11 +78,7 @@ $dossiers = mysqli_query($conn, "SELECT d.id_dossier,d.numero_dossier,d.date_sin
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card blue">
-            <div class="stat-icon"><i class="fa fa-file-contract"></i></div>
-            <div class="stat-value"><?= $nb_contrats; ?></div>
-            <div class="stat-label">Mes contrats</div>
-        </div>
+      
         <div class="stat-card orange">
             <div class="stat-icon"><i class="fa fa-folder-open"></i></div>
             <div class="stat-value"><?= $nb_dossiers; ?></div>
@@ -66,23 +89,14 @@ $dossiers = mysqli_query($conn, "SELECT d.id_dossier,d.numero_dossier,d.date_sin
             <div class="stat-value"><?= $nb_en_cours; ?></div>
             <div class="stat-label">En cours</div>
         </div>
-        <div class="stat-card green">
-            <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
-            <div class="stat-value"><?= $nb_clotures; ?></div>
-            <div class="stat-label">Clôturés</div>
-        </div>
+     
         <div class="stat-card blue">
             <div class="stat-icon"><i class="fa fa-money-bill-wave"></i></div>
             <div class="stat-value" style="font-size:20px;"><?= number_format($total_recu,2,',',' '); ?></div>
             <div class="stat-label">Total reçu (DA)</div>
         </div>
-        <?php if($nb_notifs > 0): ?>
-        <div class="stat-card orange">
-            <div class="stat-icon"><i class="fa fa-bell"></i></div>
-            <div class="stat-value"><?= $nb_notifs; ?></div>
-            <div class="stat-label">Notifications</div>
-        </div>
-        <?php endif; ?>
+    
+      
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
@@ -95,7 +109,7 @@ $dossiers = mysqli_query($conn, "SELECT d.id_dossier,d.numero_dossier,d.date_sin
             <?php else: ?>
             <?php while($d = mysqli_fetch_assoc($dossiers)):
                 $ec = $etat_class_map[$d['id_etat']] ?? 'gray';
-                $en = $etat_map[$d['id_etat']] ?? 'Inconnu';
+               $en = $etat_assure[$d['id_etat']] ?? 'En cours';
             ?>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f4f8;">
                 <div>

@@ -153,7 +153,7 @@ border-radius:12px;object-fit:cover}
     height: 100vh;
     display: flex;
     flex-direction: column;
-        background: linear-gradient(180deg, #2c694c 0%, #346d6b 100% ,#3a8c80 60%);
+        background: linear-gradient(180deg, #24362e 10%, #346d6b 100% ,#a0b3b0 60%);
         box-shadow: 3px 0 15px rgba(0,0,0,0.2); 
 }
 .assure-footer {

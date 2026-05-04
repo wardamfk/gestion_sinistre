@@ -4,7 +4,7 @@ include("../includes/config.php");
 
 if($_SESSION['role'] != 'CNMA') { header("Location: login.php"); exit(); }
 
-$page_title = "Analyse & Statistiques";
+
 
 // ===================== FILTRES =====================
 $filtre_agence = isset($_GET['agence'])   ? intval($_GET['agence'])         : 0;
@@ -211,7 +211,16 @@ $where_dossier
 GROUP BY ag.id_agence, ag.nom_agence
 ORDER BY total DESC
 ");
+$total_dossiers = 0;
 
+// 1er passage → calcul total
+mysqli_data_seek($perf_agence, 0);
+while($tmp = mysqli_fetch_assoc($perf_agence)){
+    $total_dossiers += $tmp['total'];
+}
+
+// 2e passage → reset pour affichage
+mysqli_data_seek($perf_agence, 0);
 // ===================== PERFORMANCE EXPERTS =====================
 $perf_experts = mysqli_query($conn, "
 
@@ -882,7 +891,23 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
             ?>
             <tr>
                 <td style="font-weight:500;"><?php echo htmlspecialchars($ag['nom_agence']); ?></td>
-                <td class="mono"><?php echo $ag['total']; ?></td>
+              <td class="mono">
+    <?php 
+    echo $ag['total'];
+
+    $pct = $total_dossiers > 0 
+        ? round($ag['total'] / $total_dossiers * 100, 1) 
+        : 0;
+    ?>
+    
+    <div style="font-size:11px; color:#9ca3af;">
+        <?php echo $pct; ?>%
+    </div>
+
+    <div style="height:4px; background:#eee; margin-top:5px; border-radius:3px;">
+        <div style="width:<?php echo $pct; ?>%; background:#3b82f6; height:100%; border-radius:3px;"></div>
+    </div>
+</td>
                 <td>
                     <span class="chip chip-green"><?php echo $ag['valides']; ?></span>
                 </td>
@@ -1254,12 +1279,52 @@ new Chart(document.getElementById('chartAgencePie'), {
             borderWidth: 2, borderColor: '#fff'
         }]
     },
-    options: {
-        responsive: true,
-        cutout: '62%',
-        plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 } } }
+options: {
+    responsive: true,
+    cutout: '62%',
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                boxWidth: 10,
+                padding: 10,
+                font: { size: 11 },
+                generateLabels: function(chart) {
+
+                    const data = chart.data;
+                    const total = data.datasets[0].data.reduce((a,b)=>a+b,0);
+
+                    return data.labels.map((label, i) => {
+                        const value = data.datasets[0].data[i];
+                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+
+                        return {
+                            text: label + " (" + pct + "%)",
+                            fillStyle: data.datasets[0].backgroundColor[i],
+                            strokeStyle: data.datasets[0].backgroundColor[i],
+                            index: i
+                        };
+                    });
+                }
+            }
+        },
+
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+
+                    const data = context.dataset.data;
+                    const total = data.reduce((a,b)=>a+b,0);
+
+                    const value = context.raw;
+                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+
+                    return context.label + " : " + value + " (" + pct + "%)";
+                }
+            }
         }
+    }
+
     }
 });
 

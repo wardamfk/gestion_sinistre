@@ -75,7 +75,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
     </div>
 
     <nav class="sidebar-nav sub-menu">
-        <?php nav_link("$base/crma/mes_dossiers.php", 'fa-folder-open', 'Mes dossiers', $current); ?>
+        <?php nav_link("$base/crma/mes_dossiers.php", 'fa-folder-open', 'Dossiers sinistres', $current); ?>
         <?php nav_link("$base/crma/creer_dossier.php", 'fa-folder-plus', 'Nouveau dossier', $current); ?>
     </nav>
 </div>

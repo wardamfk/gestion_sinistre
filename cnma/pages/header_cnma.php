@@ -1,7 +1,7 @@
 <?php if(session_status() == PHP_SESSION_NONE) session_start(); ?>
 <div class="cnma-header">
     <div class="page-title">
-        <?php echo isset($page_title) ? $page_title : 'Gestion des Sinistres'; ?>
+        <?php echo isset($page_title) ? $page_title : 'Espace CNMA'; ?>
     </div>
     <div class="header-right">
         <div class="user-info">

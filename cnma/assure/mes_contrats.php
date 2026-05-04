@@ -7,7 +7,6 @@ $page_title = "Mes contrats";
 
 $assure = mysqli_fetch_assoc(mysqli_query($conn,"SELECT a.id_assure FROM assure a JOIN utilisateur u ON a.id_personne=u.id_personne WHERE u.id_user=$id_user LIMIT 1"));
 $id_assure = $assure ? $assure['id_assure'] : 0;
-
 $contrats = mysqli_query($conn,"
     SELECT c.*, v.marque, v.modele, v.matricule, v.annee, ag.nom_agence, ag.wilaya
     FROM contrat c
@@ -25,7 +24,7 @@ $contrats = mysqli_query($conn,"
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-<?php include('sidebar_assure.php'); ?>
+<?php  include('sidebar_assure.php'); ?>
 <?php include('header_assure.php'); ?>
 <div class="assure-main">
     <div class="page-heading">
@@ -43,18 +42,37 @@ $contrats = mysqli_query($conn,"
         $expire_bientot = (strtotime($c['date_expiration']) - time()) < 30*24*3600 && $c['statut']=='actif';
     ?>
     <div class="assure-card" style="border-left:4px solid <?= $c['statut']=='actif'?'#2e7d32':'#f57c00'; ?>;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
-            <div>
-                <div style="font-size:18px;font-weight:700;color:#0d47a1;"><?= $c['numero_police']; ?></div>
-                <div style="font-size:13px;color:#546e7a;margin-top:4px;"><?= $c['marque'].' '.$c['modele'].' — '.$c['matricule'].' ('.$c['annee'].')'; ?></div>
-            </div>
-            <div style="display:flex;gap:10px;align-items:center;">
-                <span class="badge-etat <?= $si[0]; ?>"><?= $si[1]; ?></span>
-                <?php if($expire_bientot): ?>
-                <span class="badge-etat orange"><i class="fa fa-exclamation-triangle"></i> Expire bientôt</span>
-                <?php endif; ?>
-            </div>
+       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+
+    <!-- LEFT -->
+    <div>
+        <div style="font-size:18px;font-weight:700;color:#0d47a1;">
+            <?= $c['numero_police']; ?>
         </div>
+        <div style="font-size:13px;color:#546e7a;margin-top:4px;">
+            <?= $c['marque'].' '.$c['modele'].' — '.$c['matricule'].' ('.$c['annee'].')'; ?>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="badge-etat <?= $si[0]; ?>"><?= $si[1]; ?></span>
+
+        <!-- 🔥 bouton -->
+        <a href="../crma/print_contrat.php?id=<?= $c['id_contrat']; ?>" 
+           target="_blank"
+           style="padding:6px 12px;background:#2e7d32;color:white;border-radius:6px;font-size:12px;text-decoration:none;">
+           📄 Télécharger
+        </a>
+
+        <?php if($expire_bientot): ?>
+        <span class="badge-etat orange">
+            <i class="fa fa-exclamation-triangle"></i> Expire bientôt
+        </span>
+        <?php endif; ?>
+    </div>
+
+</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:20px;">
             <div>
                 <div style="font-size:11px;color:#78909c;font-weight:700;text-transform:uppercase;">Date d'effet</div>

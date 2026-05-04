@@ -73,10 +73,17 @@ $current = basename($_SERVER['PHP_SELF']);?>
     </div>
 
     <nav class="sidebar-nav sub-menu">
+
+        <a href="/PfeCnma/cnma/pages/gestion_utilisateurs.php" class="sidebar-link">
+            <span class="sidebar-link-icon"><i class="fa fa-users"></i></span>
+            <span class="sidebar-link-label">Utilisateurs</span>
+        </a>
+
         <a href="/PfeCnma/cnma/pages/profil_cnma.php" class="sidebar-link">
             <span class="sidebar-link-icon"><i class="fa fa-user"></i></span>
             <span class="sidebar-link-label">Profil</span>
         </a>
+
     </nav>
 </div>
 

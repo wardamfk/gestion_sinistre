@@ -13,7 +13,7 @@ $r = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT COUNT(*) as n FROM notification WHERE id_destinataire={$_SESSION['id_user']} AND lu=0"));
 $nb_notifs = $r ? (int)$r['n'] : 0;
 
-$page_title = $page_title ?? 'Gestion des sinistres';
+$page_title = $page_title ?? 'Espace CRMA';
 $base = '/PfeCnma/cnma';
 ?>
 <div class="crma-header">

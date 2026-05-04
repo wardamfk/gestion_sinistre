@@ -11,8 +11,11 @@ body {
     color: #2c3e50;
     font-size: 14px;
   
-    overflow-x: hidden;
+    overflow-x: auto;
 
+}
+.crma-table-wrapper {
+    overflow-x: auto;
 }
 
 /* ---- SIDEBAR ---- */
@@ -397,7 +400,7 @@ body {
 .cnma-table tbody tr td:last-child  { border-radius: 0 10px 10px 0; }
 
 .cnma-table tbody tr { box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.15s; }
-.cnma-table tbody tr:hover td { background: #f5f7ff; }
+.cnma-table tbody tr:hover td { background: #eef7f1;}
 
 /* ---- BADGES ---- */
 .badge-etat {
@@ -410,7 +413,7 @@ body {
 }
 
 .badge-etat.blue   { background: #e8eaf6; color: #283593; }
-.badge-etat.orange { background: #fff3e0; color: #e65100; }
+.badge-etat.orange { background: #fff3e0; color: #bc9c8b; }
 .badge-etat.green  { background: #e8f5e9; color: #1b5e20; }
 .badge-etat.red    { background: #ffebee; color: #b71c1c; }
 .badge-etat.purple { background: #f3e5f5; color: #4a148c; }
@@ -573,7 +576,8 @@ body {
 }
 
 .cnma-tabs .tab-btn:hover { background: #f0f2f5; color: #1a237e; }
-.cnma-tabs .tab-btn.active { background: #1a237e; color: white; }
+.cnma-tabs .tab-btn.active {  background: #2f6b4f;
+ color: white; }
 
 .tab-content {
     background: white;
@@ -664,7 +668,8 @@ body {
     font-weight: 700;
 }
 
-.badge-role.CNMA   { background: #e8eaf6; color: #283593; }
+.badge-role.CNMA   {    background: #e6f4ea; 
+    color: #2f6b4f ;}
 .badge-role.CRMA   { background: #e8f5e9; color: #1b5e20; }
 .badge-role.ASSURE { background: #e3f2fd; color: #0d47a1; }
 
@@ -1143,7 +1148,7 @@ body {
 
 /* boutons principaux */
 .cnma-main .cnma-btn.primary {
-    background: #2f6b4f;
+  background: #2f6b4f;
 }
 
 /* liens */

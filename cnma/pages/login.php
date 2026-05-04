@@ -15,42 +15,41 @@ if(isset($_POST['login'])) {
         LEFT JOIN personne p ON u.id_personne = p.id_personne
         WHERE u.email='$email' AND u.actif=1";
     $result = mysqli_query($conn, $sql);
+if(mysqli_num_rows($result) == 1) {
 
-    if(mysqli_num_rows($result) == 1) {
+    $user = mysqli_fetch_assoc($result);
 
-        $user = mysqli_fetch_assoc($result);
+    if(password_verify($password, $user['mot_de_passe'])) {
 
-        if(password_verify($password, $user['mot_de_passe'])) {
+        $_SESSION['id_user'] = $user['id_user'];
+        $_SESSION['nom'] = $user['nom'] ?: trim($user['p_nom'].' '.$user['p_prenom']);
+        $_SESSION['id_personne'] = $user['id_personne'];
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['id_agence'] = $user['id_agence'];
+        $_SESSION['nom_agence'] = $user['nom_agence'];
+        $_SESSION['wilaya'] = $user['wilaya'];
 
-            $_SESSION['id_user'] = $user['id_user'];
-          $_SESSION['nom'] = $user['nom'] ?: trim($user['p_nom'].' '.$user['p_prenom']);
-$_SESSION['id_personne'] = $user['id_personne'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['id_agence'] = $user['id_agence'];
-$_SESSION['nom_agence'] = $user['nom_agence'];
-$_SESSION['wilaya'] = $user['wilaya'];
-
-            // REDIRECTION SELON ROLE
-          if($user['role'] == 'CNMA') {
-    header("Location: dashboard_cnma.php");
-    exit();
-}
-elseif($user['role'] == 'CRMA') {
-    header("Location: ../crma/dashboard_crma.php");
-    exit();
-}
-elseif($user['role'] == 'ASSURE') {
-    header("Location: ../assure/dashboard_assure.php");
-    exit();
-}
-
-        } else {
-            $error = "Mot de passe incorrect";
+        // REDIRECTION SELON ROLE
+        if($user['role'] == 'CNMA') {
+            header("Location: dashboard_cnma.php");
+            exit();
+        }
+        elseif($user['role'] == 'CRMA') {
+            header("Location: ../crma/dashboard_crma.php");
+            exit();
+        }
+        elseif($user['role'] == 'ASSURE') {
+            header("Location: ../assure/dashboard_assure.php");
+            exit();
         }
 
     } else {
-        $error = "Email incorrect";
+        $error = "Identifiants incorrects"; // ❗ corrigé
     }
+
+} else {
+    $error = "Identifiants incorrects"; // ❗ corrigé
+}
 }
 
 ?>

@@ -3,7 +3,7 @@ include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
 
-$page_title = 'Tiers adversaires';
+
 $success = $error = '';
 
 /* ======= AJOUTER TIERS (personne + tiers en une seule étape) ======= */
@@ -69,10 +69,10 @@ if (isset($_GET['del'])) {
 }
 
 $tiers_list = mysqli_query($conn, "
-    SELECT t.*,p.nom,p.prenom,p.telephone,p.adresse,p.num_identite,
-           (SELECT COUNT(*) FROM dossier d WHERE d.id_tiers=t.id_tiers) as nb_dossiers
-    FROM tiers t JOIN personne p ON t.id_personne=p.id_personne
-    ORDER BY t.id_tiers DESC");
+  SELECT t.*,p.nom,p.prenom,p.telephone,p.adresse,p.num_identite
+FROM tiers t 
+JOIN personne p ON t.id_personne=p.id_personne
+ORDER BY t.id_tiers DESC");
 $total = mysqli_num_rows($tiers_list);
 
 $edit = null;
@@ -135,7 +135,7 @@ $resp_badge = [
     </div>
     <table class="crma-table">
         <thead>
-            <tr><th>Nom</th><th>CIN</th><th>Téléphone</th><th>Compagnie</th><th>N° Police</th><th>Responsabilité</th><th>Dossiers</th><th>Actions</th></tr>
+            <tr><th>Nom</th><th>CIN</th><th>Téléphone</th><th>Compagnie</th><th>N° Police</th><th>Responsabilité</th><th>Actions</th></tr>
         </thead>
         <tbody>
         <?php while ($t = mysqli_fetch_assoc($tiers_list)):
@@ -148,20 +148,22 @@ $resp_badge = [
             <td><?= htmlspecialchars($t['compagnie_assurance']) ?></td>
             <td class="num-cell" style="font-size:12px"><?= htmlspecialchars($t['numero_police']) ?></td>
             <td><span class="badge <?= $rb[0] ?>"><?= $rb[1] ?></span></td>
-            <td style="text-align:center"><span class="badge badge-blue"><?= $t['nb_dossiers'] ?></span></td>
             <td>
-                <div style="display:flex;gap:4px">
-                    <a href="?edit=<?= $t['id_tiers'] ?>" class="btn btn-outline btn-xs"><i class="fa fa-pen"></i></a>
-                    <?php if ($t['nb_dossiers'] == 0): ?>
-                    <a href="?del=<?= $t['id_tiers'] ?>" class="btn btn-xs btn-danger"
-                       onclick="return confirm('Supprimer ce tiers ?')"><i class="fa fa-trash"></i></a>
-                    <?php endif; ?>
-                </div>
-            </td>
+    <div style="display:flex;gap:4px">
+        <a href="?edit=<?= $t['id_tiers'] ?>" class="btn btn-outline btn-xs">
+            <i class="fa fa-pen"></i>
+        </a>
+
+        <a href="?del=<?= $t['id_tiers'] ?>" class="btn btn-xs btn-danger"
+           onclick="return confirm('Supprimer ce tiers ?')">
+           <i class="fa fa-trash"></i>
+        </a>
+    </div>
+</td>
         </tr>
         <?php endwhile; ?>
         <?php if ($total == 0): ?>
-        <tr><td colspan="8"><div class="empty-state"><i class="fa fa-user-shield"></i><p>Aucun tiers</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="fa fa-user-shield"></i><p>Aucun tiers</p></div></td></tr>
         <?php endif; ?>
         </tbody>
     </table>

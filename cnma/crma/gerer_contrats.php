@@ -3,7 +3,7 @@ include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
 
-$page_title = 'Contrats & Véhicules';
+
 $success = $error = '';
 
 /* Paramètres taxe/timbre */
@@ -61,10 +61,10 @@ if (isset($_POST['ajouter'])) {
         $majoration    = (float)$_POST['majoration'];
         $complement    = (float)$_POST['complement'];
         $date_creation = date('Y-m-d');
-
+$timbre = floatval($_POST['timbre'] ?? 0);
         $prime_nette   = $prime_base - $reduction + $majoration + $complement;
         $taxe_montant  = $prime_nette * $TAXE;
-        $net_a_payer   = $prime_nette + $TIMBRE + $taxe_montant;
+        $net_a_payer   = $prime_nette + $timbre + $taxe_montant;
 
         $chk = mysqli_num_rows(mysqli_query($conn, "SELECT id_contrat FROM contrat WHERE numero_police='$numero_police'"));
         if ($chk > 0) {
@@ -75,10 +75,10 @@ if (isset($_POST['ajouter'])) {
             mysqli_query($conn, "INSERT INTO contrat
                 (numero_police,id_assure,id_vehicule,date_effet,date_expiration,
                  prime_base,reduction,majoration,prime_nette,complement,
-                 net_a_payer,statut,date_creation,id_agence,duree,capital,taxe)
+                 net_a_payer,statut,date_creation,id_agence,duree,capital,taxe,timbre)
                 VALUES ('$numero_police',$id_assure,$id_vehicule,'$date_effet','$date_exp',
                         $prime_base,$reduction,$majoration,$prime_nette,$complement,
-                        $net_a_payer,'actif','$date_creation',$id_agence,$duree,$capital,$TAXE)");
+                        $net_a_payer,'actif','$date_creation',$id_agence,$duree,$capital,$TAXE,$timbre)");
             $id_contrat = mysqli_insert_id($conn);
 
             // 3. Garanties
@@ -487,7 +487,7 @@ $type_veh_icons = [
                             </div>
                             <div class="detail-item">
                                 <div class="di-label">Timbre</div>
-                                <div class="di-val mono"><?= number_format($TIMBRE,0,',',' ') ?> DA</div>
+                                <div class="di-val mono"><?= number_format($c['timbre'],0,',',' ') ?> DA</div>
                             </div>
                             <div class="detail-item">
                                 <div class="di-label">Capital assuré</div>
@@ -713,7 +713,21 @@ $type_veh_icons = [
                 <div class="prime-row"><div class="p-label" style="color:var(--blue-600)"><i class="fa fa-layer-group"></i> Complément</div><div><input type="number" name="complement" id="complement" class="p-input" value="500" min="0" step="0.01" oninput="recalc()"></div></div>
                 <div class="prime-row" style="background:var(--gray-50)"><div class="p-label" style="font-weight:600"><i class="fa fa-equals"></i> Prime nette</div><div class="p-value" id="disp-nette" style="font-weight:700;color:var(--blue-800)">0 DA</div></div>
                 <div class="prime-row"><div class="p-label" style="color:var(--gray-500)"><i class="fa fa-percent"></i> Taxe (<?= round($TAXE*100) ?>%)</div><div class="p-value" id="disp-taxe">0 DA</div></div>
-                <div class="prime-row"><div class="p-label" style="color:var(--gray-500)"><i class="fa fa-stamp"></i> Timbre dim.</div><div class="p-value"><?= number_format($TIMBRE,0,',',' ') ?> DA</div></div>
+              <div class="prime-row">
+    <div class="p-label">
+        <i class="fa fa-stamp"></i> Timbre
+    </div>
+    <div>
+        <input type="number"
+               name="timbre"
+               id="timbre"
+               class="p-input"
+               value="0"
+               min="0"
+               step="0.01"
+               oninput="recalc()">
+    </div>
+</div>
                 <div class="prime-row total"><div class="p-label"><i class="fa fa-money-bill-wave"></i> Net à payer</div><div class="p-value" id="disp-net">0 DA</div></div>
             </div>
             <input type="hidden" name="prime_base" id="h-prime-base">
@@ -756,7 +770,6 @@ $type_veh_icons = [
 <!-- Données véhicules pour JS -->
 <script>
 const TAXE   = <?= $TAXE ?>;
-const TIMBRE = <?= $TIMBRE ?>;
 const TOTAL_STEPS = 5;
 let currentStep = 1;
 
@@ -847,7 +860,8 @@ function recalc() {
     const comp  = parseFloat(document.getElementById('complement').value)   || 0;
     const nette = base - red + maj + comp;
     const taxeMont = nette * TAXE;
-    const net = nette + TIMBRE + taxeMont;
+  const timbre = parseFloat(document.getElementById('timbre').value) || 0;
+const net = nette + timbre + taxeMont;
     const fmt = v => v.toLocaleString('fr-DZ', {minimumFractionDigits:0}) + ' DA';
     document.getElementById('disp-base').textContent  = fmt(base);
     document.getElementById('disp-nette').textContent = fmt(nette);

@@ -3,7 +3,7 @@ include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
 
-$page_title = 'Tableau de bord';
+
 $id_user  = $_SESSION['id_user'];
 $id_agence= $_SESSION['id_agence'];
 
@@ -12,7 +12,26 @@ $total    = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossie
 $en_cours = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=2 AND cree_par='$id_user'"))['n'];
 $envoyes  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=3 AND cree_par='$id_user'"))['n'];
 $valides  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat=4 AND cree_par='$id_user'"))['n'];
-$regles   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE id_etat IN(7,8) AND cree_par='$id_user'"))['n'];
+$complement = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=6 AND cree_par='$id_user'"))['n'];
+
+$classe_sans_suite = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=11 AND cree_par='$id_user'"))['n'];
+
+$classe_apres_rejet = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=12 AND cree_par='$id_user'"))['n'];
+
+$attente_recours = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=13 AND cree_par='$id_user'"))['n'];
+
+$reprise = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=15 AND cree_par='$id_user'"))['n'];
+
+$contre_expertise = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=16 AND cree_par='$id_user'"))['n'];
+
+$judiciaire = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) n FROM dossier WHERE id_etat=17 AND cree_par='$id_user'"))['n'];
 $expertise = mysqli_fetch_assoc(mysqli_query($conn,
 "SELECT COUNT(*) n FROM dossier WHERE id_etat=9 AND cree_par='$id_user'"))['n'];
 
@@ -61,6 +80,22 @@ $taux = $total_reserve > 0 ? round(($total_regle / $total_reserve) * 100,1) : 0;
 // Notifications
 $nb_notifs = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM notification WHERE id_destinataire=$id_user AND lu=0"))['n'];
 
+
+$nb_cheques_attente = mysqli_fetch_assoc(mysqli_query($conn,"
+SELECT COUNT(*) as n 
+FROM reglement 
+WHERE statut='disponible'
+"))['n'];
+$cheques = mysqli_query($conn,"
+SELECT d.numero_dossier, d.id_dossier, r.montant
+FROM reglement r
+JOIN dossier d ON r.id_dossier = d.id_dossier
+WHERE r.statut='disponible'
+ORDER BY r.id_reglement DESC
+LIMIT 5
+");
+
+
 // Dossiers récents
 $derniers = mysqli_query($conn,"
     SELECT 
@@ -96,9 +131,22 @@ $a_completer = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT COUNT(*) n FROM dossier WHERE cree_par='$id_user' AND id_etat=2 AND statut_validation='non_soumis'"))['n'];
 
 $etat_badge_map = [
-    1=>'badge-gray',2=>'badge-blue',3=>'badge-purple',4=>'badge-green',
-    5=>'badge-red',6=>'badge-amber',7=>'badge-teal',8=>'badge-green',
-    9=>'badge-amber',14=>'badge-gray'
+    1=>'badge-gray',
+    2=>'badge-blue',
+    3=>'badge-purple',
+    4=>'badge-green',
+    5=>'badge-red',
+    6=>'badge-amber',
+    7=>'badge-teal',
+    8=>'badge-green',
+    9=>'badge-amber',
+    11=>'badge-gray',
+    12=>'badge-gray',
+    13=>'badge-gray',
+    14=>'badge-gray',
+    15=>'badge-blue',
+    16=>'badge-amber',
+    17=>'badge-green'
 ];
 ?>
 <!DOCTYPE html>
@@ -135,7 +183,86 @@ $etat_badge_map = [
     </div>
 </div>
 
+
 <!-- ===== DOSSIERS ===== -->
+ <!-- ===== ALERTE CHEQUES ===== -->
+<div style="margin-bottom:20px;">
+
+    <div style="
+      background:#ffffff;
+        border-left:5px solid #e53935;
+        padding:15px;
+        border-radius:10px;
+        box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    ">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            
+            <div style="font-weight:600;color:#b71c1c;">
+                <i class="fa fa-exclamation-triangle"></i> Chèques à remettre
+            </div>
+
+           
+
+        </div>
+
+        <div style="font-size:28px;font-weight:bold;margin-top:8px;">
+            <?= $nb_cheques_attente ?>
+        </div>
+
+        <div style="font-size:13px;color:#555;margin-top:5px;">
+            <?= $nb_cheques_attente > 0 
+                ? "À remettre "
+                : "Aucun chèque en attente" ?>
+        </div>
+
+        <?php if($nb_cheques_attente > 0): ?>
+        <div style="margin-top:10px;">
+         <a href="#" onclick="toggleCheques()" style="color:#2e7d32;font-weight:600;">
+    Voir les règlements →
+</a>
+        </div>
+
+        <?php endif; ?>
+        <div id="listeCheques" style="display:none;margin-top:10px;">
+
+    <table class="crma-table">
+        <thead>
+            <tr>
+                <th>Dossier</th>
+                <th>Montant</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        <?php while($row = mysqli_fetch_assoc($cheques)): ?>
+        <tr>
+            <td>
+                <a href="voir_dossier.php?id=<?= $row['id_dossier'] ?>&tab=reglements"
+                   style="color:#2e7d32;font-weight:600;">
+                   <?= $row['numero_dossier'] ?>
+                </a>
+            </td>
+
+            <td><?= number_format($row['montant'],2,',',' ') ?> DA</td>
+
+            <td>
+                <a href="voir_dossier.php?id=<?= $row['id_dossier'] ?>&tab=reglements"
+                   class="btn btn-primary btn-xs">
+                   Voir
+                </a>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+        </tbody>
+    </table>
+
+</div>
+
+    </div>
+
+</div>
 <div class="section-title">
     <i class="fa fa-folder"></i> Suivi des dossiers
 </div>
@@ -143,7 +270,7 @@ $etat_badge_map = [
 <div class="stats-grid">
    <div class="stat-card sc-total">
         <div class="sc-icon"><i class="fa fa-folder"></i></div>
-        <div class="sc-body"><div class="sc-n"><?= $total ?></div><div class="sc-l">Mes dossiers</div></div>
+        <div class="sc-body"><div class="sc-n"><?= $total ?></div><div class="sc-l">Les dossiers</div></div>
     </div>
    <div class="stat-card sc-blue">
         <div class="sc-icon"><i class="fa fa-clock"></i></div>
@@ -165,6 +292,14 @@ $etat_badge_map = [
     <div class="sc-icon"><i class="fa fa-times-circle"></i></div>
     <div class="sc-body"><div class="sc-n"><?= $refuses ?></div><div class="sc-l">Refusés</div></div>
 </div>
+<div class="stat-card sc-amber">
+    <div class="sc-icon"><i class="fa fa-exclamation"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $complement ?></div>
+        <div class="sc-l">Complément demandé</div>
+    </div>
+</div>
+
    <div class="stat-card sc-teal">
     <div class="sc-icon"><i class="fa fa-hourglass-half"></i></div>
     <div class="sc-body"><div class="sc-n"><?= $partiel ?></div><div class="sc-l">Règlement partiel</div></div>
@@ -174,10 +309,62 @@ $etat_badge_map = [
     <div class="sc-icon"><i class="fa fa-money-bill"></i></div>
     <div class="sc-body"><div class="sc-n"><?= $total_regle_dossiers ?></div><div class="sc-l">Réglés</div></div>
 </div>
+<div class="stat-card sc-gray">
+    <div class="sc-icon"><i class="fa fa-ban"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $classe_sans_suite ?></div>
+        <div class="sc-l">Classé sans suite</div>
+    </div>
+</div>
+<div class="stat-card sc-gray">
+    <div class="sc-icon"><i class="fa fa-times"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $classe_apres_rejet ?></div>
+        <div class="sc-l">Classé après rejet</div>
+    </div>
+</div>
+<div class="stat-card sc-gray">
+    <div class="sc-icon"><i class="fa fa-clock"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $attente_recours ?></div>
+        <div class="sc-l">Attente recours</div>
+    </div>
+</div>
+<div class="stat-card sc-blue">
+    <div class="sc-icon"><i class="fa fa-rotate"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $reprise ?></div>
+        <div class="sc-l">Repris</div>
+    </div>
+</div>
+<div class="stat-card sc-amber">
+    <div class="sc-icon"><i class="fa fa-search"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $contre_expertise ?></div>
+        <div class="sc-l">Contre expertise</div>
+    </div>
+</div>
+<div class="stat-card sc-green">
+    <div class="sc-icon"><i class="fa fa-gavel"></i></div>
+    <div class="sc-body">
+        <div class="sc-n"><?= $judiciaire ?></div>
+        <div class="sc-l">Règlement judiciaire</div>
+    </div>
+</div>
     <div class="stat-card sc-gray">
         <div class="sc-icon"><i class="fa fa-archive"></i></div>
         <div class="sc-body"><div class="sc-n"><?= $clotures ?></div><div class="sc-l">Clôturés</div></div>
     </div>
+</div>
+
+
+<!-- ===== GRAPHIQUE ETATS ===== -->
+<div class="section-title">
+    <i class="fa fa-chart-pie"></i> Répartition par état
+</div>
+
+<div style="background:#fff;padding:20px;border-radius:12px;max-width:400px">
+    <canvas id="chartEtat"></canvas>
 </div>
 
 <!-- ===== FINANCE ===== -->
@@ -273,5 +460,92 @@ $etat_badge_map = [
 </div>
 
 </div><!-- /crma-main -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const ctx = document.getElementById('chartEtat');
+
+function toggleCheques() {
+    let div = document.getElementById("listeCheques");
+
+    if (div.style.display === "none") {
+        div.style.display = "block";
+    } else {
+        div.style.display = "none";
+    }
+}
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+  labels: [
+    'En cours (<?= (int)$en_cours ?>)',
+    'Complément (<?= (int)$complement ?>)',
+    'Expertise (<?= (int)$expertise ?>)',
+    'Contre expertise (<?= (int)$contre_expertise ?>)',
+    'Envoyés CNMA (<?= (int)$envoyes ?>)',
+    'Validés (<?= (int)$valides ?>)',
+    'Refusés (<?= (int)$refuses ?>)',
+    'Partiel (<?= (int)$partiel ?>)',
+    'Réglés (<?= (int)$total_regle_dossiers ?>)',
+    'Classé sans suite (<?= (int)$classe_sans_suite ?>)',
+    'Classé après rejet (<?= (int)$classe_apres_rejet ?>)',
+    'Attente recours (<?= (int)$attente_recours ?>)',
+    'Repris (<?= (int)$reprise ?>)',
+    'Judiciaire (<?= (int)$judiciaire ?>)',
+    'Clôturés (<?= (int)$clotures ?>)'
+],
+        datasets: [{
+            data: [
+                <?= $en_cours ?>,
+                <?= $complement ?>,
+                <?= $expertise ?>,
+                <?= $contre_expertise ?>,
+                <?= $envoyes ?>,
+                <?= $valides ?>,
+                <?= $refuses ?>,
+                <?= $partiel ?>,
+                <?= $total_regle_dossiers ?>,
+                <?= $classe_sans_suite ?>,
+                <?= $classe_apres_rejet ?>,
+                <?= $attente_recours ?>,
+                <?= $reprise ?>,
+                <?= $judiciaire ?>,
+                <?= $clotures ?>
+            ],
+            backgroundColor: [
+                '#3b82f6', // en cours
+                '#f59e0b', // complément
+                '#fbbf24', // expertise
+                '#f97316', // contre exp
+                '#8b5cf6', // envoyés
+                '#16a34a', // validé
+                '#dc2626', // refus
+                '#0d9488', // partiel
+                '#22c55e', // réglé
+                '#9ca3af', // classé
+                '#6b7280', // classé rejet
+                '#4b5563', // recours
+                '#2563eb', // repris
+                '#14532d',  // judiciaire
+                '#000000'   // clôturés
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    boxWidth: 12
+                }
+            }
+        }
+    }
+});
+</script>
 </body>
 </html>

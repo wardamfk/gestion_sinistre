@@ -50,7 +50,7 @@ $reste = $total_reserve - $total_regle;
 // Badge état
 $badge_class = "badge";
 if($etat==2) $badge_class.=" blue";
-elseif($etat==3) $badge_class.=" orange";
+elseif($etat==3) $badge_class.=" orange DARK";
 elseif($etat==4) $badge_class.=" green";
 elseif($etat==5) $badge_class.=" red";
 elseif($etat==7 || $etat==8) $badge_class.=" gray";
@@ -94,10 +94,10 @@ $motifs_complement = mysqli_query($conn, "
             border-radius: 10px; margin-bottom: 20px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
-        .btn-valider  { background: #27ae60 !important; }
-        .btn-refuser  { background: #e74c3c !important; }
-        .btn-complement { background: #f39c12 !important; }
-        .btn-cloturer { background: #8e44ad !important; }
+        .btn-valider  { background: #279a57 !important; }
+        .btn-refuser  { background: #b42e1f !important; }
+        .btn-complement { background: #cf9331 !important; }
+       
         .btn-retour   { background: #7f8c8d !important; }
 
         .info-grid {
@@ -275,7 +275,7 @@ $motifs_complement = mysqli_query($conn, "
             <div class="num" style="font-size:15px; margin-top:5px;">
                 <?php
                 $sv = $dossier['statut_validation'];
-                $sv_colors = ['non_soumis'=>'#999','en_attente'=>'#f39c12','valide'=>'#27ae60','refuse'=>'#e74c3c'];
+                $sv_colors = ['non_soumis'=>'#999','en_attente'=>'#d29128','valide'=>'#27ae60','refuse'=>'#bd4133'];
                 echo "<span style='color:".($sv_colors[$sv]??'#333')."'>".$sv."</span>";
                 ?>
             </div>

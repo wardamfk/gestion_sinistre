@@ -4,7 +4,7 @@ include("../includes/config.php");
 
 if($_SESSION['role'] != 'CNMA') { header("Location: login.php"); exit(); }
 
-$page_title = "Tableau de bord";
+
 
 // === STATS ===
 $total    = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM dossier"))['n'];

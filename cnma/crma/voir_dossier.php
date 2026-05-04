@@ -78,6 +78,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
 <title>Dossier <?= htmlspecialchars($dossier['numero_dossier']); ?></title>
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="../css/style_crma.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 /* ── Hero ── */
@@ -223,7 +224,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
 <div class="msg-err"><i class="fa fa-exclamation-triangle"></i> Un motif est obligatoire pour cet état.</div>
 <?php endif; ?>
 <?php if (isset($_GET['added'])): ?>
-<div class="msg-ok"><i class="fa fa-check-circle"></i> Élément ajouté avec succès.</div>
+<div class="msg-ok"><i class="fa fa-check-circle"></i> Opération effectuée avec succès.</div>
 <?php endif; ?>
 
 <!-- ══════════════════════════════════════════════════════
@@ -534,13 +535,35 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
     if (mysqli_num_rows($reglements) == 0)
         echo "<tr><td colspan='6'><div class='empty-state'><i class='fa fa-money-bill'></i><p>Aucun règlement</p></div></td></tr>";
     $statuts = ['en_attente'=>['badge-amber','En attente'],'disponible'=>['badge-green','Disponible'],'remis'=>['badge-teal','Remis']];
-    while ($reg = mysqli_fetch_assoc($reglements)):
-        $s = $statuts[$reg['statut']] ?? ['badge-gray', $reg['statut']];
-        $actions = "<a href='modifier_reglement.php?id={$reg['id_reglement']}' class='btn btn-outline btn-xs'><i class='fa fa-pen'></i></a>";
-        if ($reg['statut'] == 'en_attente') $actions .= "<a href='gerer_reglement_statut.php?id={$reg['id_reglement']}&dossier=$id_dossier&statut=disponible' onclick=\"return confirm('Marquer disponible ?')\" class='btn btn-primary btn-xs'><i class='fa fa-check'></i></a>";
-        if ($reg['statut'] == 'disponible') $actions .= "<a href='gerer_reglement_statut.php?id={$reg['id_reglement']}&dossier=$id_dossier&statut=remis' onclick=\"return confirm('Marquer remis ?')\" class='btn btn-outline btn-xs'><i class='fa fa-handshake'></i></a>";
-        $actions .= "<a href='supprimer_reglement.php?id={$reg['id_reglement']}&dossier=$id_dossier' onclick=\"return confirm('Supprimer ?')\" class='btn btn-danger btn-xs'><i class='fa fa-trash'></i></a>";
-    ?>
+while ($reg = mysqli_fetch_assoc($reglements)):
+
+    $s = $statuts[$reg['statut']] ?? ['badge-gray', $reg['statut']];
+
+    $actions = "<a href='modifier_reglement.php?id={$reg['id_reglement']}' class='btn btn-outline btn-xs'>
+                    <i class='fa fa-pen'></i>
+                </a>";
+
+    if ($reg['statut'] == 'en_attente') {
+        $actions .= "<a href='gerer_reglement_statut.php?id={$reg['id_reglement']}&dossier=$id_dossier&statut=disponible'
+                        onclick='confirmAction(event, \"Marquer ce règlement comme disponible ?\", this.href)'
+                        class='btn btn-primary btn-xs'>
+                        <i class='fa fa-check'></i>
+                    </a>";
+    }
+
+    if ($reg['statut'] == 'disponible') {
+        $actions .= "<a href='gerer_reglement_statut.php?id={$reg['id_reglement']}&dossier=$id_dossier&statut=remis'
+                        onclick='confirmAction(event, \"Marquer ce règlement comme remis ?\", this.href)'
+                        class='btn btn-outline btn-xs'>
+                        <i class='fa fa-handshake'></i>
+                    </a>";
+    }
+
+    $actions .= "<a href='supprimer_reglement.php?id={$reg['id_reglement']}&dossier=$id_dossier'
+                    onclick='confirmAction(event, \"Supprimer ce règlement ?\", this.href)'
+                    class='btn btn-danger btn-xs'>
+                    <i class='fa fa-trash'></i>
+                </a>";?>
     <tr>
         <td style="font-size:12px;"><?= $reg['date_reglement']; ?></td>
         <td class="num-cell" style="font-weight:600;"><?= number_format($reg['montant'],2,',',' '); ?> DA</td>
@@ -663,6 +686,27 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
 </div><!-- fin .main -->
 
 <script>
+  
+function confirmAction(e, message, url) {
+    e.preventDefault();
+
+    Swal.fire({
+        title: 'Confirmation',
+        text: message,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#2e7d32',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, confirmer',
+        cancelButtonText: 'Annuler',
+        background: '#ffffff',
+        borderRadius: '12px'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
 // ── Onglets
 function showTab(tab, btn) {
     document.querySelectorAll('.crma-tab-content').forEach(t => t.style.display = 'none');

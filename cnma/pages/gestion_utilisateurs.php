@@ -4,7 +4,7 @@ include("../includes/config.php");
 
 if($_SESSION['role'] != 'CNMA') { header("Location: login.php"); exit(); }
 
-$page_title = "Gestion des utilisateurs";
+
 $success = ''; $error = '';
 
 // === CRÉER UTILISATEUR ===
@@ -125,7 +125,7 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
         .u-stat .l { font-size:11px; color:#78909c; font-weight:600; text-transform:uppercase; }
         .role-filter { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
         .role-filter a { padding:7px 16px; border-radius:20px; text-decoration:none; font-size:12px; font-weight:700; border:1.5px solid #e0e0e0; color:#546e7a; transition:0.2s; }
-        .role-filter a:hover, .role-filter a.active { border-color:#1a237e; background:#1a237e; color:white; }
+        .role-filter a:hover, .role-filter a.active { border-color:#1a237e; background: #285b43;; color:white; }
     </style>
 </head>
 <body>
@@ -150,7 +150,7 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
             <div class="l">Total utilisateurs </div>
         </div>
         <div class="u-stat">
-            <div class="n" style="color:#283593;"><?php echo $nb_cnma; ?></div>
+            <div class="n" style="color:#2f6b4f;"><?php echo $nb_cnma; ?></div>
             <div class="l">Admins CNMA</div>
         </div>
         <div class="u-stat">

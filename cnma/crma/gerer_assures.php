@@ -3,7 +3,7 @@ include('../includes/auth.php');
 include('../includes/config.php');
 if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(); }
 
-$page_title = 'Gestion des assurés';
+
 $success = $error = '';
 
 /* ======= AJOUTER ASSURÉ (personne + assuré en une seule étape) ======= */
@@ -204,6 +204,7 @@ if (isset($_POST['creer_compte'])) {
 /* ======= DONNÉES LISTE ======= */
 $filtre_q     = $_GET['q'] ?? '';
 $filtre_actif = $_GET['actif'] ?? '';
+
 $where = "WHERE 1=1";
 if ($filtre_q)             $where .= " AND (p.nom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%' OR p.prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%')";
 if ($filtre_actif !== '')  $where .= " AND a.actif=".intval($filtre_actif);

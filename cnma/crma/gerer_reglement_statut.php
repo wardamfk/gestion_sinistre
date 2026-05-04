@@ -10,6 +10,25 @@ $user_id = $_SESSION['id_user'];
 if(!in_array($statut,['disponible','remis'])) die("Statut invalide");
 
 mysqli_query($conn,"UPDATE reglement SET statut='$statut' WHERE id_reglement=$id");
+// 🔥 HISTORIQUE REGLEMENT
+if($statut == 'disponible') {
+    $action = "Règlement disponible";
+}
+elseif($statut == 'remis') {
+    $action = "Règlement remis";
+}
+
+// récupérer état dossier actuel
+$dossier = mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT id_etat FROM dossier WHERE id_dossier = $id_dossier"));
+
+$etat_actuel = $dossier['id_etat'];
+
+// insertion historique
+mysqli_query($conn,"
+INSERT INTO historique (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat)
+VALUES ($id_dossier, '$action', NOW(), $user_id, $etat_actuel, $etat_actuel)
+");
 
 // Si disponible → notifier assuré
 if($statut=='disponible') {

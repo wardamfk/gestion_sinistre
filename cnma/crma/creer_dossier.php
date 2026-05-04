@@ -21,6 +21,26 @@ if(isset($_GET['ajax']) && $_GET['ajax'] == 'garanties'){
     echo json_encode($data);
     exit(); // IMPORTANT
 }
+if(isset($_GET['ajax']) && $_GET['ajax'] == 'contrats'){
+
+    $id_assure = intval($_GET['id_assure']);
+
+    $res = mysqli_query($conn, "
+        SELECT c.id_contrat, c.numero_police, v.marque, v.modele, v.matricule
+        FROM contrat c
+        JOIN vehicule v ON c.id_vehicule = v.id_vehicule
+        WHERE c.id_assure = $id_assure
+    ");
+
+    $data = [];
+
+    while($row = mysqli_fetch_assoc($res)){
+        $data[] = $row;
+    }
+
+    echo json_encode($data);
+    exit();
+}
 // Récupérer contrat depuis GET
 if(isset($_GET['id_contrat'])){
     $id_contrat = $_GET['id_contrat'];
@@ -170,13 +190,32 @@ if($id_expert != ""){
     <div class="crma-card">
 
         <h3>Informations sinistre</h3>
+<div class="form-group">
+    <label>Assuré</label>
+    <select id="assure_select">
+        <option value="">-- Sélectionner assuré --</option>
 
+        <?php
+        $res = mysqli_query($conn, "
+            SELECT a.id_assure, p.nom, p.prenom
+            FROM assure a
+            JOIN personne p ON a.id_personne = p.id_personne
+        ");
+
+        while($row = mysqli_fetch_assoc($res)){
+            echo "<option value='".$row['id_assure']."'>"
+            .$row['nom']." ".$row['prenom'].
+            "</option>";
+        }
+        ?>
+    </select>
+</div>
         <div class="form-group">
             <label>Contrat</label>
             <select name="id_contrat" id="contrat_select" required>
                 <option value="">-- Sélectionner contrat --</option>
                 <?php
-                $res = mysqli_query($conn, "SELECT id_contrat, numero_police FROM contrat");
+                
                 while($row = mysqli_fetch_assoc($res)){
                     $selected = ($id_contrat == $row['id_contrat']) ? "selected" : "";
                     echo "<option value='".$row['id_contrat']."' $selected>".$row['numero_police']."</option>";
@@ -188,22 +227,36 @@ if($id_expert != ""){
         <div id="garanties_box"></div>
 
         <div class="form-group">
+            
             <label>Tiers</label>
-            <select name="id_tiers" required>
-                <option value="">-- Sélectionner tiers --</option>
-                <?php
-                $res = mysqli_query($conn, "SELECT t.id_tiers, p.nom, p.prenom, t.compagnie_assurance
-                FROM tiers t 
-                JOIN personne p ON t.id_personne = p.id_personne");
+            
+            <div style="display:flex; gap:10px; align-items:center;">
+    
+    <select name="id_tiers" required style="flex:1;">
 
-                while($row = mysqli_fetch_assoc($res)){
-                    echo "<option value='".$row['id_tiers']."'>"
-                    .$row['nom']." ".$row['prenom']." - ".$row['compagnie_assurance'].
-                    "</option>";
-                }
-                ?>
-            </select>
-        </div>
+        <option value="">-- Sélectionner tiers --</option>
+        <?php
+        $res = mysqli_query($conn, "
+            SELECT t.id_tiers, p.nom, p.prenom, t.compagnie_assurance
+            FROM tiers t 
+            JOIN personne p ON t.id_personne = p.id_personne
+        ");
+
+        while($row = mysqli_fetch_assoc($res)){
+            echo "<option value='".$row['id_tiers']."'>"
+            .$row['nom']." ".$row['prenom']." - ".$row['compagnie_assurance'].
+            "</option>";
+        }
+        ?>
+    </select>
+
+    <a href="gerer_tiers.php" class="btn btn-primary" style="white-space:nowrap;">
+        + Ajouter
+    </a>
+
+</div>
+
+    </div>    
 
         <div class="form-grid-3">
             <div class="form-group">
@@ -255,10 +308,6 @@ if($id_expert != ""){
                 <input type="file" name="photos">
             </div>
 
-            <div class="form-group">
-                <label>PV Police</label>
-                <input type="file" name="pv">
-            </div>
 
             <div class="form-group">
                 <label>Carte grise</label>
@@ -270,9 +319,10 @@ if($id_expert != ""){
                 <input type="file" name="permis">
             </div>
 
+        
             <div class="form-group">
-                <label>Devis réparation</label>
-                <input type="file" name="devis">
+                <label>PV Police</label>
+                <input type="file" name="pv">
             </div>
         </div>
 
@@ -307,6 +357,34 @@ if($id_expert != ""){
 </form>
 </div>
 <script>
+    document.getElementById('assure_select').addEventListener('change', function(){
+
+    let id = this.value;
+
+    let select = document.getElementById('contrat_select');
+
+    if(!id){
+        select.innerHTML = '<option value="">-- Sélectionner contrat --</option>';
+        return;
+    }
+
+    fetch('creer_dossier.php?ajax=contrats&id_assure=' + id)
+    .then(res => res.json())
+    .then(data => {
+
+        select.innerHTML = '<option value="">-- Sélectionner contrat --</option>';
+
+        data.forEach(c => {
+            select.innerHTML += `
+                <option value="${c.id_contrat}">
+                    ${c.numero_police} — ${c.marque} ${c.modele} (${c.matricule})
+                </option>
+            `;
+        });
+
+    });
+
+});
 document.getElementById('contrat_select').addEventListener('change', function() {
 
     let id = this.value;
