@@ -1,6 +1,7 @@
 <?php
 // sidebar.php - CRMA
-if (session_status() == PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/session.php';
+pfe_session_start('crma');
 if (!isset($conn)) { include __DIR__ . '/config.php'; }
 
 $base = '/PfeCnma/cnma';
@@ -105,7 +106,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
 </div>
 
     <div class="sidebar-footer">
-        <a href="<?= $base ?>/pages/logout.php" class="sidebar-link logout-link" title="Deconnexion">
+        <a href="<?= $base ?>/crma/logout.php" class="sidebar-link logout-link" title="Deconnexion">
             <span class="sidebar-link-icon"><i class="fa fa-right-from-bracket"></i></span>
             <span class="sidebar-link-label">Deconnexion</span>
         </a>

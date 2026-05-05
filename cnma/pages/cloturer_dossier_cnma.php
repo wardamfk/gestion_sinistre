@@ -2,7 +2,8 @@
 // ============================================================
 // cloturer_dossier_cnma.php
 // ============================================================
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('cnma');
 include '../includes/config.php';
 function notifyAssure($conn, $id_dossier, $id_expediteur, $type, $msg) {
     $msg = mysqli_real_escape_string($conn, $msg);

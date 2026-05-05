@@ -1,6 +1,7 @@
 <?php
 // header.php — CRMA
-if (session_status() == PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/session.php';
+pfe_session_start('crma');
 if (!isset($conn)) { include __DIR__ . '/config.php'; }
 
 $nom      = $_SESSION['nom']       ?? 'Agent';

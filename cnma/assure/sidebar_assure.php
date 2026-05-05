@@ -71,7 +71,7 @@ $current = basename($_SERVER['PHP_SELF']);
 
 </nav>
     <div class="assure-footer">
-        <a href="/PfeCnma/cnma/pages/logout.php">
+        <a href="/PfeCnma/cnma/assure/logout.php">
             <i class="fa fa-sign-out-alt"></i> Déconnexion
         </a>
     </div>

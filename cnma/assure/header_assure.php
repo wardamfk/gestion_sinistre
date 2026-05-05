@@ -1,4 +1,7 @@
-<?php if(session_status()==PHP_SESSION_NONE) session_start(); ?>
+<?php
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('assure');
+?>
 <div class="assure-header">
     <div class="page-title">
         <?= isset($page_title) ? $page_title : 'Mon Espace Assuré'; ?>

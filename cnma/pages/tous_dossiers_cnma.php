@@ -17,7 +17,7 @@ if($filtre_search != '') $where .= " AND (d.numero_dossier LIKE '%$filtre_search
 
 $sql = "
 SELECT
-    d.id_dossier, d.numero_dossier, d.date_creation, d.total_reserve,
+    d.id_dossier, d.numero_dossier, d.date_creation, IFNULL(d.total_reserve, 0) AS total_reserve,
     d.statut_validation, d.id_etat,
     p.nom AS nom_assure, p.prenom AS prenom_assure,
     pt.nom AS nom_tiers, pt.prenom AS prenom_tiers,
@@ -148,13 +148,13 @@ $etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
             <td><span class="<?php echo $class; ?>"><?php echo $row['nom_etat']; ?></span></td>
             <td>
                 <span class="money">
-                    <?php echo number_format($row['total_reserve'], 2, ',', ' '); ?>
+                    <?php echo number_format($row['total_reserve'] ?? 0, 2, ',', ' '); ?>
                     <small>DA</small>
                 </span>
             </td>
             <td>
                 <span class="money">
-                    <?php echo number_format($row['total_regle'], 2, ',', ' '); ?>
+                    <?php echo number_format($row['total_regle'] ?? 0, 2, ',', ' '); ?>
                     <small>DA</small>
                 </span>
             </td>

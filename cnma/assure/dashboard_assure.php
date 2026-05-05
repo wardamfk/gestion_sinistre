@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('assure');
 include('../includes/config.php');
 if(!isset($_SESSION['id_user']) || $_SESSION['role'] != 'ASSURE') {
     header("Location: ../pages/login.php"); exit();

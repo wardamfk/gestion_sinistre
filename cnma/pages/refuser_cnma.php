@@ -3,7 +3,8 @@
 // refuser_cnma.php
 // Refus CNMA : etat 5, motif obligatoire, message_assure vers assure
 // ============================================================
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('cnma');
 include '../includes/config.php';
 
 if ($_SESSION['role'] != 'CNMA') {

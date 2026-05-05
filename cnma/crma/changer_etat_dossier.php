@@ -3,7 +3,8 @@
 // changer_etat_dossier.php — Changement d'état simplifié
 // POST: id_dossier, nouvel_etat, id_motif (optionnel), commentaire
 // ============================================================
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('crma');
 include '../includes/config.php';
 
 if (!in_array($_SESSION['role'], ['CRMA', 'CNMA'])) {

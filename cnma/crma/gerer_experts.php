@@ -212,7 +212,8 @@ if (isset($_GET['edit'])) {
             </div>
             <div class="form-group">
                 <label>Email <span style="color:red">*</span></label>
-                <input type="email" name="email" required placeholder="expert@mail.dz">
+                <input type="email" name="email" id="email_expert" required placeholder="expert@mail.dz">
+<small id="email-error-expert" style="color:red;font-size:12px;"></small>
             </div>
         </div>
 
@@ -280,6 +281,7 @@ if (isset($_GET['edit'])) {
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" name="email" value="<?= htmlspecialchars($edit['email']) ?>">
+                <small id="email-error-expert" style="color:red;font-size:12px;"></small>
             </div>
         </div>
 
@@ -304,6 +306,45 @@ function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+});
+const emailInputExpert = document.getElementById('email_expert');
+const emailErrorExpert = document.getElementById('email-error-expert');
+
+let emailInvalid = false;
+let emailTimeout = null;
+
+emailInputExpert.addEventListener('input', () => {
+
+    clearTimeout(emailTimeout);
+
+    const val = emailInputExpert.value.trim();
+
+    if (!val) {
+        emailInputExpert.classList.remove('input-error');
+        emailErrorExpert.textContent = '';
+        emailInvalid = true;
+        return;
+    }
+
+    emailTimeout = setTimeout(() => {
+
+        fetch('check_email.php?email=' + encodeURIComponent(val))
+        .then(r => r.json())
+        .then(d => {
+
+            if (d.exists) {
+                emailInputExpert.classList.add('input-error');
+                emailErrorExpert.textContent = '❌ Email déjà utilisé';
+                emailInvalid = true;
+            } else {
+                emailInputExpert.classList.remove('input-error');
+                emailErrorExpert.textContent = '';
+                emailInvalid = false;
+            }
+
+        });
+
+    }, 400);
 });
 
 // ── Vérification CIN ──
@@ -331,7 +372,9 @@ cinInput.addEventListener('input', () => {
     }, 400);
 });
 document.querySelector('#modal-add form').addEventListener('submit', function(e) {
-    if (cinInvalid) e.preventDefault();
+    if (cinInvalid || emailInvalid) {
+        e.preventDefault();
+    }
 });
 </script>
 </body>

@@ -1,8 +1,9 @@
 <?php
-session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
 require_once("../includes/config.php");
+require_once __DIR__ . '/../includes/session.php';
 if(isset($_POST['login'])) {
 
     $email = $_POST['email'];
@@ -20,28 +21,39 @@ if(mysqli_num_rows($result) == 1) {
     $user = mysqli_fetch_assoc($result);
 
     if(password_verify($password, $user['mot_de_passe'])) {
+        require_once __DIR__ . '/../includes/session.php';
 
-        $_SESSION['id_user'] = $user['id_user'];
-        $_SESSION['nom'] = $user['nom'] ?: trim($user['p_nom'].' '.$user['p_prenom']);
-        $_SESSION['id_personne'] = $user['id_personne'];
-        $_SESSION['role'] = $user['role'];
-        $_SESSION['id_agence'] = $user['id_agence'];
-        $_SESSION['nom_agence'] = $user['nom_agence'];
-        $_SESSION['wilaya'] = $user['wilaya'];
+        $app = 'cnma';
+        if ($user['role'] === 'CRMA') {
+            $app = 'crma';
+        } elseif ($user['role'] === 'ASSURE') {
+            $app = 'assure';
+        }
 
-        // REDIRECTION SELON ROLE
-        if($user['role'] == 'CNMA') {
-            header("Location: dashboard_cnma.php");
-            exit();
-        }
-        elseif($user['role'] == 'CRMA') {
-            header("Location: ../crma/dashboard_crma.php");
-            exit();
-        }
-        elseif($user['role'] == 'ASSURE') {
-            header("Location: ../assure/dashboard_assure.php");
-            exit();
-        }
+pfe_session_start($app);
+session_regenerate_id(true);
+
+$_SESSION['id_user'] = $user['id_user'];
+$_SESSION['nom'] = $user['nom'] ?: trim($user['p_nom'].' '.$user['p_prenom']);
+$_SESSION['id_personne'] = $user['id_personne'];
+$_SESSION['role'] = $user['role'];
+$_SESSION['id_agence'] = $user['id_agence'];
+$_SESSION['nom_agence'] = $user['nom_agence'];
+$_SESSION['wilaya'] = $user['wilaya'];
+
+// 🔥 AJOUT ICI (OBLIGATOIRE)
+session_write_close();
+
+if($user['role'] == 'CNMA') {
+    header("Location: dashboard_cnma.php");
+    exit();
+} elseif($user['role'] == 'CRMA') {
+    header("Location: ../crma/dashboard_crma.php");
+    exit();
+} elseif($user['role'] == 'ASSURE') {
+    header("Location: ../assure/dashboard_assure.php");
+    exit();
+}
 
     } else {
         $error = "Identifiants incorrects"; // ❗ corrigé

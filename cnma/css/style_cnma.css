@@ -1155,3 +1155,6 @@ body {
 .cnma-main a {
     color: #2f6b4f;
 }
+.kpi-grid-top {
+    grid-template-columns:repeat(5,1fr);
+}

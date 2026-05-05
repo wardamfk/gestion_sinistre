@@ -13,12 +13,16 @@ $filtre_annee  = isset($_GET['annee']) ? intval($_GET['annee']) : 0;
 $filtre_mois   = isset($_GET['mois'])     ? intval($_GET['mois'])           : 0;
 
 // Clauses de filtrage
+$join_agence = "LEFT JOIN utilisateur u_f ON d.cree_par = u_f.id_user LEFT JOIN agence ag_f ON u_f.id_agence = ag_f.id_agence";
 $where_dossier = "WHERE 1=1";
-$join_agence   = "LEFT JOIN utilisateur u_f ON d.cree_par = u_f.id_user LEFT JOIN agence ag_f ON u_f.id_agence = ag_f.id_agence";
 if($filtre_agence > 0) $where_dossier .= " AND u_f.id_agence = $filtre_agence";
 if($filtre_expert > 0) $where_dossier .= " AND d.id_expert = $filtre_expert";
 if($filtre_annee  > 0) $where_dossier .= " AND YEAR(d.date_creation) = $filtre_annee";
 if($filtre_mois   > 0) $where_dossier .= " AND MONTH(d.date_creation) = $filtre_mois";
+
+$months = $filtre_mois > 0 ? [$filtre_mois] : range(1, 12);
+$mois_labels_map = [1=>'Jan',2=>'Fév',3=>'Mar',4=>'Avr',5=>'Mai',6=>'Jun',7=>'Jul',8=>'Aoû',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Déc'];
+$mois_labels = array_map(fn($m) => $mois_labels_map[$m] ?? (string)$m, $months);
 
 // ===================== DONNÉES DE FILTRES =====================
 $agences_list = mysqli_query($conn, "SELECT id_agence, nom_agence FROM agence ORDER BY nom_agence");
@@ -42,19 +46,10 @@ SUM(CASE WHEN id_etat = 14 THEN 1 ELSE 0 END) as clotures
 FROM dossier d
 $join_agence
 $where_dossier
-AND d.id_etat NOT IN (1,6) 
+
 ");
 
 $kpi = mysqli_fetch_assoc($q_kpi);
-
-$retard = mysqli_fetch_assoc(mysqli_query($conn,"
-SELECT COUNT(*) as n
-FROM dossier d
-$join_agence
-$where_dossier
-AND d.id_etat NOT IN (1,6,5,8,14) 
-AND DATEDIFF(NOW(), d.date_creation) > 15
-"))['n'];
 
 $total_decide = ($kpi['valides'] + $kpi['refuses']);
 $taux_validation = $total_decide > 0 ? round($kpi['valides'] / $total_decide * 100, 1) : null;
@@ -71,10 +66,9 @@ SELECT
     JOIN utilisateur u1 ON d1.cree_par = u1.id_user
     WHERE 1=1
     ".($filtre_agence > 0 ? " AND u1.id_agence = $filtre_agence" : "")."
-    ".($filtre_annee > 0 
-    ? " AND YEAR(r.date_reserve) = $filtre_annee"
-    : ""
-)."
+    ".($filtre_expert > 0 ? " AND d1.id_expert = $filtre_expert" : "")."
+    ".($filtre_annee > 0 ? " AND YEAR(r.date_reserve) = $filtre_annee" : "")."
+    ".($filtre_mois > 0 ? " AND MONTH(r.date_reserve) = $filtre_mois" : "")."
 ) as total_reserve,
 
 (
@@ -84,18 +78,10 @@ SELECT
     JOIN utilisateur u2 ON d2.cree_par = u2.id_user
     WHERE 1=1
     ".($filtre_agence > 0 ? " AND u2.id_agence = $filtre_agence" : "")."
+    ".($filtre_expert > 0 ? " AND d2.id_expert = $filtre_expert" : "")."
     ".($filtre_annee > 0 ? " AND YEAR(rg.date_reglement) = $filtre_annee" : "")."
-) as total_regle,
-
-(
-    SELECT IFNULL(SUM(en.montant),0)
-    FROM encaissement en
-    JOIN dossier d3 ON en.id_dossier = d3.id_dossier
-    JOIN utilisateur u3 ON d3.cree_par = u3.id_user
-    WHERE 1=1
-    ".($filtre_agence > 0 ? " AND u3.id_agence = $filtre_agence" : "")."
-    ".($filtre_annee > 0 ? " AND YEAR(en.date_encaissement) = $filtre_annee" : "")."
-) as total_enc
+    ".($filtre_mois > 0 ? " AND MONTH(rg.date_reglement) = $filtre_mois" : "")."
+) as total_regle
 ";
 
 
@@ -106,25 +92,59 @@ $fin = mysqli_fetch_assoc($q_fin);
 $taux_conso = $fin['total_reserve'] > 0 ? round($fin['total_regle'] / $fin['total_reserve'] * 100, 1) : 0;
 
 // ===================== ÉVOLUTION MENSUELLE =====================
-$mois_data = [];
-for($m = 1; $m <= 12; $m++) {
-    $r = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT
-            COUNT(*) as crees,
-            SUM(CASE WHEN id_etat=4 THEN 1 ELSE 0 END) as valides,
-            SUM(CASE WHEN id_etat=5 THEN 1 ELSE 0 END) as refuses
-         FROM dossier d $join_agence
+$m_crees = [];
+$m_decides = [];
+foreach ($months as $m) {
+    $sql_crees = "
+        SELECT COUNT(*) AS n
+        FROM dossier d
+        $join_agence
         WHERE 1=1
-".($filtre_annee > 0 ? " AND YEAR(d.date_creation) = $filtre_annee" : "")."AND MONTH(d.date_creation)=$m
-         " . ($filtre_agence > 0 ? "AND u_f.id_agence=$filtre_agence" : "")
-         . ($filtre_expert  > 0 ? "AND d.id_expert=$filtre_expert"   : "")
-    ));
-    $mois_data[] = $r;
+        ".($filtre_agence > 0 ? " AND u_f.id_agence = $filtre_agence" : "")."
+        ".($filtre_expert > 0 ? " AND d.id_expert = $filtre_expert" : "")."
+        ".($filtre_annee > 0 ? " AND YEAR(d.date_creation) = $filtre_annee" : "")."
+        AND MONTH(d.date_creation) = $m
+    ";
+    $m_crees[] = intval(mysqli_fetch_assoc(mysqli_query($conn, $sql_crees))['n'] ?? 0);
+
+    $sql_decides = "
+        SELECT COUNT(*) AS n
+        FROM dossier d
+        $join_agence
+        WHERE 1=1
+        ".($filtre_agence > 0 ? " AND u_f.id_agence = $filtre_agence" : "")."
+        ".($filtre_expert > 0 ? " AND d.id_expert = $filtre_expert" : "")."
+        AND (
+            (d.date_validation IS NOT NULL
+                ".($filtre_annee > 0 ? " AND YEAR(d.date_validation) = $filtre_annee" : "")."
+                AND MONTH(d.date_validation) = $m
+            )
+            OR
+            (d.date_refus IS NOT NULL
+                ".($filtre_annee > 0 ? " AND YEAR(d.date_refus) = $filtre_annee" : "")."
+                AND MONTH(d.date_refus) = $m
+            )
+        )
+    ";
+    $m_decides[] = intval(mysqli_fetch_assoc(mysqli_query($conn, $sql_decides))['n'] ?? 0);
 }
-$mois_labels  = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-$m_crees  = array_column($mois_data, 'crees');
-$m_valides = array_column($mois_data, 'valides');
-$m_refuses = array_column($mois_data, 'refuses');
+
+$crma_crees = $m_crees;
+$crma_clotures = [];
+foreach ($months as $m) {
+    $sql_clotures = "
+        SELECT COUNT(*) AS n
+        FROM dossier d
+        $join_agence
+        WHERE 1=1
+        ".($filtre_agence > 0 ? " AND u_f.id_agence = $filtre_agence" : "")."
+        ".($filtre_expert > 0 ? " AND d.id_expert = $filtre_expert" : "")."
+        AND d.date_cloture IS NOT NULL
+        ".($filtre_annee > 0 ? " AND YEAR(d.date_cloture) = $filtre_annee" : "")."
+        AND MONTH(d.date_cloture) = $m
+    ";
+    $crma_clotures[] = intval(mysqli_fetch_assoc(mysqli_query($conn, $sql_clotures))['n'] ?? 0);
+}
 
 // ===================== PIPELINE CRMA =====================
 
@@ -185,28 +205,19 @@ SELECT
     COUNT(DISTINCT d.id_dossier) as total,
 
     SUM(CASE WHEN d.id_etat=4 THEN 1 ELSE 0 END) as valides,
-    SUM(CASE WHEN d.id_etat=5 THEN 1 ELSE 0 END) as refuses,
-
-    ROUND(AVG(
-        CASE 
-            WHEN d.date_validation IS NOT NULL 
-            THEN DATEDIFF(d.date_validation, d.date_creation)
-        END
-    ),1) as delai_moy,
-
-    IFNULL(SUM(r.montant),0) as total_reserve,
-    IFNULL(SUM(rg.montant),0) as total_regle
+    SUM(CASE WHEN d.id_etat=5 THEN 1 ELSE 0 END) as refuses
 
 FROM dossier d
 
 LEFT JOIN utilisateur u ON d.cree_par = u.id_user
 LEFT JOIN agence ag ON u.id_agence = ag.id_agence
 
-LEFT JOIN reserve r ON r.id_dossier = d.id_dossier
-LEFT JOIN reglement rg ON rg.id_dossier = d.id_dossier
-
-$join_agence
-$where_dossier
+WHERE 1=1
+".($filtre_agence > 0 ? " AND u.id_agence = $filtre_agence" : "")."
+".($filtre_expert > 0 ? " AND d.id_expert = $filtre_expert" : "")."
+".($filtre_annee > 0 ? " AND YEAR(d.date_creation) = $filtre_annee" : "")."
+".($filtre_mois > 0 ? " AND MONTH(d.date_creation) = $filtre_mois" : "")."
+AND d.id_etat NOT IN (1,6)
 
 GROUP BY ag.id_agence, ag.nom_agence
 ORDER BY total DESC
@@ -239,6 +250,8 @@ $perf_experts = mysqli_query($conn, "
     WHERE 1=1
     " . ($filtre_agence > 0 ? "AND u.id_agence = $filtre_agence" : "") . "
     " . ($filtre_annee > 0 ? "AND YEAR(d.date_creation) = $filtre_annee" : "") . "
+    " . ($filtre_mois > 0 ? "AND MONTH(d.date_creation) = $filtre_mois" : "") . "
+    " . ($filtre_expert > 0 ? "AND e.id_expert = $filtre_expert" : "") . "
 
     GROUP BY e.id_expert, e.nom, e.prenom
     ORDER BY nb_dossiers DESC
@@ -247,35 +260,62 @@ $perf_experts = mysqli_query($conn, "
 
 // ===================== BLOCAGES =====================
 $blocages = mysqli_query($conn, "
-    SELECT d.id_dossier, d.numero_dossier, d.date_creation,
-           DATEDIFF(NOW(), d.date_creation) as age_jours,
-           e.nom_etat, ag.nom_agence,
-           p.nom AS nom_assure, p.prenom AS prenom_assure
-    FROM dossier d
-    LEFT JOIN etat_dossier e ON d.id_etat = e.id_etat
-    LEFT JOIN utilisateur u ON d.cree_par = u.id_user
-    LEFT JOIN agence ag ON u.id_agence = ag.id_agence
+SELECT 
+    d.id_dossier, 
+    d.numero_dossier,
+d.date_creation,
+    COALESCE(
+        (SELECT MAX(h.date_action) 
+         FROM historique h 
+         WHERE h.id_dossier = d.id_dossier),
+        d.date_creation
+    ) as date_ref,
 
-    -- 👇 ICI TU AJOUTES TES JOIN FILTRE
-    LEFT JOIN utilisateur u_f ON d.cree_par = u_f.id_user
-    LEFT JOIN agence ag_f ON u_f.id_agence = ag_f.id_agence
+    DATEDIFF(NOW(),
+        COALESCE(
+            (SELECT MAX(h.date_action) 
+             FROM historique h 
+             WHERE h.id_dossier = d.id_dossier),
+            d.date_creation
+        )
+    ) as age_jours,
 
-    LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
-    LEFT JOIN assure ass ON c.id_assure = ass.id_assure
-    LEFT JOIN personne p ON ass.id_personne = p.id_personne
+    e.nom_etat, 
+    ag.nom_agence,
+    p.nom AS nom_assure, 
+    p.prenom AS prenom_assure
 
-    WHERE d.id_etat NOT IN (5,8,14,19)
-    AND DATEDIFF(NOW(), d.date_creation) > 15
-    " . ($filtre_agence > 0 ? "AND u_f.id_agence=$filtre_agence " : "") . "
+FROM dossier d
+LEFT JOIN etat_dossier e ON d.id_etat = e.id_etat
+LEFT JOIN utilisateur u ON d.cree_par = u.id_user
+LEFT JOIN agence ag ON u.id_agence = ag.id_agence
 
-    ORDER BY age_jours DESC
-    LIMIT 10
+LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
+LEFT JOIN assure ass ON c.id_assure = ass.id_assure
+LEFT JOIN personne p ON ass.id_personne = p.id_personne
+
+WHERE d.id_etat NOT IN (5,8,14)
+".($filtre_agence > 0 ? " AND u.id_agence = $filtre_agence" : "")."
+".($filtre_expert > 0 ? " AND d.id_expert = $filtre_expert" : "")."
+".($filtre_annee > 0 ? " AND YEAR(d.date_creation) = $filtre_annee" : "")."
+".($filtre_mois > 0 ? " AND MONTH(d.date_creation) = $filtre_mois" : "")."
+AND DATEDIFF(NOW(),
+    COALESCE(
+        (SELECT MAX(h.date_action) 
+         FROM historique h 
+         WHERE h.id_dossier = d.id_dossier),
+        d.date_creation
+    )
+) > 15
+
+ORDER BY age_jours DESC
+LIMIT 10
 ");
 
 // ===================== EVOLUTION FINANCE PAR MOIS =====================
 $fin_mois_data = [];
 
-for($m = 1; $m <= 12; $m++) {
+foreach ($months as $m) {
 
  $rf = mysqli_fetch_assoc(mysqli_query($conn, "
 
@@ -288,6 +328,7 @@ SELECT
         WHERE MONTH(r.date_reserve) = $m
         ".($filtre_annee > 0 ? " AND YEAR(r.date_reserve) = $filtre_annee" : "")."
         ".($filtre_agence > 0 ? " AND u2.id_agence = $filtre_agence" : "")."
+        ".($filtre_expert > 0 ? " AND d2.id_expert = $filtre_expert" : "")."
     ) as reserve,
 
     (
@@ -298,6 +339,7 @@ SELECT
         WHERE MONTH(rg.date_reglement) = $m
         ".($filtre_annee > 0 ? " AND YEAR(rg.date_reglement) = $filtre_annee" : "")."
         ".($filtre_agence > 0 ? " AND u3.id_agence = $filtre_agence" : "")."
+        ".($filtre_expert > 0 ? " AND d3.id_expert = $filtre_expert" : "")."
     ) as regle
 
 "));
@@ -306,17 +348,6 @@ SELECT
 }
 $fm_reserve = array_map(fn($x) => round(floatval($x['reserve'])), $fin_mois_data);
 $fm_regle   = array_map(fn($x) => round(floatval($x['regle'])),   $fin_mois_data);
-
-// Goulots d'étranglement : durée moyenne par étape
-$goulots = mysqli_query($conn, "
-    SELECT e.nom_etat, d.id_etat,
-           COUNT(d.id_dossier) as nb,
-           ROUND(AVG(DATEDIFF(NOW(), d.date_creation)),0) as age_moy
-    FROM dossier d
-    JOIN etat_dossier e ON d.id_etat = e.id_etat
-    WHERE d.id_etat NOT IN (5,8,14)
-    GROUP BY d.id_etat ORDER BY age_moy DESC LIMIT 6
-");
 
 ?>
 <!DOCTYPE html>
@@ -440,7 +471,7 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
 /* ====== KPI GRID ====== */
 .kpi-grid-top {
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(4,1fr);
     gap:12px;
     margin-bottom:16px;
 }
@@ -607,7 +638,7 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
 
 /* ====== FINANCE OVERVIEW ====== */
 .finance-overview {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
     margin-bottom:16px;
 }
 .fin-kpi {
@@ -719,8 +750,25 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
     </select>
 
     <label>Année</label>
+    <?php
+$nb_annees = mysqli_num_rows($annees_list);
+mysqli_data_seek($annees_list, 0);
+?>
     <select name="annee">
-        <option value="0">Toutes</option>
+      
+
+<?php if($nb_annees > 1): ?>
+    <option value="0">Toutes</option>
+<?php endif; ?>
+
+<?php while($y = mysqli_fetch_assoc($annees_list)): ?>
+    <option value="<?php echo $y['y']; ?>" 
+        <?php echo $filtre_annee==$y['y']?'selected':''; ?>>
+        <?php echo $y['y']; ?>
+    </option>
+<?php endwhile; ?>
+
+</select>
         <?php while($y = mysqli_fetch_assoc($annees_list)): ?>
         <option value="<?php echo $y['y']; ?>" <?php echo $filtre_annee==$y['y']?'selected':''; ?>>
             <?php echo $y['y']; ?>
@@ -767,7 +815,7 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
         <div class="kpi-sub">Total des dossiers</div>
     </div>
 
-    <!-- En cours CRMA -->
+    <!-- En traitement -->
     <div class="kpi-card" style="--accent:#3b82f6">
         <div class="kpi-label">
             <i class="fa fa-spinner"></i> Dossiers en traitement 
@@ -778,15 +826,17 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
        <div class="kpi-sub">toutes phases confondues</div>
     </div>
 
-    <!-- Retard -->
-    <div class="kpi-card" style="--accent:#dc2626">
+    <!-- Décisions -->
+    <div class="kpi-card" style="--accent:#7c3aed">
         <div class="kpi-label">
-            <i class="fa fa-exclamation-triangle"></i> Dossiers en retard
+            <i class="fa fa-gavel"></i> Décisions CNMA
         </div>
-        <div class="kpi-value <?php echo $retard>10?'bad':($retard>5?'warn':'good'); ?>">
-            <?php echo $retard; ?>
+        <div class="kpi-value <?php echo $total_decide>0?'good':'warn'; ?>">
+            <?php echo $total_decide; ?>
         </div>
-        <div class="kpi-sub">Plus de 15 jours sans clôture</div>
+        <div class="kpi-sub">
+            <?php echo $taux_validation !== null ? ($taux_validation.'% validés · '.$taux_refus.'% refusés') : 'Aucune décision sur la période'; ?>
+        </div>
     </div>
 
     <!-- Clôture -->
@@ -818,7 +868,7 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
         <div class="cc-header">
             <div>
                 <div class="cc-title">Flux mensuel des dossiers — <?php echo $filtre_annee ?: 'Toutes années'; ?></div>
-                
+                <div class="cc-question">Entrées (créations) vs sorties (décisions)</div>
             </div>
         </div>
         <canvas id="chartFluxMensuel"></canvas>
@@ -827,11 +877,11 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
     <div class="chart-card">
         <div class="cc-header">
             <div>
-                <div class="cc-title">Décisions CNMA par mois</div>
-                
+                <div class="cc-title">CRMA — Flux opérationnel</div>
+                <div class="cc-question">Créés vs clôturés (dossiers réellement terminés)</div>
             </div>
         </div>
-        <canvas id="chartDecisionsMois"></canvas>
+        <canvas id="chartCrmaFlux"></canvas>
     </div>
 </div>
 
@@ -865,75 +915,52 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
 
 </div>
 
-<div class="wide-narrow">
-    <div class="chart-card" style="overflow:auto;">
-        <div class="cc-header">
-            <div>
-                <div class="cc-title">Répartition des dossiers par agence</div>
-               
-            </div>
+<div class="chart-card" style="overflow:auto;">
+    <div class="cc-header">
+        <div>
+            <div class="cc-title">Répartition des dossiers par agence</div>
         </div>
-        <table class="perf-table">
-            <thead>
-                <tr>
-                    <th>Agence</th>
-                    <th>Dossiers</th>
-                    <th>Validés</th>
-                    <th>Refusés</th>
-                   
-                </tr>
-            </thead>
-            <tbody>
-            <?php while($ag = mysqli_fetch_assoc($perf_agence)):
-                $td = ($ag['valides'] + $ag['refuses']);
-                $tv = $td > 0 ? round($ag['valides']/$td*100,0) : null;
-                $conso = $ag['total_reserve'] > 0 ? round($ag['total_regle']/$ag['total_reserve']*100,0) : 0;
-            ?>
+    </div>
+    <table class="perf-table">
+        <thead>
             <tr>
-                <td style="font-weight:500;"><?php echo htmlspecialchars($ag['nom_agence']); ?></td>
-              <td class="mono">
-    <?php 
-    echo $ag['total'];
-
-    $pct = $total_dossiers > 0 
-        ? round($ag['total'] / $total_dossiers * 100, 1) 
-        : 0;
-    ?>
-    
-    <div style="font-size:11px; color:#9ca3af;">
-        <?php echo $pct; ?>%
-    </div>
-
-    <div style="height:4px; background:#eee; margin-top:5px; border-radius:3px;">
-        <div style="width:<?php echo $pct; ?>%; background:#3b82f6; height:100%; border-radius:3px;"></div>
-    </div>
-</td>
-                <td>
-                    <span class="chip chip-green"><?php echo $ag['valides']; ?></span>
-                </td>
-                <td>
-                    <?php if($ag['refuses']>0): ?>
-                    <span class="chip chip-red"><?php echo $ag['refuses']; ?></span>
-                    <?php else: echo '<span style="color:#9ca3af">0</span>'; endif; ?>
-                </td>
-               
-              
-                
+                <th>Agence</th>
+                <th>Dossiers</th>
+                <th>Validés</th>
+                <th>Refusés</th>
             </tr>
-            <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="chart-card">
-        <div class="cc-header">
-            <div>
-                <div class="cc-title">Dossiers par agence</div>
-                <div class="cc-question">Répartition de la charge</div>
-            </div>
-        </div>
-        <canvas id="chartAgencePie"></canvas>
-    </div>
+        </thead>
+        <tbody>
+        <?php while($ag = mysqli_fetch_assoc($perf_agence)):
+            $td = ($ag['valides'] + $ag['refuses']);
+            $tv = $td > 0 ? round($ag['valides']/$td*100,0) : null;
+        ?>
+        <tr>
+            <td style="font-weight:500;"><?php echo htmlspecialchars($ag['nom_agence']); ?></td>
+            <td class="mono">
+                <?php 
+                echo $ag['total'];
+                $pct = $total_dossiers > 0 ? round($ag['total'] / $total_dossiers * 100, 1) : 0;
+                ?>
+                <div style="font-size:11px; color:#9ca3af;">
+                    <?php echo $pct; ?>%
+                </div>
+                <div style="height:4px; background:#eee; margin-top:5px; border-radius:3px;">
+                    <div style="width:<?php echo $pct; ?>%; background:#3b82f6; height:100%; border-radius:3px;"></div>
+                </div>
+            </td>
+            <td>
+                <span class="chip chip-green"><?php echo $ag['valides']; ?></span>
+            </td>
+            <td>
+                <?php if($ag['refuses']>0): ?>
+                <span class="chip chip-red"><?php echo $ag['refuses']; ?></span>
+                <?php else: echo '<span style="color:#9ca3af">0</span>'; endif; ?>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+        </tbody>
+    </table>
 </div>
 
 <!-- ═══════════════════════════════════════════════
@@ -1018,84 +1045,51 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
     
 </div>
 
-<div class="two-col">
-    <!-- Goulots d'étranglement par état -->
-    <div class="chart-card">
-        <div class="cc-header">
-            <div>
-                <div class="cc-title">Durée moyenne des dossiers en cours par état</div>
-                
-            </div>
-        </div>
-        <?php
-        $goulot_max = 1;
-        $goulot_rows = [];
-        while($g = mysqli_fetch_assoc($goulots)) { $goulot_rows[] = $g; if($g['age_moy']>$goulot_max) $goulot_max=$g['age_moy']; }
-        ?>
-        <?php foreach($goulot_rows as $g):
-            $pct_g = $goulot_max > 0 ? round($g['age_moy']/$goulot_max*100) : 0;
-            $col_g = $g['age_moy'] >= 30 ? '#dc2626' : ($g['age_moy'] >= 15 ? '#d97706' : '#059669');
-        ?>
-        <div class="goulot-item">
-            <div class="goulot-label"><?php echo htmlspecialchars($g['nom_etat']); ?></div>
-            <div class="goulot-bar-wrap">
-                <div class="goulot-bar-bg"><div class="goulot-bar-fill" style="width:<?php echo $pct_g; ?>%; background:<?php echo $col_g; ?>;"></div></div>
-            </div>
-            <div class="goulot-val" style="color:<?php echo $col_g; ?>;"><?php echo $g['age_moy']; ?> j</div>
-            <div class="goulot-count"><?php echo $g['nb']; ?> dos.</div>
-        </div>
-        <?php endforeach; ?>
-        <?php if(empty($goulot_rows)): ?><div class="empty-analysis"><i class="fa fa-check-circle" style="color:#059669;"></i><p>Aucun blocage détecté</p></div><?php endif; ?>
-    </div>
-
-    <!-- Dossiers bloqués -->
-    <div class="chart-card" style="overflow:auto;">
-        <div class="cc-header">
-            <div>
-               <?php
-$nb_blocages = mysqli_num_rows($blocages);
-mysqli_data_seek($blocages, 0); // important sinon boucle vide après
-?>
-<div class="cc-title">Dossiers critiques (<?php echo $nb_blocages; ?>)</div>
-                <div class="cc-question">Dossiers présentant un retard de traitement</div>
-              
-            </div>
-            <span class="cc-badge chip chip-red">+15 jours</span>
-        </div>
-        <table class="perf-table">
-            <thead><tr><th>Dossier</th><th>Agence</th><th>État</th><th>Durée en cours</th></tr></thead>
-            <tbody>
-            <?php $has_bloc = false; while($b = mysqli_fetch_assoc($blocages)):
-                $has_bloc = true;
-                $crit = $b['age_jours'] >= 30;
-                $warn = $b['age_jours'] >= 15;
+<div class="chart-card" style="overflow:auto;">
+    <div class="cc-header">
+        <div>
+            <?php
+            $nb_blocages = mysqli_num_rows($blocages);
+            mysqli_data_seek($blocages, 0);
             ?>
-            <tr class="<?php echo $crit?'blocage-row-critical':($warn?'blocage-row-warn':''); ?>">
-                <td>
-                    <a href="voir_dossier_cnma.php?id=<?php echo $b['id_dossier']; ?>"
-                       style="font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#1d4ed8; text-decoration:none;">
-                        <?php echo $b['numero_dossier']; ?>
-                    </a>
-                  <div style="font-size:11px; color:#6b7280;">
-    <?php echo htmlspecialchars($b['nom_assure'].' '.$b['prenom_assure']); ?>
-</div>
-<div style="font-size:10px; color:#9ca3af;">
-    Créé le : <?php echo date('d/m/Y', strtotime($b['date_creation'])); ?>
-</div>
-                </td>
-                <td style="font-size:12px; color:#6b7280;"><?php echo htmlspecialchars($b['nom_agence']); ?></td>
-                <td><span class="chip chip-amber" style="font-size:10px;"><?php echo htmlspecialchars($b['nom_etat']); ?></span></td>
-                <td>
-                    <span class="age-badge <?php echo $crit?'crit':($warn?'warn':'ok'); ?>">
-                        <?php echo $b['age_jours']; ?> j
-                    </span>
-                </td>
-            </tr>
-            <?php endwhile; ?>
-            <?php if(!$has_bloc): ?><tr><td colspan="4"><div class="empty-analysis" style="padding:20px;"><i class="fa fa-check-circle" style="color:#059669;"></i><p>Aucun dossier bloqué</p></div></td></tr><?php endif; ?>
-            </tbody>
-        </table>
+            <div class="cc-title">Dossiers critiques (<?php echo $nb_blocages; ?>)</div>
+            <div class="cc-question">Dossiers présentant un retard de traitement</div>
+        </div>
+        <span class="cc-badge chip chip-red">+15 jours</span>
     </div>
+    <table class="perf-table">
+        <thead><tr><th>Dossier</th><th>Agence</th><th>État</th><th>Durée en cours</th></tr></thead>
+        <tbody>
+        <?php $has_bloc = false; while($b = mysqli_fetch_assoc($blocages)):
+            $has_bloc = true;
+            $crit = $b['age_jours'] >= 30;
+            $warn = $b['age_jours'] >= 15;
+        ?>
+        <tr class="<?php echo $crit?'blocage-row-critical':($warn?'blocage-row-warn':''); ?>">
+            <td>
+                <a href="voir_dossier_cnma.php?id=<?php echo $b['id_dossier']; ?>"
+                   style="font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#1d4ed8; text-decoration:none;">
+                    <?php echo $b['numero_dossier']; ?>
+                </a>
+                <div style="font-size:11px; color:#6b7280;">
+                    <?php echo htmlspecialchars($b['nom_assure'].' '.$b['prenom_assure']); ?>
+                </div>
+                <div style="font-size:10px; color:#9ca3af;">
+                    Depuis : <?php echo date('d/m/Y', strtotime($b['date_ref'])); ?>
+                </div>
+            </td>
+            <td style="font-size:12px; color:#6b7280;"><?php echo htmlspecialchars($b['nom_agence']); ?></td>
+            <td><span class="chip chip-amber" style="font-size:10px;"><?php echo htmlspecialchars($b['nom_etat']); ?></span></td>
+            <td>
+                <span class="age-badge <?php echo $crit?'crit':($warn?'warn':'ok'); ?>">
+                    <?php echo $b['age_jours']; ?> j
+                </span>
+            </td>
+        </tr>
+        <?php endwhile; ?>
+        <?php if(!$has_bloc): ?><tr><td colspan="4"><div class="empty-analysis" style="padding:20px;"><i class="fa fa-check-circle" style="color:#059669;"></i><p>Aucun dossier bloqué</p></div></td></tr><?php endif; ?>
+        </tbody>
+    </table>
 </div>
 
 <!-- ═══════════════════════════════════════════════
@@ -1127,14 +1121,6 @@ mysqli_data_seek($blocages, 0); // important sinon boucle vide après
         </div>
         <div class="f-sub"><?php echo $reste_fin>0?'Solde non réglé':'Aucun impayé'; ?></div>
     </div>
-    <div class="fin-kpi">
-        <div class="f-label">Taux de consommation</div>
-        <div class="f-val" style="color:<?php echo $taux_conso>=80?'#059669':($taux_conso>=50?'#d97706':'#6b7280'); ?>;">
-            <?php echo $taux_conso; ?><small>%</small>
-        </div>
-        <div class="f-sub">Réglé / Réserve</div>
-        <div class="f-gauge"><div class="fill" style="width:<?php echo $taux_conso; ?>%; background:<?php echo $taux_conso>=80?'#059669':($taux_conso>=50?'#d97706':'#9ca3af'); ?>;"></div></div>
-    </div>
 </div>
 
 <div class="chart-card">
@@ -1158,8 +1144,10 @@ mysqli_data_seek($blocages, 0); // important sinon boucle vide après
 // ── Données JS ──
 const moisLabels = <?php echo json_encode($mois_labels); ?>;
 const mCrees   = <?php echo json_encode($m_crees); ?>;
-const mValides = <?php echo json_encode($m_valides); ?>;
-const mRefuses = <?php echo json_encode($m_refuses); ?>;
+const mDecides = <?php echo json_encode($m_decides); ?>;
+
+const crmaCrees = <?php echo json_encode($crma_crees); ?>;
+const crmaClotures = <?php echo json_encode($crma_clotures); ?>;
 
 const fmReserve = <?php echo json_encode($fm_reserve); ?>;
 const fmRegle   = <?php echo json_encode($fm_regle); ?>;
@@ -1167,17 +1155,6 @@ const fmRegle   = <?php echo json_encode($fm_regle); ?>;
 const pipelineLabels = <?php echo json_encode(array_column($pipeline_states,'label')); ?>;
 const pipelineVals   = <?php echo json_encode($pipeline_vals); ?>;
 const pipelineColors = <?php echo json_encode(array_column($pipeline_states,'color')); ?>;
-
-const agenceLabels = <?php
-    $tmp = []; mysqli_data_seek($perf_agence, 0);
-    while($ag = mysqli_fetch_assoc($perf_agence)) $tmp[] = $ag['nom_agence'];
-    echo json_encode($tmp);
-?>;
-const agenceVals = <?php
-    $tmp = []; mysqli_data_seek($perf_agence, 0);
-    while($ag = mysqli_fetch_assoc($perf_agence)) $tmp[] = intval($ag['total']);
-    echo json_encode($tmp);
-?>;
 
 // ── Chart defaults ──
 Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
@@ -1201,12 +1178,16 @@ new Chart(document.getElementById('chartFluxMensuel'), {
             {
                 label: 'Créés', data: mCrees,
                 backgroundColor: '#93c5fd', borderRadius: 4, borderSkipped: false
+            },
+            {
+                label: 'Décidés (validés + refusés)', data: mDecides,
+                backgroundColor: '#c4b5fd', borderRadius: 4, borderSkipped: false
             }
         ]
     },
     options: {
         responsive: true,
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: true, position: 'bottom' } },
         scales: {
             y: { beginAtZero: true, grid: gridStyle, ticks: tickStyle },
             x: { grid: { display: false }, ticks: tickStyle }
@@ -1214,30 +1195,27 @@ new Chart(document.getElementById('chartFluxMensuel'), {
     }
 });
 
-// ── Décisions par mois ──
-new Chart(document.getElementById('chartDecisionsMois'), {
+new Chart(document.getElementById('chartCrmaFlux'), {
     type: 'bar',
     data: {
         labels: moisLabels,
         datasets: [
             {
-                label: 'Validés', data: mValides,
-                backgroundColor: '#86efac', borderRadius: 4, borderSkipped: false, stack: 'stack'
+                label: 'Créés', data: crmaCrees,
+                backgroundColor: '#86efac', borderRadius: 4, borderSkipped: false
             },
             {
-                label: 'Refusés', data: mRefuses,
-                backgroundColor: '#fca5a5', borderRadius: 4, borderSkipped: false, stack: 'stack'
+                label: 'Clôturés', data: crmaClotures,
+                backgroundColor: '#34d399', borderRadius: 4, borderSkipped: false
             }
         ]
     },
     options: {
         responsive: true,
-        plugins: {
-            legend: { display: true, position: 'bottom' }
-        },
+        plugins: { legend: { display: true, position: 'bottom' } },
         scales: {
-            y: { beginAtZero: true, grid: gridStyle, ticks: tickStyle, stacked: true },
-            x: { grid: { display: false }, ticks: tickStyle, stacked: true }
+            y: { beginAtZero: true, grid: gridStyle, ticks: tickStyle },
+            x: { grid: { display: false }, ticks: tickStyle }
         }
     }
 });
@@ -1268,81 +1246,23 @@ new Chart(document.getElementById('chartDecisionsMois'), {
     });
 })();
 
-// ── Agence donut ──
-new Chart(document.getElementById('chartAgencePie'), {
-    type: 'doughnut',
-    data: {
-        labels: agenceLabels,
-        datasets: [{
-            data: agenceVals,
-            backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4'],
-            borderWidth: 2, borderColor: '#fff'
-        }]
-    },
-options: {
-    responsive: true,
-    cutout: '62%',
-    plugins: {
-        legend: {
-            position: 'bottom',
-            labels: {
-                boxWidth: 10,
-                padding: 10,
-                font: { size: 11 },
-                generateLabels: function(chart) {
-
-                    const data = chart.data;
-                    const total = data.datasets[0].data.reduce((a,b)=>a+b,0);
-
-                    return data.labels.map((label, i) => {
-                        const value = data.datasets[0].data[i];
-                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-
-                        return {
-                            text: label + " (" + pct + "%)",
-                            fillStyle: data.datasets[0].backgroundColor[i],
-                            strokeStyle: data.datasets[0].backgroundColor[i],
-                            index: i
-                        };
-                    });
-                }
-            }
-        },
-
-        tooltip: {
-            callbacks: {
-                label: function(context) {
-
-                    const data = context.dataset.data;
-                    const total = data.reduce((a,b)=>a+b,0);
-
-                    const value = context.raw;
-                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-
-                    return context.label + " : " + value + " (" + pct + "%)";
-                }
-            }
-        }
-    }
-
-    }
-});
-
 // ── Finance évolution ──
 new Chart(document.getElementById('chartFinanceMois'), {
-    type: 'line',
+    type: 'bar',
     data: {
         labels: moisLabels,
         datasets: [
             {
                 label: 'Réserves (DA)', data: fmReserve,
-                borderColor: '#6b7280', backgroundColor: 'rgba(107,114,128,.06)',
-                borderWidth: 1.5, pointRadius: 3, fill: true, tension: .35
+                backgroundColor: 'rgba(107,114,128,.18)',
+                borderRadius: 4,
+                borderSkipped: false
             },
             {
                 label: 'Réglé (DA)', data: fmRegle,
-                borderColor: '#059669', backgroundColor: 'rgba(5,150,105,.06)',
-                borderWidth: 2, pointRadius: 3, fill: true, tension: .35
+                backgroundColor: 'rgba(5,150,105,.25)',
+                borderRadius: 4,
+                borderSkipped: false
             }
         ]
     },

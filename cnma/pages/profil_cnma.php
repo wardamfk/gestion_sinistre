@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('cnma');
 include('../includes/config.php');
 
 if (!isset($_SESSION['id_user'])) {

@@ -1,6 +1,7 @@
 <?php
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('crma');
 include('../includes/config.php');
-session_start();
 
 $id_dossier = $_POST['id_dossier'];
 $type = $_POST['type'];

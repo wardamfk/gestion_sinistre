@@ -465,6 +465,7 @@ if (isset($_GET['compte'])) {
                id="email_add"
                required
                placeholder="exemple@mail.com">
+               <small id="email-error" style="color:red;font-size:12px;"></small>
     </div>
 
 </div>
@@ -688,7 +689,42 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
 });
+// ── Vérification email en temps réel ──
+const emailInputAdd = document.getElementById('email_add');
+const emailErrorAdd = document.getElementById('email-error');
 
+let emailTimeoutAdd = null;
+
+emailInputAdd.addEventListener('input', () => {
+
+    clearTimeout(emailTimeoutAdd);
+
+    const val = emailInputAdd.value.trim();
+
+    if (!val) {
+        emailInputAdd.classList.remove('input-error');
+        emailErrorAdd.textContent = '';
+        return;
+    }
+
+    emailTimeoutAdd = setTimeout(() => {
+
+        fetch('check_email.php?email=' + encodeURIComponent(val))
+        .then(r => r.json())
+        .then(d => {
+
+            if (d.exists) {
+                emailInputAdd.classList.add('input-error');
+                emailErrorAdd.textContent = '❌ Email déjà utilisé';
+            } else {
+                emailInputAdd.classList.remove('input-error');
+                emailErrorAdd.textContent = '';
+            }
+
+        });
+
+    }, 400);
+});
 // ── Vérification CIN en temps réel ──
 const cinInput = document.getElementById('cin_add');
 

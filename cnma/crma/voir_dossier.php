@@ -4,8 +4,9 @@
 // État géré par sélection manuelle (dropdown)
 // Motifs affichés dynamiquement selon l'état sélectionné
 // ============================================================
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('crma');
 include('../includes/config.php');
-session_start();
 
 if (!isset($_GET['id'])) { echo "Dossier introuvable"; exit(); }
 $id_dossier = intval($_GET['id']);

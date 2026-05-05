@@ -1,6 +1,7 @@
 <?php
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('crma');
 include('../includes/config.php');
-session_start();
 $id_user = $_SESSION['id_user'];
 $role = $_SESSION['role'];
 $id_agence = $_SESSION['id_agence'];

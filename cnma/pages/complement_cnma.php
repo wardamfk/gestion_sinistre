@@ -3,7 +3,8 @@
 // complement_cnma.php
 // Complement CNMA : etat 6, motif obligatoire, notification CRMA seule
 // ============================================================
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('cnma');
 include '../includes/config.php';
 
 if ($_SESSION['role'] != 'CNMA') {

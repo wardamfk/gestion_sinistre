@@ -1400,3 +1400,12 @@ html.sidebar-collapsed .badge-role {
     color: #166534;
     font-size: 14px;
 }
+
+.input-error {
+    border: 2px solid #ef4444 !important;
+    background-color: #fff5f5;
+}
+
+input:focus:not(.input-error) {
+    border: 2px solid #2f6b4f;
+}

@@ -1,4 +1,7 @@
-<?php if(session_status() == PHP_SESSION_NONE) session_start(); ?>
+<?php
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('cnma');
+?>
 <div class="cnma-header">
     <div class="page-title">
         <?php echo isset($page_title) ? $page_title : 'Espace CNMA'; ?>

@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/../includes/session.php';
+pfe_session_start('assure');
 include('../includes/config.php');
 if(!isset($_SESSION['id_user']) || $_SESSION['role'] != 'ASSURE') { header("Location: ../pages/login.php"); exit(); }
 $id_user = $_SESSION['id_user'];
@@ -59,7 +60,7 @@ $contrats = mysqli_query($conn,"
         <span class="badge-etat <?= $si[0]; ?>"><?= $si[1]; ?></span>
 
         <!-- 🔥 bouton -->
-        <a href="../crma/print_contrat.php?id=<?= $c['id_contrat']; ?>" 
+        <a href="../crma/print_contrat.php?id=<?= $c['id_contrat']; ?>&app=assure" 
            target="_blank"
            style="padding:6px 12px;background:#2e7d32;color:white;border-radius:6px;font-size:12px;text-decoration:none;">
            📄 Télécharger
