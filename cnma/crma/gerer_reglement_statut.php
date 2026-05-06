@@ -16,7 +16,7 @@ if($statut == 'disponible') {
     $action = "Règlement disponible";
 }
 elseif($statut == 'remis') {
-    $action = "Règlement remis";
+    $action = "Règlement remis à l’assuré (quittance signée) ";
 }
 
 // récupérer état dossier actuel

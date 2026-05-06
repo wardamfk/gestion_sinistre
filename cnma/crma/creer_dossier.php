@@ -65,14 +65,24 @@ if(isset($_POST['creer'])){
 
     $cree_par = $_SESSION['id_user'];
     $date_creation = date('Y-m-d');
-   $id_etat = 2;
+  
 $statut_validation = 'non_soumis';
 
     // Calcul délai déclaration
     $d1 = new DateTime($date_sinistre);
     $d2 = new DateTime($date_declaration);
     $delai = $d1->diff($d2)->days;
+// 🔥 Refus automatique si délai > 5 jours
+if($delai > 5){
 
+    // Refus automatique : délai dépassé
+    $id_etat = 21;
+
+} else {
+
+    // En cours CRMA
+    $id_etat = 2;
+}
     // Générer numéro dossier
     $annee = date('Y');
     $sql_num = "SELECT COUNT(*) as total FROM dossier WHERE YEAR(date_creation) = '$annee'";
@@ -140,9 +150,25 @@ mysqli_query($conn, "INSERT INTO historique
 (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat)
 VALUES
 ('$id_dossier', 'Création dossier', NOW(), '$cree_par', NULL, 2)");
+// 🔥 Refus automatique si hors délai
+if($delai > 5){
 
+    mysqli_query($conn, "
+    INSERT INTO historique
+    (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat)
+    VALUES
+    (
+        '$id_dossier',
+        'Refus automatique : déclaration hors délai réglementaire',
+        NOW(),
+        '$cree_par',
+        NULL,
+        '21'
+    )
+    ");
+}
 // SI EXPERT AFFECTÉ → PASSER EN EXPERTISE
-if($id_expert != ""){
+if($id_expert != "" && $delai <= 5){
     
     // Ancien état = 2
     $ancien_etat = 2;

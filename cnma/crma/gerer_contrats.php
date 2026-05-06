@@ -11,7 +11,7 @@ $params = [];
 $pr = mysqli_query($conn, "SELECT nom,valeur FROM parametre");
 while ($row = mysqli_fetch_assoc($pr)) $params[$row['nom']] = $row['valeur'];
 $TAXE   = (float)($params['taxe']   ?? 0.19);
-$TIMBRE = (float)($params['timbre'] ?? 1500);
+
 
 /* Garanties depuis la BDD */
 $garanties_list = [];
@@ -24,15 +24,29 @@ if (isset($_POST['ajouter'])) {
     $marque      = mysqli_real_escape_string($conn, trim($_POST['marque']));
     $modele      = mysqli_real_escape_string($conn, trim($_POST['modele']));
     $couleur     = mysqli_real_escape_string($conn, trim($_POST['couleur']));
-    $nb_places   = intval($_POST['nombre_places']);
+  $nb_places = intval($_POST['nombre_places'] ?? 0);
     $matricule   = mysqli_real_escape_string($conn, trim(strtoupper($_POST['matricule'])));
-    $chassis     = mysqli_real_escape_string($conn, trim($_POST['numero_chassis']));
-    $serie       = mysqli_real_escape_string($conn, trim($_POST['numero_serie']));
-    $annee       = intval($_POST['annee']);
+   $chassis   = mysqli_real_escape_string($conn, trim($_POST['numero_chassis'] ?? ''));
+$serie = mysqli_real_escape_string($conn, trim($_POST['numero_serie'] ?? ''));
+   
     $type_veh    = mysqli_real_escape_string($conn, $_POST['type_vehicule']);
-    $carrosserie = mysqli_real_escape_string($conn, $_POST['carrosserie']);
-    $capital     = (float)$_POST['capital'];
+  $capital     = (float)$_POST['capital'];
+$annee       = intval($_POST['annee'] ?? 0);
+$carrosserie = mysqli_real_escape_string($conn, $_POST['carrosserie'] ?? '');
 
+
+
+if (!$error) {
+    $chk_ser = mysqli_fetch_assoc(mysqli_query($conn, "
+        SELECT id_vehicule 
+        FROM vehicule 
+        WHERE numero_serie='$serie' AND numero_serie != ''
+    "));
+
+    if ($chk_ser && $serie) {
+        $error = "Ce numéro de série est déjà utilisé.";
+    }
+}
     // Vérifications vehicule
     $chk_mat = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id_vehicule FROM vehicule WHERE matricule='$matricule'"));
     if ($chk_mat) { $error = "La matricule <b>$matricule</b> est déjà enregistrée."; }
@@ -49,8 +63,34 @@ if (isset($_POST['ajouter'])) {
             VALUES ('$marque','$modele','$couleur',$nb_places,'$matricule','$chassis','$serie',$annee,'$type_veh','$carrosserie')");
         $id_vehicule = mysqli_insert_id($conn);
 
+// 🔥 GENERATION AUTO NUMERO POLICE
+
+$id_agence = intval($_SESSION['id_agence']);
+$annee = date('Y');
+
+// récupérer code agence (ex: ALG, CST)
+$ag = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT code FROM agence WHERE id_agence=$id_agence
+"));
+
+$code_agence = $ag['code'] ?? 'UNK';
+
+// récupérer dernier numéro
+$res = mysqli_query($conn, "
+    SELECT MAX(CAST(SUBSTRING_INDEX(numero_police,'-',-1) AS UNSIGNED)) as maxnum
+    FROM contrat
+    WHERE id_agence=$id_agence AND YEAR(date_creation)=$annee
+");
+
+$row = mysqli_fetch_assoc($res);
+$num = str_pad(($row['maxnum'] ?? 0) + 1, 3, '0', STR_PAD_LEFT);
+
+// numéro final
+$numero_police = "CRMA-$code_agence-$annee-$num";
+
+
         // 2. Données contrat
-        $numero_police = mysqli_real_escape_string($conn, trim($_POST['numero_police']));
+        
         $id_assure     = intval($_POST['id_assure']);
         $id_agence     = intval($_SESSION['id_agence']);
         $date_effet    = $_POST['date_effet'];
@@ -96,7 +136,7 @@ $timbre = floatval($_POST['timbre'] ?? 0);
 /* ======= CHANGER STATUT ======= */
 if (isset($_GET['statut'], $_GET['id'])) {
     $id = intval($_GET['id']);
-    $statut = in_array($_GET['statut'],['actif','expire','suspendu','resilie']) ? $_GET['statut'] : 'actif';
+$statut = in_array($_GET['statut'], ['actif','expire']) ? $_GET['statut'] : 'actif';
     mysqli_query($conn, "UPDATE contrat SET statut='$statut' WHERE id_contrat=$id");
     header("Location: gerer_contrats.php?ok=statut"); exit();
 }
@@ -127,6 +167,9 @@ if ($filtre_q)      $where .= " AND (c.numero_police LIKE '%".mysqli_real_escape
                                   OR v.matricule LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%')";
 if ($filtre_statut) $where .= " AND c.statut='".mysqli_real_escape_string($conn,$filtre_statut)."'";
 
+
+
+
 $contrats = mysqli_query($conn, "
     SELECT c.*,
        ag.nom_agence,
@@ -154,8 +197,6 @@ $assures = mysqli_query($conn, "SELECT a.id_assure,p.nom,p.prenom FROM assure a 
 $statut_badge = [
     'actif'    => ['badge-green', 'Actif'],
     'expire'   => ['badge-red',   'Expiré'],
-    'suspendu' => ['badge-amber', 'Suspendu'],
-    'resilie'  => ['badge-gray',  'Résilié'],
 ];
 
 $type_veh_icons = [
@@ -166,6 +207,18 @@ $type_veh_icons = [
     'Moto'       => 'fa-motorcycle',
     'Agricole'   => 'fa-tractor',
 ];
+$id_agence_preview = intval($_SESSION['id_agence']);
+
+$ag_preview = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT code FROM agence WHERE id_agence=$id_agence_preview
+"));
+
+$code_agence_preview = $ag_preview['code'] ?? 'UNK';
+
+
+
+$numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -322,8 +375,7 @@ $type_veh_icons = [
         <option value="">Tous les statuts</option>
         <option value="actif"    <?= $filtre_statut=='actif'   ?'selected':'' ?>>Actif</option>
         <option value="expire"   <?= $filtre_statut=='expire'  ?'selected':'' ?>>Expiré</option>
-        <option value="suspendu" <?= $filtre_statut=='suspendu'?'selected':'' ?>>Suspendu</option>
-        <option value="resilie"  <?= $filtre_statut=='resilie' ?'selected':'' ?>>archivé</option>
+       
     </select>
     <button type="submit" class="btn btn-outline btn-sm"><i class="fa fa-search"></i> Filtrer</button>
     <a href="gerer_contrats.php" class="btn btn-ghost btn-sm"><i class="fa fa-times"></i></a>
@@ -407,12 +459,7 @@ $type_veh_icons = [
                     <a href="print_contrat.php?id=<?= $c['id_contrat'] ?>" target="_blank" class="btn btn-ghost btn-xs" title="Imprimer contrat">
                         <i class="fa fa-print"></i>
                     </a>
-                    <!-- Résilier -->
-                    <?php if ($c['statut'] == 'actif'): ?>
-                    <button class="btn btn-danger btn-xs" onclick="confirmResilier(<?= $c['id_contrat'] ?>, '<?= htmlspecialchars($c['numero_police']) ?>')" title="archiver">
-                        <i class="fa fa-ban"></i>
-                    </button>
-                    <?php endif; ?>
+                
                 </div>
             </td>
         </tr>
@@ -558,7 +605,11 @@ $type_veh_icons = [
             <div class="grid2">
                 <div class="fg">
                     <label>N° Police <span style="color:red">*</span></label>
-                    <input type="text" name="numero_police" required placeholder="Ex: CRMA-ALG-2026-001" oninput="this.value=this.value.toUpperCase()">
+                    
+     <input type="text"
+       id="numero_police"
+       value="<?= $numero_police_preview ?>"
+       readonly>
                 </div>
               <div class="fg">
     <label>Assuré <span style="color:red">*</span></label>
@@ -638,6 +689,7 @@ $type_veh_icons = [
                 <div class="fg">
                     <label>Matricule <span style="color:red">*</span></label>
                     <input type="text" name="matricule" required placeholder="Ex: 12345-16-001" oninput="this.value=this.value.toUpperCase()" style="font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px">
+                <span id="error_matricule" style="color:red;font-size:12px"></span>
                 </div>
                 <div class="fg"><label>Année</label><input type="number" name="annee" min="1980" max="2030" value="<?= date('Y') ?>"></div>
                 <div class="fg"><label>Nb places</label><input type="number" name="nombre_places" min="1" max="100" value="5"></div>
@@ -658,8 +710,14 @@ $type_veh_icons = [
             </div>
             <div class="section-h"><i class="fa fa-hashtag"></i> Identifiants techniques</div>
             <div class="grid2">
-                <div class="fg"><label>N° Châssis</label><input type="text" name="numero_chassis" placeholder="Numéro de châssis VIN"></div>
-                <div class="fg"><label>N° Série</label><input type="text" name="numero_serie" placeholder="Numéro de série"></div>
+                <div class="fg"><label>N° Châssis</label><input type="text" name="numero_chassis" id="chassis" placeholder="Numéro de châssis VIN"> 
+        <span id="error_chassis" style="color:red;font-size:12px"></span>
+            </div>
+               
+
+                <div class="fg"><label>N° Série</label><input type="text" name="numero_serie" id="serie" placeholder="Numéro de série"> 
+<span id="error_serie" style="color:red;font-size:12px"></span></div>
+
             </div>
             <div class="section-h"><i class="fa fa-coins"></i> Capital assuré</div>
             <div class="fg" style="max-width:320px">
@@ -769,6 +827,7 @@ $type_veh_icons = [
 
 <!-- Données véhicules pour JS -->
 <script>
+    
 const TAXE   = <?= $TAXE ?>;
 const TOTAL_STEPS = 5;
 let currentStep = 1;
@@ -934,7 +993,7 @@ function openVehicule(id) {
      <button onclick="editVehicule(${id})" class="btn btn-primary btn-sm">
     <i class="fa fa-pen"></i> Modifier
 </button>
-                <a href="print_contrat.php?id=${v.id_contrat}" target="_blank" class="btn btn-outline btn-sm"><i class="fa fa-print"></i> Imprimer le contrat</a>
+              
                 <button onclick="closeModal('modal-vehicule')" class="btn btn-ghost btn-sm" style="margin-left:auto">Fermer</button>
             </div>
         </div>`;
@@ -967,7 +1026,7 @@ function editVehicule(id) {
 
             <div class="fg">
                 <label>Matricule</label>
-                <input value="${v.matricule}" readonly>
+            <input id="matricule" value="${v.matricule}" readonly>
             </div>   
                <div class="fg">
     <label>N° Châssis</label>
@@ -1005,12 +1064,31 @@ function editVehicule(id) {
         </div>
     `;
 }
-function saveVehicule(id) {
 
-    fetch('update_vehicule.php?id=' + id, {
+document.querySelector("[name='matricule']").addEventListener("blur", function () {
+    let val = this.value;
+
+    fetch("check_unique.php?type=matricule&value=" + encodeURIComponent(val))
+        .then(res => res.json())
+        .then(data => {
+            let input = document.querySelector("[name='matricule']")
+            let error = document.getElementById("error_matricule");
+
+            if (data.exists) {
+                input.style.border = "2px solid red";
+                error.innerText = "Matricule déjà utilisée";
+            } else {
+                input.style.border = "2px solid green";
+                error.innerText = "";
+            }
+        });
+});
+function saveVehicule(id) {
+    fetch('modifier_vehicule_contrat.php?id=' + id, {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams({
+            modifier: 1, // 🔥 LE TRUC QUI MANQUE
             marque: document.getElementById('marque').value,
             modele: document.getElementById('modele').value,
             couleur: document.getElementById('couleur').value,
@@ -1018,13 +1096,64 @@ function saveVehicule(id) {
             type: document.getElementById('type').value
         })
     })
-    .then(() => location.reload());
-}
-/* ── Confirmations ── */
-function confirmResilier(id, police) {
-    if(confirm(`Résilier le contrat ${police} ?`)) window.location.href=`?statut=resilie&id=${id}`;
+    .then(res => res.text())
+  .then(data => {
+    console.log(data);
+
+    if (data.trim() === "OK") {
+        alert("Véhicule modifié ✅");
+        location.reload();
+    } else {
+        alert("Erreur : " + data);
+    }
+});
 }
 
+
+
+document.getElementById("chassis").addEventListener("blur", function () {
+    let val = this.value;
+
+    fetch("check_unique.php?type=chassis&value=" + encodeURIComponent(val))
+    .then(res => res.json())
+    .then(data => {
+        let input = document.getElementById("chassis");
+        let error = document.getElementById("error_chassis");
+
+        if (data.exists) {
+            input.style.border = "2px solid red";
+            error.innerText = "Numéro de châssis déjà utilisé";
+        } else {
+            input.style.border = "2px solid green";
+            error.innerText = "";
+        }
+    });
+});
+
+
+
+let policeValide = false;
+
+
+
+document.getElementById("serie").addEventListener("blur", function () {
+    let val = this.value;
+
+    fetch("check_unique.php?type=serie&value=" + encodeURIComponent(val))
+        .then(res => res.json())
+        .then(data => {
+            let input = document.getElementById("serie");
+            let error = document.getElementById("error_serie");
+
+            if (data.exists) {
+                input.style.border = "2px solid red";
+                error.innerText = "Numéro de série déjà utilisé";
+            } else {
+                input.style.border = "2px solid green";
+                error.innerText = "";
+            }
+        });
+});
 // Init
 computeDates(); recalcGaranties();
 </script>

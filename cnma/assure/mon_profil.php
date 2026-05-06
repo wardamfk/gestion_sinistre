@@ -78,27 +78,33 @@ if(isset($_POST['changer_mdp'])) {
 <style>
 /* ===== EXTRAS PROFIL ===== */
 .profil-hero {
-     background: linear-gradient(135deg, #2f6b4f 0%, #3c8c66 60%, #4fa37d 100%);
-    box-shadow: 0 6px 24px rgba(47,107,79,0.25);
-    border-radius: 16px;
-    padding: 28px 30px;
-    margin-bottom: 24px;
+    background: linear-gradient(135deg, #315443 0%, #92bca8 60%, #89b8a4 100%);
+    box-shadow: 0 4px 12px rgba(47,107,79,0.15);
+    border-radius: 17px;
+
+    padding: 13px 18px; /* 🔥 réduit fortement */
+    margin-bottom: 19px;
+
     display: flex;
     align-items: center;
-    gap: 22px;
-   
+    gap: 12px; /* 🔥 moins d’espace */
 }
 .profil-avatar {
-    width: 72px; height: 72px;
+  
     border-radius: 50%;
     background: rgba(255,255,255,0.18);
     border: 3px solid rgba(255,255,255,0.35);
     display: flex; align-items: center; justify-content: center;
-    font-size: 28px; color: white; font-weight: 700;
+   color: white; font-weight: 700;
     flex-shrink: 0;
+      width: 55px;
+    height: 55px;
+    font-size: 20px;
 }
 .profil-hero-info h3 {
-    color: white; font-size: 20px; font-weight: 700; margin-bottom: 5px;
+    color: white; font-weight: 700; 
+        font-size: 17px;
+    margin-bottom: 3px;
 }
 .profil-hero-meta {
     display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px;

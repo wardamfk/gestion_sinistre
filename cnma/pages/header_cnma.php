@@ -3,8 +3,13 @@ require_once __DIR__ . '/../includes/session.php';
 pfe_session_start('cnma');
 ?>
 <div class="cnma-header">
-    <div class="page-title">
-        <?php echo isset($page_title) ? $page_title : 'Espace CNMA'; ?>
+    <div class="cnma-header-left">
+        <button type="button" class="cnma-sidebar-toggle" aria-label="Ouvrir le menu" aria-controls="cnma-sidebar" aria-expanded="false">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </button>
+        <div class="page-title">
+            <?php echo isset($page_title) ? $page_title : 'Espace CNMA'; ?>
+        </div>
     </div>
     <div class="header-right">
         <div class="user-info">

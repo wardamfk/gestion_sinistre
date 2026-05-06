@@ -33,7 +33,7 @@ function nav_link(string $href, string $icon, string $label, string $current, in
 <link rel="stylesheet" href="<?= $base ?>/css/style_crma.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<div class="sidebar">
+<div class="sidebar" id="crma-sidebar">
  <div class="sidebar-brand centered">
     <img src="<?= $base ?>/images/logo.webp" alt="CNMA">
 
@@ -112,8 +112,57 @@ function nav_link(string $href, string $icon, string $label, string $current, in
         </a>
     </div>
 </div>
+<div class="crma-sidebar-overlay" data-crma-sidebar-overlay></div>
 
 <script>
+    const desktopToggle = document.querySelector('.sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('[data-crma-sidebar-overlay]');
+    const storageKey = 'crma-sidebar-collapsed';
+
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+    const getMobileToggle = () => document.querySelector('.mobile-toggle');
+
+    const setOpen = (open) => {
+        if (!sidebar) return;
+        sidebar.classList.toggle('open', open);
+        document.body.classList.toggle('crma-sidebar-open', open);
+        const mt = getMobileToggle();
+        if (mt) mt.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    const handleToggleClick = () => {
+        if (!sidebar) return;
+        if (isMobile()) {
+            setOpen(!sidebar.classList.contains('open'));
+            return;
+        }
+        document.documentElement.classList.toggle('sidebar-collapsed');
+        localStorage.setItem(storageKey, document.documentElement.classList.contains('sidebar-collapsed') ? '1' : '0');
+    };
+
+    if (desktopToggle) desktopToggle.addEventListener('click', handleToggleClick);
+    document.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('.mobile-toggle') : null;
+        if (!btn || !isMobile()) return;
+        handleToggleClick();
+    });
+    if (overlay) overlay.addEventListener('click', () => setOpen(false));
+
+    if (sidebar) {
+        sidebar.addEventListener('click', (e) => {
+            const a = e.target && e.target.closest ? e.target.closest('a') : null;
+            if (a && isMobile()) setOpen(false);
+        });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setOpen(false);
+    });
+
+    window.addEventListener('resize', () => {
+        if (!isMobile()) setOpen(false);
+    });
 document.querySelectorAll('.toggle-section').forEach(section => {
     section.addEventListener('click', () => {
 
@@ -132,6 +181,7 @@ document.querySelectorAll('.toggle-section').forEach(section => {
     });
 });
 
+
 // 🔥 IMPORTANT : garder ouvert selon page
 document.querySelectorAll('.sidebar-link.active').forEach(link => {
     const menu = link.closest('.sub-menu');
@@ -141,20 +191,13 @@ document.querySelectorAll('.sidebar-link.active').forEach(link => {
     if (section) section.classList.add('active');
 });
 (function () {
-    const toggle = document.querySelector('.sidebar-toggle');
     const badge = document.querySelector('[data-sidebar-notif-badge]');
-    const storageKey = 'crma-sidebar-collapsed';
 
-    if (localStorage.getItem(storageKey) === '1') {
-        document.documentElement.classList.add('sidebar-collapsed');
-    }
+   if (window.innerWidth > 768 && localStorage.getItem(storageKey) === '1') {
+    document.documentElement.classList.add('sidebar-collapsed');
+}
 
-    if (toggle) {
-        toggle.addEventListener('click', function () {
-            document.documentElement.classList.toggle('sidebar-collapsed');
-            localStorage.setItem(storageKey, document.documentElement.classList.contains('sidebar-collapsed') ? '1' : '0');
-        });
-    }
+  
 
     async function refreshNotifBadge() {
         if (!badge) return;

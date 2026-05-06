@@ -6,7 +6,7 @@ if(isset($conn) && isset($_SESSION['id_user'])) {
 }
 $current = basename($_SERVER['PHP_SELF']);
 ?>
-<div class="assure-sidebar">
+<div class="assure-sidebar" id="assure-sidebar">
     <div class="assure-brand">
         <img src="/PfeCnma/cnma/images/logo.webp" alt="CNMA">
         <h2></h2>
@@ -76,3 +76,4 @@ $current = basename($_SERVER['PHP_SELF']);
         </a>
     </div>
 </div>
+<div class="assure-sidebar-overlay" data-assure-sidebar-overlay></div>

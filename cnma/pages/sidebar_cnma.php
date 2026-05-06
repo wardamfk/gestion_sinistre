@@ -10,7 +10,7 @@ if(isset($conn)) {
 // Page courante pour active
 $current = basename($_SERVER['PHP_SELF']);?>
 
-<div class="sidebar cnma-sidebar">
+<div class="sidebar cnma-sidebar" id="cnma-sidebar">
  
 <div class="sidebar-brand centered">
     <img src="/PfeCnma/cnma/images/logo.webp">
@@ -95,17 +95,58 @@ $current = basename($_SERVER['PHP_SELF']);?>
 </div>
 
 </div>
+<div class="cnma-sidebar-overlay" data-cnma-sidebar-overlay></div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ===== COLLAPSE SIDEBAR =====
-    const btn = document.querySelector('.sidebar-toggle');
+    const desktopToggle = document.querySelector('.cnma-sidebar .sidebar-toggle');
+    const sidebar = document.querySelector('.cnma-sidebar');
+    const overlay = document.querySelector('[data-cnma-sidebar-overlay]');
 
-    if (btn) {
-        btn.addEventListener('click', function () {
-            document.documentElement.classList.toggle('sidebar-collapsed');
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+    const getMobileToggle = () => document.querySelector('.cnma-sidebar-toggle');
+
+    const setOpen = (open) => {
+        if (!sidebar) return;
+        sidebar.classList.toggle('open', open);
+        document.body.classList.toggle('cnma-sidebar-open', open);
+        const mt = getMobileToggle();
+        if (mt) mt.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    const handleToggleClick = () => {
+        if (!sidebar) return;
+        if (isMobile()) {
+            setOpen(!sidebar.classList.contains('open'));
+            return;
+        }
+        document.documentElement.classList.toggle('sidebar-collapsed');
+    };
+
+    if (desktopToggle) desktopToggle.addEventListener('click', handleToggleClick);
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('.cnma-sidebar-toggle') : null;
+        if (!btn || !isMobile()) return;
+        handleToggleClick();
+    });
+
+    if (overlay) overlay.addEventListener('click', () => setOpen(false));
+
+    if (sidebar) {
+        sidebar.addEventListener('click', (e) => {
+            const a = e.target && e.target.closest ? e.target.closest('a') : null;
+            if (a && isMobile()) setOpen(false);
         });
     }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setOpen(false);
+    });
+
+    window.addEventListener('resize', () => {
+        if (!isMobile()) setOpen(false);
+    });
 
     // ===== TOGGLE SECTIONS (Gestion / Compte) =====
     document.querySelectorAll('.toggle-section').forEach(section => {

@@ -31,4 +31,7 @@ $base = '/PfeCnma/cnma';
             <span><?= htmlspecialchars($nom) ?><?= $agence ? ' · '.$agence : '' ?></span>
         </div>
     </div>
+    <button type="button" class="mobile-toggle" aria-label="Ouvrir le menu" aria-controls="crma-sidebar" aria-expanded="false">
+        <i class="fa fa-bars" aria-hidden="true"></i>
+    </button>
 </div>

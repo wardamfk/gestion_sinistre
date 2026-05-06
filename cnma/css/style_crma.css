@@ -683,17 +683,91 @@ background: linear-gradient(90deg, #4CAF7A, #5d896a);
 .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; }
 .empty-state p { font-size: 14px; }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE GLOBAL ===== */
+
 @media (max-width: 1100px) {
   .finance-bar { grid-template-columns: 1fr 1fr; }
   .info-grid-2 { grid-template-columns: 1fr; }
 }
+
+/* ===== TABLETTE + MOBILE ===== */
 @media (max-width: 768px) {
-  :root { --sidebar-w: 0px; }
-  .crma-main { padding: 16px; }
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .finance-bar { grid-template-columns: 1fr; }
+
+  /* SIDEBAR */
+  .sidebar {
+    transform: translateX(-100%);
+    position: fixed;
+    width: 240px;
+    z-index: 999;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* MAIN */
+  .crma-main {
+    margin-left: 0 !important;
+    padding: 16px;
+  }
+
+  /* HEADER */
+  .crma-header {
+    left: 0;
+    width: 100%;
+  }
+
+  /* GRID */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .finance-bar {
+    grid-template-columns: 1fr;
+  }
+
+  /* TABLE */
+  .crma-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .crma-table {
+    min-width: 600px;
+  }
 }
+
+/* ===== PETIT MOBILE ===== */
+@media (max-width: 500px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== MODALS ===== */
+@media (max-width: 680px) {
+  .modal-box {
+    padding: 24px 20px;
+  }
+
+  .modal-box .form-grid-2,
+  .modal-box .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+.mobile-toggle{display:none;background:none;border:none;font-size:20px;cursor:pointer}
+.crma-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:998}
+.sidebar{transition:transform .25s ease}
+
+@media (max-width: 768px) {
+  .mobile-toggle{display:block}
+  body.crma-sidebar-open{overflow:hidden}
+  .sidebar.open + .crma-sidebar-overlay{opacity:1;pointer-events:auto}
+}
+
+
+
+
+
 .fi-value {
     font-size: 22px;
     font-weight: 800;
@@ -926,6 +1000,7 @@ input.input-error:focus {
     align-items: center;
     gap: 8px;
 }
+
 .modal-box .modal-section-label::after {
     content: '';
     flex: 1;
@@ -985,12 +1060,7 @@ input.input-error:focus {
     color: var(--green-800);
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 680px) {
-    .modal-box { padding: 24px 20px; }
-    .modal-box .form-grid-2,
-    .modal-box .form-grid-3 { grid-template-columns: 1fr; }
-}
+
 .profil-avatar {
     width: 60px;
     height: 60px;

@@ -69,8 +69,9 @@ if($role == 'CRMA'){
 // Règlement autorisé si état validé ou en règlement partiel
 $reglement_ok = in_array($dossier['id_etat'], [2, 4, 7,9,15, 18]);
 // Encaissement autorisé si tiers responsable ET dossier en règlement
-$enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
-       && in_array($dossier['id_etat'], [7, 8, 13, 14, 19, 20]);
+$enc_ok =
+    !in_array($dossier['id_etat'], [5, 14, 21])
+    && in_array($dossier['responsable'], ['oui', 'partiel']);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -79,6 +80,8 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
 <title>Dossier <?= htmlspecialchars($dossier['numero_dossier']); ?></title>
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="../css/style_crma.css">
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -158,6 +161,13 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
     padding:8px 10px;border:1px solid var(--gray-300);border-radius:var(--radius);
     font-size:13px;font-family:'DM Sans',sans-serif;color:var(--gray-800);background:#fff}
 .enc-form-grid input:focus,.enc-form-grid select:focus{border-color:var(--green-600);outline:none}
+.vd-swal-popup{border-radius:18px!important;padding:14px 14px 16px!important}
+.vd-swal-title{font-size:16px!important;font-weight:800!important;color:var(--gray-800)!important}
+.vd-swal-html{margin:0!important;padding:0!important}
+.vd-swal-html .crma-card{margin:0!important;box-shadow:none!important;border:1px solid rgba(0,0,0,.06)!important}
+.vd-swal-loading{display:flex;align-items:center;gap:10px;color:var(--gray-500);font-size:13px;padding:10px 4px}
+.vd-swal-spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.12);border-top-color:var(--green-600);border-radius:50%;animation:vdspin .7s linear infinite}
+@keyframes vdspin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -385,7 +395,11 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
         <td><?= htmlspecialchars($d['nom_type']); ?></td>
         <td><a href="../uploads/<?= htmlspecialchars($d['nom_fichier']); ?>" target="_blank" class="btn btn-primary btn-xs"><i class="fa fa-eye"></i> Voir</a></td>
         <td style="font-size:12px;"><?= $d['date_upload']; ?></td>
-        <td><a href="supprimer_documents.php?id=<?= $d['id_document']; ?>&dossier=<?= $id_dossier; ?>" onclick="return confirm('Supprimer ?')" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a></td>
+        <td><a href="supprimer_documents.php?id=<?= $d['id_document']; ?>&dossier=<?= $id_dossier; ?>"
+   onclick="confirmDelete(event, 'Supprimer ce document ?', this.href)"
+   class="btn btn-danger btn-xs">
+   <i class="fa fa-trash"></i>
+</a></td>
     </tr>
     <?php endwhile; ?>
     </tbody>
@@ -434,8 +448,8 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
         <td><?= $ex['rapport_pdf'] ? "<a href='../uploads/{$ex['rapport_pdf']}' target='_blank' class='btn btn-primary btn-xs'><i class='fa fa-file-pdf'></i> Voir</a>" : '—'; ?></td>
         <td style="font-size:12px;"><?= htmlspecialchars($ex['commentaire']); ?></td>
         <td style="display:flex;gap:4px;">
-            <a href="modifier_expertise.php?id=<?= $ex['id_expertise']; ?>" class="btn btn-outline btn-xs"><i class="fa fa-pen"></i></a>
-            <a href="supprimer_expertise.php?id=<?= $ex['id_expertise']; ?>&dossier=<?= $id_dossier; ?>" onclick="return confirm('Supprimer ?')" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
+            <button type="button" class="btn btn-outline btn-xs vd-modal-btn" data-modal-title="Modifier expertise" data-url="modifier_expertise.php?id=<?= $ex['id_expertise']; ?>"><i class="fa fa-pen"></i></button>
+            <a href="supprimer_expertise.php?id=<?= $ex['id_expertise']; ?>&dossier=<?= $id_dossier; ?>" onclick="confirmDelete(event, 'Supprimer cette expertise ?', this.href)" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
         </td>
     </tr>
     <?php endwhile; ?>
@@ -488,8 +502,8 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
         <td><span class="badge <?= $tb; ?>" style="font-size:11px;"><?= $r['type_reserve']; ?></span></td>
         <td style="font-size:12px;"><?= htmlspecialchars($r['commentaire'] ?? ''); ?></td>
         <td style="display:flex;gap:4px;">
-            <a href="modifier_reserve.php?id=<?= $r['id_reserve']; ?>" class="btn btn-outline btn-xs"><i class="fa fa-pen"></i></a>
-            <a href="supprimer_reserve.php?id=<?= $r['id_reserve']; ?>&dossier=<?= $id_dossier; ?>" onclick="return confirm('Supprimer ?')" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
+            <button type="button" class="btn btn-outline btn-xs vd-modal-btn" data-modal-title="Modifier réserve" data-url="./modifier_reserve.php?id=<?= $r['id_reserve']; ?>"><i class="fa fa-pen"></i></button>
+            <a href="supprimer_reserve.php?id=<?= $r['id_reserve']; ?>&dossier=<?= $id_dossier; ?>" onclick="confirmDelete(event, 'Supprimer cette réserve ?', this.href)" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
         </td>
     </tr>
     <?php endwhile; ?>
@@ -503,18 +517,14 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
 <?php if ($reglement_ok): ?>
 <div class="crma-card">
     <h4><i class="fa fa-plus"></i> Ajouter règlement</h4>
-    <div class="msg-info" style="margin-bottom:14px;">
-        <i class="fa fa-info-circle"></i>
-        <strong>Règle automatique :</strong>
-        Si règlement ≤ réserve → état passe en <em>Règlement partiel</em>.
-        Si règlement > réserve → une réserve complémentaire est créée et l'état passe en <em>Règlement définitif amiable</em>.
-    </div>
+
     <form action="ajouter_reglement.php" method="POST"
           style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end;">
         <input type="hidden" name="id_dossier" value="<?= $id_dossier; ?>">
         <div class="form-group" style="margin:0"><label>Montant (DA)</label><input type="number" step="1" onwheel="this.blur()" name="montant" required></div>
-        <div class="form-group" style="margin:0"><label>Mode</label>
-            <select name="mode"><option>Chèque</option><option>Virement</option></select>
+        <div class="form-group" style="margin:0"><label>Mode :</label>
+           <input type="hidden" name="mode" value="Chèque">
+<p style="font-size:13px;color:#555;"> <strong>Chèque</strong></p>
         </div>
         <div class="form-group" style="margin:0"><label>Commentaire</label><input type="text" name="commentaire"></div>
         <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Ajouter</button>
@@ -529,7 +539,7 @@ $enc_ok = in_array($dossier['responsable'], ['oui', 'partiel'])
 <?php endif; ?>
 <div class="crma-table-wrapper">
 <table class="crma-table">
-    <thead><tr><th>Date</th><th>Montant</th><th>Mode</th><th>Statut</th><th>Commentaire</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Date</th><th>Montant</th><th>Mode</th> <th>Référence</th> <th>Statut</th><th>Commentaire</th><th>Actions</th></tr></thead>
     <tbody>
     <?php
     $reglements = mysqli_query($conn, "SELECT * FROM reglement WHERE id_dossier=$id_dossier ORDER BY id_reglement DESC");
@@ -540,9 +550,12 @@ while ($reg = mysqli_fetch_assoc($reglements)):
 
     $s = $statuts[$reg['statut']] ?? ['badge-gray', $reg['statut']];
 
-    $actions = "<a href='modifier_reglement.php?id={$reg['id_reglement']}' class='btn btn-outline btn-xs'>
-                    <i class='fa fa-pen'></i>
-                </a>";
+$actions = "<button type='button'
+class='btn btn-outline btn-xs vd-modal-btn'
+data-modal-title='Modifier règlement'
+data-url='./modifier_reglement.php?id={$reg['id_reglement']}'>
+<i class='fa fa-pen'></i>
+</button>";
 
     if ($reg['statut'] == 'en_attente') {
         $actions .= "<a href='gerer_reglement_statut.php?id={$reg['id_reglement']}&dossier=$id_dossier&statut=disponible'
@@ -565,23 +578,60 @@ while ($reg = mysqli_fetch_assoc($reglements)):
                     class='btn btn-danger btn-xs'>
                     <i class='fa fa-trash'></i>
                 </a>";?>
-    <tr>
-        <td style="font-size:12px;"><?= $reg['date_reglement']; ?></td>
-        <td class="num-cell" style="font-weight:600;"><?= number_format($reg['montant'],2,',',' '); ?> DA</td>
-        <td><?= htmlspecialchars($reg['mode_paiement']); ?></td>
-        <td><span class="badge <?= $s[0]; ?>" style="font-size:11px;"><?= $s[1]; ?></span></td>
-        <td style="font-size:12px;"><?= htmlspecialchars($reg['commentaire']); ?></td>
-        <td style="display:flex;gap:4px;flex-wrap:wrap;"><?= $actions; ?></td>
-    </tr>
+ <tr>
+    <td style="font-size:12px;"><?= $reg['date_reglement']; ?></td>
+
+    <td class="num-cell" style="font-weight:600;">
+        <?= number_format($reg['montant'],2,',',' '); ?> DA
+    </td>
+
+    <td><?= htmlspecialchars($reg['mode_paiement']); ?></td>
+
+    <!-- 🔥 ICI TU AJOUTES -->
+   <td>
+    <span style="
+        background:#e8f5e9;
+        color:#1b5e20;
+        padding:4px 10px;
+        border-radius:12px;
+        font-weight:600;
+        font-size:12px;
+        white-space:nowrap;
+    ">
+        <?= htmlspecialchars($reg['reference_paiement']); ?>
+    </span>
+</td>
+
+    <td>
+        <span class="badge <?= $s[0]; ?>" style="font-size:11px;">
+            <?= $s[1]; ?>
+        </span>
+    </td>
+
+    <td style="font-size:12px;">
+        <?= htmlspecialchars($reg['commentaire']); ?>
+    </td>
+
+    <td style="display:flex;gap:4px;flex-wrap:wrap;">
+        <?= $actions; ?>
+    </td>
+</tr>
     <?php endwhile; ?>
     </tbody>
 </table>
 </div>
 </div>
+<?php
 
+$encaissement_ok =
+    !in_array($dossier['id_etat'], [5, 14, 21])
+    && $dossier['responsable'] == 'oui';
+
+?>
 <!-- ── TAB: ENCAISSEMENTS ── -->
 <div id="encaissements" class="crma-tab-content">
 <?php if ($enc_ok): ?>
+
 <div class="crma-card">
     <h4><i class="fa fa-plus"></i> Enregistrer un encaissement</h4>
     <form action="ajouter_encaissement.php" method="POST">
@@ -687,7 +737,49 @@ while ($reg = mysqli_fetch_assoc($reglements)):
 </div><!-- fin .main -->
 
 <script>
-  
+  function confirmDelete(e, message, url) {
+    e.preventDefault();
+
+    Swal.fire({
+        title: 'Confirmation',
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fa fa-trash"></i> Supprimer',
+        cancelButtonText: 'Annuler',
+        reverseButtons: true,
+        background: '#ffffff',
+        borderRadius: '18px',
+        backdrop: 'rgba(0,0,0,0.35)',
+
+        showClass: {
+            popup: 'animate__animated animate__zoomIn'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__zoomOut'
+        }
+
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Suppression effectuée',
+                text: 'L’élément a été supprimé.',
+                timer: 1200,
+                showConfirmButton: false,
+                background: '#fff',
+                borderRadius: '18px'
+            });
+
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1200);
+        }
+    });
+}
 function confirmAction(e, message, url) {
     e.preventDefault();
 
@@ -716,9 +808,17 @@ function showTab(tab, btn) {
     if (btn) btn.classList.add('active');
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
+
 if (urlTab) {
-    const btn = document.querySelector(`.crma-tab-btn[onclick*="${urlTab}"]`);
-    showTab(urlTab, btn);
+
+    const target = document.getElementById(urlTab);
+
+    if (target) {
+
+        const btn = document.querySelector(`.crma-tab-btn[onclick*="${urlTab}"]`);
+
+        showTab(urlTab, btn);
+    }
 }
 
 // ── Changement d'état : charger motifs via AJAX
@@ -774,6 +874,99 @@ document.getElementById('form-etat').addEventListener('submit', function(e) {
         return false;
     }
 });
+
+(() => {
+    const addModalParam = (url) => {
+        try {
+            const u = new URL(url, window.location.href);
+            u.searchParams.set('modal', '1');
+            return u.toString();
+        } catch (e) {
+            const sep = url.includes('?') ? '&' : '?';
+            return `${url}${sep}modal=1`;
+        }
+    };
+
+    const renderHtml = (html, fallbackUrl) => {
+        const container = Swal.getHtmlContainer();
+        if (!container) return;
+        if (/<html[\s>]/i.test(html)) {
+            window.location.href = fallbackUrl;
+            return;
+        }
+        container.innerHTML = html;
+        const success = container.querySelector('[data-modal-success]');
+        if (success) {
+            const refresh = success.getAttribute('data-refresh') || window.location.href;
+            Swal.close();
+            window.location.href = refresh;
+        }
+    };
+
+    const openModal = (title, url) => {
+        Swal.fire({
+            title: title || 'Modification',
+            html: '<div class="vd-swal-loading"><span class="vd-swal-spinner"></span>Chargement…</div>',
+            showConfirmButton: false,
+            showCloseButton: true,
+            allowOutsideClick: true,
+            allowEscapeKey: true,
+            width: 720,
+            background: '#ffffff',
+            backdrop: 'rgba(0,0,0,0.35)',
+            customClass: {
+                popup: 'vd-swal-popup',
+                title: 'vd-swal-title',
+                htmlContainer: 'vd-swal-html'
+            },
+            showClass: { popup: 'animate__animated animate__zoomIn' },
+            hideClass: { popup: 'animate__animated animate__zoomOut' },
+            didOpen: () => {
+                const container = Swal.getHtmlContainer();
+                if (!container || container.dataset.bound === '1') return;
+                container.dataset.bound = '1';
+
+                container.addEventListener('click', (e) => {
+                    const cancel = e.target && e.target.closest ? e.target.closest('[data-vd-cancel]') : null;
+                    if (cancel) Swal.close();
+                });
+
+                container.addEventListener('submit', (e) => {
+                    const form = e.target && e.target.tagName === 'FORM' ? e.target : null;
+                    if (!form) return;
+                    e.preventDefault();
+
+                    const action = addModalParam(form.getAttribute('action') || url);
+                    const method = (form.getAttribute('method') || 'POST').toUpperCase();
+                    const fd = new FormData(form);
+
+                    container.querySelectorAll('button, input, select, textarea').forEach(el => { el.disabled = true; });
+
+                    fetch(action, { method, body: fd, credentials: 'same-origin' })
+                        .then(r => r.text())
+                        .then(html => renderHtml(html, url))
+                        .catch(() => window.location.href = url);
+                });
+            }
+        });
+
+        fetch(addModalParam(url), { credentials: 'same-origin' })
+            .then(r => r.text())
+            .then(html => renderHtml(html, url))
+            .catch(() => window.location.href = url);
+    };
+
+    document.addEventListener('click', (e) => {
+        const el = e.target && e.target.closest ? e.target.closest('.vd-modal-btn,.vd-modal-link') : null;
+        if (!el) return;
+        e.preventDefault();
+        const url = el.getAttribute('data-url') || el.getAttribute('href');
+        console.log("CLICK MODAL", url);
+        if (!url) return;
+        openModal(el.getAttribute('data-modal-title') || el.title || 'Modification', url);
+    });
+})();
+console.log("SCRIPT LOADED");
 </script>
 </body>
 </html>

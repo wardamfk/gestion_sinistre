@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
 
 $id_dossier  = intval($_POST['id_dossier']);
 $montant     = floatval($_POST['montant']);
-$mode        = mysqli_real_escape_string($conn, $_POST['mode']);
+$mode = 'Chèque';
 $commentaire = mysqli_real_escape_string($conn, $_POST['commentaire'] ?? '');
 $user_id     = $_SESSION['id_user'];
 
@@ -22,14 +22,35 @@ try {
 
     $ancien_etat = $dossier['id_etat'];
 
-    // 2. INSERT règlement
-    $stmt = $conn->prepare(
-        "INSERT INTO reglement (id_dossier, montant, mode_paiement, date_reglement, saisi_par, commentaire)
-         VALUES (?, ?, ?, CURDATE(), ?, ?)"
-    );
-    $stmt->bind_param("idsss", $id_dossier, $montant, $mode, $user_id, $commentaire);
-    $stmt->execute();
+  // INSERT règlement
+$stmt = $conn->prepare(
+    "INSERT INTO reglement (id_dossier, montant, mode_paiement, date_reglement, saisi_par, commentaire)
+     VALUES (?, ?, ?, CURDATE(), ?, ?)"
+);
+$stmt->bind_param("idsss", $id_dossier, $montant, $mode, $user_id, $commentaire);
+$stmt->execute();
 
+// 🔥 récupérer ID
+$id_reglement = $conn->insert_id;
+
+// 🔥 générer référence
+// 🔥 récupérer numero dossier
+$res = mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT numero_dossier FROM dossier WHERE id_dossier = $id_dossier"));
+
+$numero = $res['numero_dossier'];
+
+// 🔥 extraire la partie finale (0014 ou 10014)
+$parts = explode('-', $numero);
+$num_simple = end($parts);
+
+// 🔥 générer référence propre
+$reference = 'CHQ-' . $num_simple . '-' . str_pad($id_reglement, 3, '0', STR_PAD_LEFT);
+
+// 🔥 update référence
+$stmt_ref = $conn->prepare("UPDATE reglement SET reference_paiement = ? WHERE id_reglement = ?");
+$stmt_ref->bind_param("si", $reference, $id_reglement);
+$stmt_ref->execute();
     // 🔥 TOTAL REGLEMENT (cumul)
     $res_regle = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT SUM(montant) as total FROM reglement WHERE id_dossier = $id_dossier"));

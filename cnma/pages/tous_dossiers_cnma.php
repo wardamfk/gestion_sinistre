@@ -79,7 +79,7 @@ $etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
 <body>
 
 <?php include("sidebar_cnma.php"); ?>
-<?php include("../includes/header.php"); ?>
+<?php include("header_cnma.php"); ?>
 
 <div class="main">
     <h2 style="color:#1f3a5f;">Tous les dossiers</h2>

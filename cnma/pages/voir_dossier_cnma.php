@@ -153,7 +153,7 @@ $motifs_complement = mysqli_query($conn, "
 <body>
 
 <?php include("sidebar_cnma.php"); ?>
-<?php include("../includes/header.php"); ?>
+<?php include("header_cnma.php"); ?>
 
 <div class="main">
 

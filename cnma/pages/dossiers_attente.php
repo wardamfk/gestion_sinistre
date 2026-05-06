@@ -50,7 +50,7 @@ $nb = mysqli_num_rows($result);
 <body>
 
 <?php include("sidebar_cnma.php"); ?>
-<?php include("../includes/header.php"); ?>
+<?php include("header_cnma.php"); ?>
 
 <div class="main">
     <div class="page-header">

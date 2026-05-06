@@ -354,6 +354,7 @@ $fm_regle   = array_map(fn($x) => round(floatval($x['regle'])),   $fin_mois_data
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Analyse & Statistiques — CNMA</title>
 <link rel="stylesheet" href="../css/style_cnma.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -514,7 +515,7 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
 }
 .kpi-card .kpi-mini-bar .fill {
     height:100%; border-radius:2px;
-    background:var(--accent, #9ca3af);
+    background:var(--accent, #848a94);
     transition:width .6s ease;
 }
 
@@ -707,6 +708,11 @@ body { font-family:'IBM Plex Sans',sans-serif; background:#f8f9fb; }
 @media(max-width:900px) {
     .two-col { grid-template-columns:1fr; }
     .kpi-grid-top { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:520px) {
+    .cnma-main { padding:16px 14px; }
+    .kpi-grid-top { grid-template-columns:1fr; }
+    .finance-overview { grid-template-columns:1fr; }
 }
 </style>
 </head>

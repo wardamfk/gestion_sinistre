@@ -183,6 +183,11 @@ body {
     font-size: 13px;
 }
 
+.cnma-header-left{display:flex;align-items:center;gap:12px;min-width:0}
+.cnma-sidebar-toggle{display:none;width:42px;height:42px;border-radius:10px;border:none;background:transparent;color:#1f5136;font-size:18px;cursor:pointer}
+.cnma-sidebar-toggle:hover{background:#f3f6f8}
+.cnma-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:1000}
+
 /* ---- MAIN CONTENT ---- */
 
 
@@ -809,9 +814,14 @@ body {
 }
 
 @media (max-width: 768px) {
-    .sidebar { width: 0; overflow: hidden; }
-   
-  
+    .cnma-sidebar{width:260px;max-width:82vw;transform:translateX(-105%);transition:transform .25s ease;z-index:1002;will-change:transform}
+    .cnma-header{left:0;width:100%;padding:0 16px;z-index:1001}
+    .cnma-main{margin-left:0;padding:16px}
+    .main{margin-left:0;margin-top:65px;padding:16px}
+    body.cnma-sidebar-open{overflow:hidden}
+    body.cnma-sidebar-open .cnma-sidebar{transform:translateX(0)}
+    body.cnma-sidebar-open .cnma-sidebar-overlay{opacity:1;pointer-events:auto}
+    .cnma-sidebar-toggle{display:inline-flex;align-items:center;justify-content:center}
 }
 /* === MENU PRINCIPAL (comme les <a>) === */
 .menu-item {
@@ -1157,4 +1167,10 @@ body {
 }
 .kpi-grid-top {
     grid-template-columns:repeat(5,1fr);
+}
+
+@media (max-width: 768px) {
+    .cnma-header{left:0!important;width:100%!important;padding:0 16px!important}
+    .cnma-main{margin-left:0!important;padding:16px!important}
+    .main{margin-left:0!important;margin-top:65px!important;padding:16px!important}
 }

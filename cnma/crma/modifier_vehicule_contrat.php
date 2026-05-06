@@ -18,19 +18,24 @@ if (!$v) {
 }
 
 $error = '';
-
 if (isset($_POST['modifier'])) {
 
-    $marque      = mysqli_real_escape_string($conn, $_POST['marque']);
-    $modele      = mysqli_real_escape_string($conn, $_POST['modele']);
-    $couleur     = mysqli_real_escape_string($conn, $_POST['couleur']);
-    $nb_places   = intval($_POST['nombre_places']);
-    $matricule   = mysqli_real_escape_string($conn, strtoupper(trim($_POST['matricule'])));
-    $chassis     = mysqli_real_escape_string($conn, trim($_POST['numero_chassis']));
-    $serie       = mysqli_real_escape_string($conn, trim($_POST['numero_serie']));
-    $annee       = intval($_POST['annee']);
-    $type        = mysqli_real_escape_string($conn, $_POST['type']);
-    $carrosserie = mysqli_real_escape_string($conn, $_POST['carrosserie']);
+    $marque      = mysqli_real_escape_string($conn, $_POST['marque'] ?? '');
+    $modele      = mysqli_real_escape_string($conn, $_POST['modele'] ?? '');
+    $couleur     = mysqli_real_escape_string($conn, $_POST['couleur'] ?? '');
+
+    $nb_places   = intval($_POST['nombre_places'] ?? 0);
+
+    $matricule   = mysqli_real_escape_string($conn, strtoupper(trim($_POST['matricule'] ?? '')));
+
+    $chassis     = mysqli_real_escape_string($conn, trim($_POST['numero_chassis'] ?? ''));
+    $serie       = mysqli_real_escape_string($conn, trim($_POST['numero_serie'] ?? ''));
+
+    $annee       = intval($_POST['annee'] ?? 0);
+
+    $type        = mysqli_real_escape_string($conn, $_POST['type'] ?? '');
+    $carrosserie = mysqli_real_escape_string($conn, $_POST['carrosserie'] ?? '');
+}
 
     // CHECK matricule
     $check_mat = mysqli_fetch_assoc(mysqli_query($conn,
@@ -70,11 +75,8 @@ if (isset($_POST['modifier'])) {
             WHERE id_vehicule=$id
         ");
 
-    echo "<script>
-    window.parent.closeEditVehicule();
-    window.parent.location.reload();
-</script>";
-        exit();
+  echo "OK";
+exit();
     }
 }
 ?>
