@@ -121,33 +121,51 @@ $dossiers = mysqli_query($conn, "
     <div class="assure-card">
         <h3>Mes paiements</h3>
 
-        <?php
-        $regs = mysqli_query($conn, "SELECT * FROM reglement WHERE id_dossier=$id_voir");
-        if(mysqli_num_rows($regs) == 0) {
-            echo "Aucun paiement";
-        } else {
-        ?>
+ <?php
 
-        <table class="assure-table">
-            <tr>
-                <th>Date</th>
-                <th>Montant</th>
-                <th>Mode</th>
-                <th>Statut</th>
-            </tr>
+$paiement = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT
+        IFNULL(SUM(montant),0) as total_recu,
+        COUNT(*) as nb_paiements,
+        MAX(date_reglement) as derniere_date
+    FROM reglement
+    WHERE id_dossier=$id_voir
+    AND statut='remis'
+"));
 
-            <?php while($r = mysqli_fetch_assoc($regs)) { ?>
-            <tr>
-                <td><?php echo $r['date_reglement']; ?></td>
-                <td><?php echo number_format($r['montant'],2,',',' '); ?> DA</td>
-                <td><?php echo $r['mode_paiement']; ?></td>
-                <td><?php echo $r['statut']; ?></td>
-            </tr>
-            <?php } ?>
+$total_recu = floatval($paiement['total_recu']);
+$nb_paiements = intval($paiement['nb_paiements']);
 
-        </table>
+?>
 
-        <?php } ?>
+<?php if($total_recu <= 0): ?>
+
+<p>Aucun paiement reçu.</p>
+
+<?php else: ?>
+
+<div class="assure-payment-summary">
+
+    <div class="assure-payment-card">
+        <span class="label">Montant total reçu</span>
+        <h2>
+            <?= number_format($total_recu,2,',',' '); ?> DA
+        </h2>
+    </div>
+
+    <div class="assure-payment-card">
+        <span class="label">Nombre de paiements</span>
+        <h3><?= $nb_paiements; ?></h3>
+    </div>
+
+    <div class="assure-payment-card">
+        <span class="label">Dernier paiement</span>
+        <h3><?= $paiement['derniere_date']; ?></h3>
+    </div>
+
+</div>
+
+<?php endif; ?>
     </div>
 
 <?php } else { ?>

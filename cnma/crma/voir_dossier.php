@@ -49,7 +49,12 @@ $total_regle   = floatval(mysqli_fetch_assoc(mysqli_query($conn,
 $total_enc     = floatval(mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT IFNULL(SUM(montant),0) as t FROM encaissement WHERE id_dossier=$id_dossier"))['t']);
 $reste = max(0, $total_reserve - $total_regle);
-
+$total_disponible = floatval(mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT IFNULL(SUM(montant),0) as t
+     FROM reglement
+     WHERE id_dossier=$id_dossier
+     AND statut='disponible'"
+))['t']);
 // Tous les états disponibles (pour le sélecteur)
 if($role == 'CRMA'){
     $tous_etats = mysqli_query($conn, "
@@ -381,6 +386,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/
         <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-upload"></i> Uploader</button>
     </form>
 </div>
+
 <div class="crma-table-wrapper">
 <table class="crma-table">
     <thead><tr><th>Type</th><th>Fichier</th><th>Date</th><th>Action</th></tr></thead>
@@ -513,7 +519,26 @@ href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/
 </div>
 
 <!-- ── TAB: RÈGLEMENTS ── -->
+
 <div id="reglements" class="crma-tab-content">
+     <?php if ($total_disponible >= $total_reserve && $reste <= 0): ?>
+
+<div style="margin-bottom:16px;display:flex;justify-content:flex-end;">
+
+    <a href="confirmer_remise_totale.php?id=<?= $id_dossier; ?>"
+       onclick="confirmAction(event,
+       'Confirmer la remise totale des règlements à l’assuré ?',
+       this.href)"
+       class="btn btn-success">
+
+        <i class="fa fa-handshake"></i>
+        Confirmer remise totale
+
+    </a>
+
+</div>
+
+<?php endif; ?>
 <?php if ($reglement_ok): ?>
 <div class="crma-card">
     <h4><i class="fa fa-plus"></i> Ajouter règlement</h4>
@@ -537,6 +562,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/
     Le dossier doit être dans un état validé ou en règlement partiel.
 </div>
 <?php endif; ?>
+
 <div class="crma-table-wrapper">
 <table class="crma-table">
     <thead><tr><th>Date</th><th>Montant</th><th>Mode</th> <th>Référence</th> <th>Statut</th><th>Commentaire</th><th>Actions</th></tr></thead>
@@ -565,13 +591,7 @@ data-url='./modifier_reglement.php?id={$reg['id_reglement']}'>
                     </a>";
     }
 
-    if ($reg['statut'] == 'disponible') {
-        $actions .= "<a href='gerer_reglement_statut.php?id={$reg['id_reglement']}&dossier=$id_dossier&statut=remis'
-                        onclick='confirmAction(event, \"Marquer ce règlement comme remis ?\", this.href)'
-                        class='btn btn-outline btn-xs'>
-                        <i class='fa fa-handshake'></i>
-                    </a>";
-    }
+
 
     $actions .= "<a href='supprimer_reglement.php?id={$reg['id_reglement']}&dossier=$id_dossier'
                     onclick='confirmAction(event, \"Supprimer ce règlement ?\", this.href)'

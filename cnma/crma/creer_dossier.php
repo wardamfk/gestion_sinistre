@@ -84,12 +84,48 @@ if($delai > 5){
     $id_etat = 2;
 }
     // Générer numéro dossier
-    $annee = date('Y');
-    $sql_num = "SELECT COUNT(*) as total FROM dossier WHERE YEAR(date_creation) = '$annee'";
-    $result_num = mysqli_query($conn, $sql_num);
-    $row_num = mysqli_fetch_assoc($result_num);
-    $numero = $row_num['total'] + 1;
-    $numero_dossier = "DOS-" . $annee . "-" . str_pad($numero, 4, "0", STR_PAD_LEFT);
+  $annee = date('Y');
+
+$cree_par = $_SESSION['id_user'];
+
+/* récupérer code agence */
+
+$res_agence = mysqli_query($conn, "
+    SELECT a.code
+    FROM utilisateur u
+    INNER JOIN agence a
+        ON u.id_agence = a.id_agence
+    WHERE u.id_user = '$cree_par'
+");
+
+$data_agence = mysqli_fetch_assoc($res_agence);
+
+$code_agence = strtoupper($data_agence['code']);
+
+/* récupérer dernier numéro dossier agence */
+
+$res_num = mysqli_query($conn, "
+    SELECT MAX(
+        CAST(SUBSTRING_INDEX(numero_dossier, '-', -1) AS UNSIGNED)
+    ) AS maxnum
+
+    FROM dossier
+
+    WHERE numero_dossier LIKE 'DOS-$code_agence-$annee-%'
+");
+
+$row_num = mysqli_fetch_assoc($res_num);
+
+$next = ($row_num['maxnum'] ?? 0) + 1;
+
+/* génération numéro dossier */
+
+$numero_dossier = 'DOS-'
+                 . $code_agence
+                 . '-'
+                 . $annee
+                 . '-'
+                 . str_pad($next, 4, '0', STR_PAD_LEFT);
 
     // INSERT DOSSIER AVEC EXPERT
     $sql = "INSERT INTO dossier 
@@ -102,17 +138,21 @@ if($delai > 5){
     $id_dossier = mysqli_insert_id($conn);
     $reserves = $_POST['reserve'] ?? [];
 
-foreach($reserves as $id_garantie => $montant){
+if($delai <= 5){
 
-    if($montant > 0){
+    foreach($reserves as $id_garantie => $montant){
 
-        mysqli_query($conn, "
-            INSERT INTO reserve
-            (id_dossier, id_garantie, montant, date_reserve)
-            VALUES
-            ('$id_dossier', '$id_garantie', '$montant', NOW())
-        ");
+        if($montant > 0){
+
+            mysqli_query($conn, "
+                INSERT INTO reserve
+                (id_dossier, id_garantie, montant, date_reserve)
+                VALUES
+                ('$id_dossier', '$id_garantie', '$montant', NOW())
+            ");
+        }
     }
+
 }
     // =======================
 // UPLOAD DOCUMENTS
@@ -223,17 +263,32 @@ if($id_expert != "" && $delai <= 5){
         <option value="">-- Sélectionner assuré --</option>
 
         <?php
-        $res = mysqli_query($conn, "
-            SELECT a.id_assure, p.nom, p.prenom
-            FROM assure a
-            JOIN personne p ON a.id_personne = p.id_personne
-        ");
+ $res = mysqli_query($conn, "
+    SELECT 
+        a.id_assure,
+        p.nom,
+        p.prenom,
+        p.raison_sociale,
+        p.type_personne
+    FROM assure a
+    JOIN personne p ON a.id_personne = p.id_personne
+");
 
-        while($row = mysqli_fetch_assoc($res)){
-            echo "<option value='".$row['id_assure']."'>"
-            .$row['nom']." ".$row['prenom'].
-            "</option>";
-        }
+while($row = mysqli_fetch_assoc($res)){
+
+    if($row['type_personne'] == 'morale'){
+
+        $nom_affiche = $row['raison_sociale'];
+
+    } else {
+
+        $nom_affiche = $row['nom'].' '.$row['prenom'];
+    }
+
+    echo "<option value='".$row['id_assure']."'>"
+    .htmlspecialchars($nom_affiche).
+    "</option>";
+}
         ?>
     </select>
 </div>
@@ -301,6 +356,23 @@ if($id_expert != "" && $delai <= 5){
                 <input type="text" name="lieu" required>
             </div>
         </div>
+        <div id="alert-delai" 
+     style="
+        display:none;
+        margin-top:15px;
+        padding:14px;
+        border-radius:10px;
+        background:#fff3cd;
+        border:1px solid #ffe69c;
+        color:#856404;
+        font-weight:600;
+     ">
+     
+    <i class="fa fa-triangle-exclamation"></i>
+    Déclaration hors délai réglementaire (> 5 jours).<br>
+    Le dossier sera automatiquement refusé et aucune réserve ne sera créée.
+
+</div>
 
         <div class="form-group">
             <label>Responsabilité</label>
@@ -450,6 +522,36 @@ document.getElementById('contrat_select').addEventListener('change', function() 
     });
 
 });
+const dateSinistre = document.querySelector('[name="date_sinistre"]');
+const dateDeclaration = document.querySelector('[name="date_declaration"]');
+const alertDelai = document.getElementById('alert-delai');
+
+function verifierDelai(){
+
+    if(!dateSinistre.value || !dateDeclaration.value){
+        alertDelai.style.display = 'none';
+        return;
+    }
+
+    const d1 = new Date(dateSinistre.value);
+    const d2 = new Date(dateDeclaration.value);
+
+    const diff = Math.floor(
+        (d2 - d1) / (1000 * 60 * 60 * 24)
+    );
+
+    if(diff > 5){
+
+        alertDelai.style.display = 'block';
+
+    } else {
+
+        alertDelai.style.display = 'none';
+    }
+}
+
+dateSinistre.addEventListener('change', verifierDelai);
+dateDeclaration.addEventListener('change', verifierDelai);
 </script>
 </body>
 </html>

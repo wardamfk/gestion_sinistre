@@ -34,8 +34,9 @@ $serie = mysqli_real_escape_string($conn, trim($_POST['numero_serie'] ?? ''));
 $annee       = intval($_POST['annee'] ?? 0);
 $carrosserie = mysqli_real_escape_string($conn, $_POST['carrosserie'] ?? '');
 
-
-
+if (!preg_match('/^[0-9]{5}-[0-9]{3}-[0-9]{2}$/', $matricule)) {
+    $error = "Format matricule invalide.";
+}
 if (!$error) {
     $chk_ser = mysqli_fetch_assoc(mysqli_query($conn, "
         SELECT id_vehicule 
@@ -192,8 +193,6 @@ $total = mysqli_num_rows($contrats);
 
 $nb_expire = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) n FROM contrat WHERE id_agence=$id_agence_sess AND statut='expire'"))['n'];
 
-$assures = mysqli_query($conn, "SELECT a.id_assure,p.nom,p.prenom FROM assure a JOIN personne p ON a.id_personne=p.id_personne WHERE a.actif=1 ORDER BY p.nom");
-
 $statut_badge = [
     'actif'    => ['badge-green', 'Actif'],
     'expire'   => ['badge-red',   'Expiré'],
@@ -225,6 +224,8 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
 <head>
 <meta charset="UTF-8">
 <title>Contrats & Véhicules — CRMA</title>
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
 <link rel="stylesheet" href="../css/style_crma.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -616,13 +617,11 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
 
     <div style="display:flex; gap:8px; align-items:center;">
 
-        <select name="id_assure" required style="flex:1;">
-            <option value="">— Sélectionner l'assuré —</option>
-            <?php mysqli_data_seek($assures, 0); while ($a = mysqli_fetch_assoc($assures)): ?>
-            <option value="<?= $a['id_assure'] ?>">
-                <?= htmlspecialchars($a['nom'].' '.$a['prenom']) ?>
-            </option>
-            <?php endwhile; ?>
+      <select id="assure-search"
+        name="id_assure"
+        required
+        style="flex:1;">
+ 
         </select>
 
         <!-- 🔥 BOUTON + -->
@@ -688,7 +687,13 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
             <div class="grid3">
                 <div class="fg">
                     <label>Matricule <span style="color:red">*</span></label>
-                    <input type="text" name="matricule" required placeholder="Ex: 12345-16-001" oninput="this.value=this.value.toUpperCase()" style="font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px">
+                   <input type="text"
+       name="matricule"
+       id="matricule"
+       maxlength="12"
+       required
+     placeholder="12994-122-16"
+       style="font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px">
                 <span id="error_matricule" style="color:red;font-size:12px"></span>
                 </div>
                 <div class="fg"><label>Année</label><input type="number" name="annee" min="1980" max="2030" value="<?= date('Y') ?>"></div>
@@ -710,12 +715,12 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
             </div>
             <div class="section-h"><i class="fa fa-hashtag"></i> Identifiants techniques</div>
             <div class="grid2">
-                <div class="fg"><label>N° Châssis</label><input type="text" name="numero_chassis" id="chassis" placeholder="Numéro de châssis VIN"> 
+                <div class="fg"><label>N° Châssis</label><input type="text" name="numero_chassis" id="chassis" placeholder="VF3XXXXXXXXXXXXXX"  style="font-family:'DM Mono',monospace"> 
         <span id="error_chassis" style="color:red;font-size:12px"></span>
             </div>
                
 
-                <div class="fg"><label>N° Série</label><input type="text" name="numero_serie" id="serie" placeholder="Numéro de série"> 
+                <div class="fg"><label>N° Série</label><input type="text" name="numero_serie" id="serie" maxlength="25" placeholder="SER-2026-001" style="font-family:'DM Mono',monospace"> 
 <span id="error_serie" style="color:red;font-size:12px"></span></div>
 
             </div>
@@ -766,9 +771,9 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
             <div class="section-h"><i class="fa fa-calculator"></i> Calcul de la prime</div>
             <div class="prime-table">
                 <div class="prime-row"><div class="p-label"><i class="fa fa-shield-halved" style="color:var(--green-600)"></i> Prime de base (garanties)</div><div class="p-value" id="disp-base">0 DA</div></div>
-                <div class="prime-row"><div class="p-label" style="color:var(--red-600)"><i class="fa fa-minus-circle"></i> Réduction</div><div><input type="number" name="reduction" id="reduction" class="p-input" value="0" min="0" step="0.01" oninput="recalc()"></div></div>
-                <div class="prime-row"><div class="p-label" style="color:var(--amber-600)"><i class="fa fa-plus-circle"></i> Majoration</div><div><input type="number" name="majoration" id="majoration" class="p-input" value="0" min="0" step="0.01" oninput="recalc()"></div></div>
-                <div class="prime-row"><div class="p-label" style="color:var(--blue-600)"><i class="fa fa-layer-group"></i> Complément</div><div><input type="number" name="complement" id="complement" class="p-input" value="500" min="0" step="0.01" oninput="recalc()"></div></div>
+                <div class="prime-row"><div class="p-label" style="color:var(--red-600)"><i class="fa fa-minus-circle"></i> Réduction</div><div><input type="number" name="reduction" id="reduction" class="p-input" value="0" min="0" step="1" oninput="recalc()"></div></div>
+                <div class="prime-row"><div class="p-label" style="color:var(--amber-600)"><i class="fa fa-plus-circle"></i> Majoration</div><div><input type="number" name="majoration" id="majoration" class="p-input" value="0" min="0" step="1" oninput="recalc()"></div></div>
+                <div class="prime-row"><div class="p-label" style="color:var(--blue-600)"><i class="fa fa-layer-group"></i> Complément</div><div><input type="number" name="complement" id="complement" class="p-input" value="500" min="0" step="1" oninput="recalc()"></div></div>
                 <div class="prime-row" style="background:var(--gray-50)"><div class="p-label" style="font-weight:600"><i class="fa fa-equals"></i> Prime nette</div><div class="p-value" id="disp-nette" style="font-weight:700;color:var(--blue-800)">0 DA</div></div>
                 <div class="prime-row"><div class="p-label" style="color:var(--gray-500)"><i class="fa fa-percent"></i> Taxe (<?= round($TAXE*100) ?>%)</div><div class="p-value" id="disp-taxe">0 DA</div></div>
               <div class="prime-row">
@@ -826,8 +831,53 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
 </div><!-- /crma-main -->
 
 <!-- Données véhicules pour JS -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 <script>
-    
+    document.addEventListener("DOMContentLoaded", function () {
+
+    new TomSelect("#assure-search", {
+
+        valueField: 'value',
+        labelField: 'text',
+        searchField: 'text',
+
+        create: false,
+
+        maxOptions: 20,
+
+        placeholder: 'Tapez nom, prénom ou CIN...',
+
+        loadThrottle: 300,
+
+        render: {
+            option: function(item, escape) {
+                return `
+                    <div style="padding:10px">
+                        ${escape(item.text)}
+                    </div>
+                `;
+            }
+        },
+
+        load: function(query, callback) {
+
+            if (query.length < 2) {
+                return callback();
+            }
+
+            fetch("search_assure.php?q=" + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(json => {
+                    callback(json);
+                })
+                .catch(() => {
+                    callback();
+                });
+        }
+
+    });
+
+});
 const TAXE   = <?= $TAXE ?>;
 const TOTAL_STEPS = 5;
 let currentStep = 1;
@@ -921,7 +971,10 @@ function recalc() {
     const taxeMont = nette * TAXE;
   const timbre = parseFloat(document.getElementById('timbre').value) || 0;
 const net = nette + timbre + taxeMont;
-    const fmt = v => v.toLocaleString('fr-DZ', {minimumFractionDigits:0}) + ' DA';
+   const fmt = v => Number(v).toLocaleString('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+}) + ' DA';
     document.getElementById('disp-base').textContent  = fmt(base);
     document.getElementById('disp-nette').textContent = fmt(nette);
     document.getElementById('disp-taxe').textContent  = fmt(taxeMont);
@@ -950,6 +1003,7 @@ function openModal(id) {
     goStep(1, document.getElementById('step-btn-1'));
     document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('done'));
 }
+
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
@@ -1129,11 +1183,34 @@ document.getElementById("chassis").addEventListener("blur", function () {
         }
     });
 });
+//MATRICULE FORMAT
+document.getElementById("matricule").addEventListener("input", function(){
 
+    let v = this.value.replace(/\D/g,'');
 
+    if(v.length > 5){
+        v = v.slice(0,5) + '-' + v.slice(5);
+    }
+
+    if(v.length > 9){
+        v = v.slice(0,9) + '-' + v.slice(9,11);
+    }
+
+    this.value = v;
+});
 
 let policeValide = false;
 
+
+document.querySelectorAll('input[type=number]').forEach(input => {
+
+    input.addEventListener('wheel', function(e) {
+
+        e.preventDefault();
+
+    });
+
+});
 
 
 document.getElementById("serie").addEventListener("blur", function () {
@@ -1156,8 +1233,16 @@ document.getElementById("serie").addEventListener("blur", function () {
 });
 // Init
 computeDates(); recalcGaranties();
-</script>
 
+document.getElementById("serie").addEventListener("input", function(){
+
+    let v = this.value
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g,'');
+
+    this.value = v;
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>

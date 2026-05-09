@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/session.php';
 pfe_session_start('crma');
 include '../includes/config.php';
+require_once __DIR__ . '/../includes/reglement_logic.php';
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
     header("Location: mes_dossiers.php"); exit();
@@ -51,19 +52,17 @@ $reference = 'CHQ-' . $num_simple . '-' . str_pad($id_reglement, 3, '0', STR_PAD
 $stmt_ref = $conn->prepare("UPDATE reglement SET reference_paiement = ? WHERE id_reglement = ?");
 $stmt_ref->bind_param("si", $reference, $id_reglement);
 $stmt_ref->execute();
-    // 🔥 TOTAL REGLEMENT (cumul)
-    $res_regle = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT SUM(montant) as total FROM reglement WHERE id_dossier = $id_dossier"));
+    // 🔥 TOTAL RÈGLEMENT (uniquement disponible + remis)
+    $totals = pfe_reglement_compute_totals($conn, $id_dossier);
+    $total_regle = $totals['total_regle'];
 
-    $total_regle = floatval($res_regle['total']);
-
-    // 🔥 TOTAL RESERVE ACTUELLE
+    // 🔥 TOTAL RÉSERVE ACTUELLE
     $res_reserve = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT SUM(montant) as total FROM reserve WHERE id_dossier = $id_dossier AND statut = 'actif'"));
 
     $reserve_totale = floatval($res_reserve['total']);
 
-    // 🔥 DEPASSEMENT → RESERVE COMPLEMENTAIRE
+    // 🔥 DEPASSEMENT → RESERVE COMPLÉMENTAIRE
     if ($total_regle > $reserve_totale) {
 
         $complement = $total_regle - $reserve_totale;
@@ -83,23 +82,17 @@ $stmt_ref->execute();
             ($id_dossier, $id_garantie, $complement, CURDATE(), 'complementaire', $user_id, CURDATE(), '$comm_res')");
     }
 
-    // 🔥 RE-CALCUL RESERVE APRES AJOUT
-    $res_reserve = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT SUM(montant) as total FROM reserve WHERE id_dossier = $id_dossier AND statut = 'actif'"));
-
-    $reserve_totale = floatval($res_reserve['total']);
-
-    // 🔥 ETAT DOSSIER
-    if ($total_regle >= $reserve_totale) {
+    // 🔥 DÉTERMINER L'ACTION ET L'ÉTAT AU BESOIN
+    $nouvel_etat = $ancien_etat;
+    if ($reserve_totale > 0 && $total_regle >= $reserve_totale) {
         $nouvel_etat = 8;
         $action = "Règlement total";
-    } else {
+    } elseif ($total_regle > 0) {
         $nouvel_etat = 7;
         $action = "Règlement partiel";
+    } else {
+        $action = "Règlement saisi";
     }
-
-    mysqli_query($conn,
-        "UPDATE dossier SET id_etat = $nouvel_etat WHERE id_dossier = $id_dossier");
 
     // 🔥 HISTORIQUE
     $stmt_h = $conn->prepare(
@@ -108,6 +101,8 @@ $stmt_ref->execute();
     );
     $stmt_h->bind_param("isiii", $id_dossier, $action, $user_id, $ancien_etat, $nouvel_etat);
     $stmt_h->execute();
+
+    pfe_reglement_sync_after_change($conn, $id_dossier, $user_id);
 
     $conn->commit();
 

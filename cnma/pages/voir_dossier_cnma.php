@@ -14,9 +14,15 @@ $id_dossier = intval($_GET['id']);
 $dossier = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT d.*, e.nom_etat,
            c.numero_police,
-           p.nom AS nom_assure, p.prenom AS prenom_assure,
-           p.telephone AS tel_assure,
-           pt.nom AS nom_tiers, pt.prenom AS prenom_tiers,
+         p.nom AS nom_assure,
+p.prenom AS prenom_assure,
+p.raison_sociale AS raison_sociale_assure,
+p.type_personne AS type_assure,
+p.telephone AS tel_assure,
+
+pt.nom AS nom_tiers,
+pt.prenom AS prenom_tiers,
+
            t.compagnie_assurance, t.responsable,
            v.marque, v.modele, v.matricule,
            ex.nom AS nom_expert, ex.prenom AS prenom_expert,
@@ -143,10 +149,103 @@ $motifs_complement = mysqli_query($conn, "
             min-width: 220px; padding: 9px 10px; border: 1px solid #d8dee6;
             border-radius: 6px; background: white; font-size: 13px;
         }
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            border: none;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #1f3a5f;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(31, 58, 95, 0.08);
+            cursor: pointer;
+            transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+        }
+        .tab-btn:hover {
+            transform: translateY(-1px);
+            background: #eff7f1;
+        }
+        .tab-btn.active {
+            background: #1f3a5f;
+            color: #ffffff;
+            box-shadow: 0 10px 24px rgba(25, 57, 85, 0.18);
+        }
         .motif-chip {
-            display: inline-block; background: #fff3cd; color: #856404;
-            border: 1px solid #ffe8a1; border-radius: 999px;
-            padding: 3px 9px; font-size: 11.5px; font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            background: #fff7e6;
+            color: #8a6000;
+            border: 1px solid #ffebc5;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .commentaire-cell {
+            background: #f3fcf4;
+            border: 1px solid #26a452;
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #1f3a26;
+            font-size: 13px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: inset 0 0 0 1px rgba(39,154,87,0.08);
+        }
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 14px;
+            margin-top: 15px;
+        }
+        .table thead tr {
+            background: #1f5f3c;
+            color: #ffffff;
+            box-shadow: 0 8px 24px rgba(31, 58, 95, 0.08);
+        }
+        .table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: none;
+        }
+        .table tbody tr {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 7px 20px rgba(15, 23, 42, 0.05);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .table td {
+            padding: 16px;
+            border: none;
+            font-size: 14px;
+            color: #2c3a47;
+            vertical-align: top;
+        }
+        .table tbody tr:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        }
+        @media(max-width: 900px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .finance-bar { flex-direction: column; }
+            .table th, .table td { padding: 14px 12px; }
+            .commentaire-cell { padding: 12px 14px; }
+        }
+        @media(max-width: 760px) {
+            .tabs { justify-content: center; }
+            .tab-btn { flex: 1 1 45%; max-width: 220px; }
         }
     </style>
 </head>
@@ -299,7 +398,13 @@ $motifs_complement = mysqli_query($conn, "
         <!-- ASSURÉ -->
         <div class="info-box">
             <h4><i class="fa fa-user"></i> Assuré</h4>
-            <div class="info-row"><span class="label">Nom</span><span class="val"><?php echo $dossier['nom_assure'].' '.$dossier['prenom_assure']; ?></span></div>
+            <div class="info-row"><span class="label">Nom</span><span class="val"><?php
+if($dossier['type_assure'] == 'morale'){
+    echo $dossier['raison_sociale_assure'];
+} else {
+    echo trim($dossier['nom_assure'].' '.$dossier['prenom_assure']);
+}
+?></span></div>
             <div class="info-row"><span class="label">Téléphone</span><span class="val"><?php echo $dossier['tel_assure']; ?></span></div>
             <div class="info-row"><span class="label">N° Police</span><span class="val"><?php echo $dossier['numero_police']; ?></span></div>
             <div class="info-row"><span class="label">Véhicule</span><span class="val"><?php echo $dossier['marque'].' '.$dossier['modele'].' — '.$dossier['matricule']; ?></span></div>
@@ -311,7 +416,9 @@ $motifs_complement = mysqli_query($conn, "
         <!-- TIERS -->
         <div class="info-box">
             <h4><i class="fa fa-users"></i> Tiers</h4>
-            <div class="info-row"><span class="label">Nom</span><span class="val"><?php echo $dossier['nom_tiers'].' '.$dossier['prenom_tiers']; ?></span></div>
+            <div class="info-row"><span class="label">Nom</span><span class="val">
+                <?php echo trim($dossier['nom_tiers'].' '.$dossier['prenom_tiers']); ?>
+            </span></div>
             <div class="info-row"><span class="label">Compagnie</span><span class="val"><?php echo $dossier['compagnie_assurance']; ?></span></div>
             <div class="info-row"><span class="label">Responsabilité</span>
                 <span class="val">
@@ -334,11 +441,11 @@ $motifs_complement = mysqli_query($conn, "
 
     <!-- ONGLETS -->
     <div class="tabs" style="margin-top:10px;">
-        <button class="tab-btn" onclick="showTab('expertises')">Expertises</button>
-        <button class="tab-btn" onclick="showTab('reserves')">Réserves</button>
-        <button class="tab-btn" onclick="showTab('reglements')">Règlements</button>
-        <button class="tab-btn" onclick="showTab('documents')">Documents</button>
-        <button class="tab-btn" onclick="showTab('historique')">Historique</button>
+        <button class="tab-btn" data-target="expertises">Expertises</button>
+        <button class="tab-btn" data-target="reserves">Réserves</button>
+        <button class="tab-btn" data-target="reglements">Règlements</button>
+        <button class="tab-btn" data-target="documents">Documents</button>
+        <button class="tab-btn" data-target="historique">Historique</button>
     </div>
 
     <!-- EXPERTISES -->
@@ -454,7 +561,7 @@ $motifs_complement = mysqli_query($conn, "
     <div id="historique" class="tab-content">
         <h3>Historique des actions</h3>
         <table class="table">
-            <tr><th>Date</th><th>Action</th><th>Ancien état</th><th>Nouvel état</th><th>Motif</th></tr>
+            <tr><th>Date</th><th>Action</th><th>Ancien état</th><th>Nouvel état</th><th>Motif</th><th>Commentaire</th></tr>
             <?php
             $hist = mysqli_query($conn, "
                 SELECT h.*, ea.nom_etat AS ancien, en.nom_etat AS nouveau, m.nom_motif
@@ -472,13 +579,20 @@ $motifs_complement = mysqli_query($conn, "
                 <td><?php echo $h['action']; ?></td>
                 <td><?php echo $h['ancien'] ?: '—'; ?></td>
                 <td><?php echo $h['nouveau'] ?: '—'; ?></td>
+                
                 <td>
                     <?php if($h['nom_motif']): ?>
                     <span class="motif-chip"><?php echo htmlspecialchars($h['nom_motif']); ?></span>
                     <?php else: echo '—'; endif; ?>
                 </td>
+                <td>
+                    <?php if($h['commentaire']): ?>
+                    <div class="commentaire-cell"><?php echo nl2br(htmlspecialchars($h['commentaire'])); ?></div>
+                    <?php else: echo '—'; endif; ?>
+                </td>
             </tr>
             <?php endwhile; ?>
+            <?php if(mysqli_num_rows($hist) == 0) echo "<tr><td colspan='6' style='text-align:center;color:#999;'>Aucun historique</td></tr>"; ?>
         </table>
     </div>
 
@@ -486,9 +600,20 @@ $motifs_complement = mysqli_query($conn, "
 
 <script>
 function showTab(tab){
-    document.querySelectorAll(".tab-content").forEach(t => t.style.display="none");
-    document.getElementById(tab).style.display="block";
+    const allTabs = document.querySelectorAll(".tab-content");
+    const buttons = document.querySelectorAll(".tab-btn");
+    allTabs.forEach(t => t.style.display = "none");
+    buttons.forEach(b => b.classList.remove("active"));
+    const target = document.getElementById(tab);
+    if(target) target.style.display = "block";
+    const activeBtn = document.querySelector(`.tab-btn[data-target='${tab}']`);
+    if(activeBtn) activeBtn.classList.add("active");
 }
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function(){
+        showTab(this.dataset.target);
+    });
+});
 const p = new URLSearchParams(window.location.search);
 showTab(p.get("tab") || "expertises");
 </script>

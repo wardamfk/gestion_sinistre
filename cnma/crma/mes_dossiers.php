@@ -53,7 +53,7 @@ if($role == 'CNMA'){
 
     (SELECT IFNULL(SUM(montant),0) 
      FROM reglement r 
-     WHERE r.id_dossier = d.id_dossier) AS total_regle
+     WHERE r.id_dossier = d.id_dossier AND r.statut IN ('disponible','remis')) AS total_regle
 
     FROM dossier d
     LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
@@ -90,7 +90,7 @@ else if($role == 'CRMA'){
 
     (SELECT IFNULL(SUM(montant),0) 
      FROM reglement r 
-     WHERE r.id_dossier = d.id_dossier) AS total_regle
+     WHERE r.id_dossier = d.id_dossier AND r.statut IN ('disponible','remis')) AS total_regle
 
     FROM dossier d
     LEFT JOIN utilisateur u ON d.cree_par = u.id_user
@@ -130,7 +130,7 @@ else if($role == 'ASSURE'){
 
     (SELECT IFNULL(SUM(montant),0) 
      FROM reglement r 
-     WHERE r.id_dossier = d.id_dossier) AS total_regle
+     WHERE r.id_dossier = d.id_dossier AND r.statut IN ('disponible','remis')) AS total_regle
 
     FROM dossier d
     LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
@@ -166,11 +166,7 @@ $result = mysqli_query($conn, $sql);
 
 <tr>
     <td class="col-dossier">
-        <?php 
-        $num = $row['numero_dossier'];
-        $parts = explode('-', $num);
-        echo $parts[0] . "-" . $parts[1] . "<br>" . $parts[2];
-        ?>
+     <?php echo htmlspecialchars($row['numero_dossier']); ?>
     </td>
 
     <td><?php echo $row['date_creation']; ?></td>

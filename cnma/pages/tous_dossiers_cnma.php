@@ -7,23 +7,28 @@ if($_SESSION['role'] != 'CNMA') {
     exit();
 }
 
-// Filtre par état
+// Filtre par état et agence
 $filtre_etat = isset($_GET['etat']) ? intval($_GET['etat']) : 0;
+$filtre_agence = isset($_GET['agence']) ? intval($_GET['agence']) : 0;
 $filtre_search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 
 $where = "WHERE 1=1";
 if($filtre_etat > 0) $where .= " AND d.id_etat = $filtre_etat";
+if($filtre_agence > 0) $where .= " AND ag.id_agence = $filtre_agence";
 if($filtre_search != '') $where .= " AND (d.numero_dossier LIKE '%$filtre_search%' OR p.nom LIKE '%$filtre_search%' OR p.prenom LIKE '%$filtre_search%')";
 
 $sql = "
 SELECT
     d.id_dossier, d.numero_dossier, d.date_creation, IFNULL(d.total_reserve, 0) AS total_reserve,
     d.statut_validation, d.id_etat,
-    p.nom AS nom_assure, p.prenom AS prenom_assure,
+  p.nom AS nom_assure,
+p.prenom AS prenom_assure,
+p.raison_sociale AS raison_sociale_assure,
+p.type_personne AS type_assure,
     pt.nom AS nom_tiers, pt.prenom AS prenom_tiers,
     t.compagnie_assurance, t.responsable,
     e.nom_etat,
-    (SELECT IFNULL(SUM(montant),0) FROM reglement r WHERE r.id_dossier = d.id_dossier) AS total_regle,
+    (SELECT IFNULL(SUM(montant),0) FROM reglement r WHERE r.id_dossier = d.id_dossier AND r.statut IN ('disponible','remis')) AS total_regle,
     u.nom AS agent_nom, ag.nom_agence
 FROM dossier d
 LEFT JOIN contrat c ON d.id_contrat = c.id_contrat
@@ -41,8 +46,10 @@ ORDER BY d.id_dossier DESC
 $result = mysqli_query($conn, $sql);
 
 // Liste des états pour le filtre
-$etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
+$etats = mysqli_query($conn, "SELECT * FROM etat_dossier WHERE nom_etat != 'Brouillon' ORDER BY id_etat");
+$agences = mysqli_query($conn, "SELECT id_agence, nom_agence FROM agence ORDER BY nom_agence");
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -89,12 +96,22 @@ $etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
         <input type="text" name="search" placeholder="Rechercher par numéro ou assuré..."
                value="<?php echo htmlspecialchars($filtre_search); ?>">
 
+        <select name="agence">
+            <option value="0">— Toutes les agences —</option>
+            <?php while($a = mysqli_fetch_assoc($agences)): ?>
+            <option value="<?php echo $a['id_agence']; ?>"
+                    <?php echo $filtre_agence == $a['id_agence'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($a['nom_agence']); ?>
+            </option>
+            <?php endwhile; ?>
+        </select>
+
         <select name="etat">
             <option value="0">— Tous les états —</option>
             <?php while($e = mysqli_fetch_assoc($etats)): ?>
             <option value="<?php echo $e['id_etat']; ?>"
                     <?php echo $filtre_etat == $e['id_etat'] ? 'selected' : ''; ?>>
-                <?php echo $e['nom_etat']; ?>
+                <?php echo htmlspecialchars($e['nom_etat']); ?>
             </option>
             <?php endwhile; ?>
         </select>
@@ -133,14 +150,19 @@ $etats = mysqli_query($conn, "SELECT * FROM etat_dossier ORDER BY id_etat");
         ?>
         <tr>
             <td class="col-dossier">
-                <?php
-                $parts = explode('-', $row['numero_dossier']);
-                echo $parts[0]."-".$parts[1]."<br>".$parts[2];
-                ?>
+             <?php echo htmlspecialchars($row['numero_dossier']); ?>
             </td>
             <td><?php echo $row['date_creation']; ?></td>
             <td><?php echo $row['nom_agence']; ?></td>
-            <td><?php echo $row['nom_assure'].' '.$row['prenom_assure']; ?></td>
+           <td>
+<?php
+if($row['type_assure'] == 'morale'){
+    echo htmlspecialchars($row['raison_sociale_assure']);
+} else {
+    echo htmlspecialchars(trim($row['nom_assure'].' '.$row['prenom_assure']));
+}
+?>
+</td>
             <td>
                 <?php echo $row['nom_tiers'].' '.$row['prenom_tiers']; ?><br>
                 <small><?php echo $row['compagnie_assurance']; ?></small>

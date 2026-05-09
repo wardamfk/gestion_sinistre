@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/session.php';
 pfe_session_start('crma');
 include '../includes/config.php';
+require_once __DIR__ . '/../includes/reglement_logic.php';
 
 $id = intval($_GET['id']);
 $id_dossier = intval($_GET['dossier']);
@@ -14,32 +15,30 @@ mysqli_query($conn,"UPDATE reglement SET statut='$statut' WHERE id_reglement=$id
 // 🔥 HISTORIQUE REGLEMENT
 if($statut == 'disponible') {
     $action = "Règlement disponible";
+} elseif($statut == 'remis') {
+    $action = "Règlement remis à l’assuré (quittance signée)";
 }
-elseif($statut == 'remis') {
-    $action = "Règlement remis à l’assuré (quittance signée) ";
-}
+
+$totals = pfe_reglement_compute_totals($conn, $id_dossier);
 
 // récupérer état dossier actuel
 $dossier = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT id_etat FROM dossier WHERE id_dossier = $id_dossier"));
 
-$etat_actuel = $dossier['id_etat'];
-
-// insertion historique
-mysqli_query($conn,"
-INSERT INTO historique (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat)
-VALUES ($id_dossier, '$action', NOW(), $user_id, $etat_actuel, $etat_actuel)
-");
-
-// Si disponible → notifier assuré
-if($statut=='disponible') {
-    $dossier = mysqli_fetch_assoc(mysqli_query($conn,"SELECT numero_dossier,id_contrat FROM dossier WHERE id_dossier=$id_dossier"));
-    $num = $dossier['numero_dossier'];
-    $assure_user = mysqli_fetch_assoc(mysqli_query($conn,"SELECT u.id_user FROM utilisateur u JOIN assure a ON u.id_personne=a.id_personne JOIN contrat c ON c.id_assure=a.id_assure WHERE c.id_contrat={$dossier['id_contrat']} AND u.role='ASSURE' LIMIT 1"));
-    if($assure_user) {
-        $msg = mysqli_real_escape_string($conn,"Un chèque est disponible pour le dossier $num. Veuillez vous présenter à votre agence CRMA pour le récupérer.");
-        mysqli_query($conn,"INSERT INTO notification (id_dossier,id_expediteur,id_destinataire,type,message) VALUES ($id_dossier,$user_id,{$assure_user['id_user']},'reglement','$msg')");
+$etat_actuel = intval($dossier['id_etat']);
+$nouvel_etat = $etat_actuel;
+if ($etat_actuel !== 5 && $etat_actuel !== 14) {
+    if ($totals['total_reserve'] > 0 && $totals['total_regle'] >= $totals['total_reserve']) {
+        $nouvel_etat = 8;
+    } elseif ($totals['total_regle'] > 0) {
+        $nouvel_etat = 7;
     }
 }
+
+// insertion historique
+mysqli_query($conn,"INSERT INTO historique (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat)
+VALUES ($id_dossier, '$action', NOW(), $user_id, $etat_actuel, $nouvel_etat)");
+
+pfe_reglement_sync_after_change($conn, $id_dossier, (int)$user_id);
 
 header("Location: voir_dossier.php?id=$id_dossier&tab=reglements");

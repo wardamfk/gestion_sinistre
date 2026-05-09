@@ -304,8 +304,19 @@ if (isset($_GET['compte'])) {
     <?= htmlspecialchars($a['raison_sociale']) ?>
 <?php endif; ?>
 
+</div><div style="font-size:11px;color:var(--gray-400)">
+
+<?php if ($a['type_personne'] == 'physique'): ?>
+
+    CIN: <?= htmlspecialchars($a['num_identite'] ?? '') ?>
+
+<?php else: ?>
+
+    NIF: <?= htmlspecialchars($a['nif'] ?? '') ?>
+
+<?php endif; ?>
+
 </div>
-                <div style="font-size:11px;color:var(--gray-400)">CIN: <?= htmlspecialchars($a['num_identite']) ?></div>
                 <div style="font-size:11px;color:var(--gray-400)">#<?= $a['id_assure'] ?> · <?= $a['date_creation'] ?></div>
             </td>
             <td>
@@ -323,11 +334,13 @@ if (isset($_GET['compte'])) {
 
 <?php else: ?>
 
-    <div><?= htmlspecialchars($a['chauffeur_nom'].' '.$a['chauffeur_prenom']) ?></div>
-    <div style="font-size:11px;color:gray">
-        Permis: <?= htmlspecialchars($a['chauffeur_permis']) ?>
-    </div>
+<div style="font-size:11px;color:gray">
+    Permis: <?= htmlspecialchars($a['chauffeur_permis']) ?>
+</div>
 
+<div style="font-size:11px;color:var(--gray-400)">
+    Type: <?= htmlspecialchars($a['chauffeur_type_permis']) ?>
+</div>
 <?php endif; ?>
 
 </td>
@@ -448,13 +461,11 @@ if (isset($_GET['compte'])) {
 
     <div class="form-group">
         <label>Téléphone <span style="color:red">*</span></label>
-      <input type="text"
+ <input type="text"
        name="telephone"
-       pattern="[0-9]{10}"
-       title="Entrer 10 chiffres"
-         id="telephone_add"
-         placeholder="Ex: 0550123456"
-       required>
+       id="telephone"
+       maxlength="12"
+       placeholder="0550-12-34-56">
               
     </div>
 
@@ -927,6 +938,24 @@ function confirmDeleteAssure(e, id) {
     }).then(r => { if (r.isConfirmed) window.location.href = '?del=' + id; });
    
 }
+document.getElementById("telephone").addEventListener("input", function(){
+
+    let v = this.value.replace(/\D/g,'');
+
+    if(v.length > 4){
+        v = v.slice(0,4) + '-' + v.slice(4);
+    }
+
+    if(v.length > 7){
+        v = v.slice(0,7) + '-' + v.slice(7);
+    }
+
+    if(v.length > 10){
+        v = v.slice(0,10) + '-' + v.slice(10,12);
+    }
+
+    this.value = v;
+});
 </script>
 
 </body>

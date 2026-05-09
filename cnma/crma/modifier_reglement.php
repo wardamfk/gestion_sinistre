@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/session.php';
 pfe_session_start('crma');
 include('../includes/config.php');
+require_once __DIR__ . '/../includes/reglement_logic.php';
 
 if(!isset($_GET['id'])){
     echo "Règlement introuvable";
@@ -42,8 +43,15 @@ if(isset($_POST['modifier'])){
     $stmt_update->bind_param("dssi", $montant, $mode, $commentaire, $id);
     $stmt_update->execute();
 
-    // 3. Nouvel état = même état
+    $totals = pfe_reglement_compute_totals($conn, $id_dossier);
     $nouvel_etat = $ancien_etat;
+    if ($ancien_etat !== 5 && $ancien_etat !== 14) {
+        if ($totals['total_reserve'] > 0 && $totals['total_regle'] >= $totals['total_reserve']) {
+            $nouvel_etat = 8;
+        } elseif ($totals['total_regle'] > 0) {
+            $nouvel_etat = 7;
+        }
+    }
     $action = "Modification règlement";
 
     // 4. Historique
@@ -53,6 +61,8 @@ if(isset($_POST['modifier'])){
     $stmt_hist = $conn->prepare($sql_hist);
     $stmt_hist->bind_param("isiii", $id_dossier, $action, $user_id, $ancien_etat, $nouvel_etat);
     $stmt_hist->execute();
+
+    pfe_reglement_sync_after_change($conn, $id_dossier, $user_id);
 
     if ($is_modal) {
         $refresh = "voir_dossier.php?id=".$id_dossier."&tab=reglements&updated=1";
