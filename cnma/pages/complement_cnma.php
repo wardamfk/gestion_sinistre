@@ -86,7 +86,7 @@ $assureInfo = mysqli_fetch_assoc(mysqli_query($conn, "
 "));
 
 if ($assureInfo && !empty($assureInfo['assure_user_id'])) {
-    $msgPlainAssure = "Complément demandé pour votre dossier $num. Motif : $motif_nom. Veuillez transmettre les documents manquants à votre agence CRMA.";
+   $msgPlainAssure = "Des documents ou informations complémentaires sont nécessaires pour votre dossier $num. Merci de contacter votre agence CRMA afin de compléter votre dossier.";
     $msgAssure = mysqli_real_escape_string($conn, $msgPlainAssure);
     mysqli_query($conn, "INSERT INTO notification
         (id_dossier, id_expediteur, id_destinataire, type, message)
@@ -99,12 +99,15 @@ if ($assureInfo && !empty($assureInfo['assure_user_id'])) {
         $content = '<p class="muted">Des informations ou documents supplémentaires sont nécessaires pour traiter votre dossier.</p>' .
             '<div class="divider"></div>' .
             '<div class="row"><div class="label">Numéro dossier</div><div class="value">' . pfe_mailer_escape($num) . '</div></div>' .
-            '<div class="row"><div class="label">Motif du complément</div><div class="value">' . pfe_mailer_escape($motif_nom) . '</div></div>' .
+          
             '<div class="divider"></div>' .
-            '<p style="margin:0;font-size:14px;line-height:1.7">Merci de transmettre les documents manquants à votre agence CRMA afin d’accélérer le traitement.</p>';
+           '<p style="margin:0;font-size:14px;line-height:1.7">
+Des documents ou informations complémentaires sont nécessaires pour poursuivre le traitement de votre dossier.<br><br>
+Merci de contacter votre agence CRMA afin de compléter votre dossier.
+</p>';
 
         $html = pfe_mailer_template($subject, $content, "Complément demandé pour $num");
-        $text = "Complément demandé pour votre dossier.\nDossier: $num\nMotif: $motif_nom\nMerci de transmettre les documents manquants à votre agence CRMA.";
+     $text = "Des documents ou informations complémentaires sont nécessaires pour votre dossier $num. Merci de contacter votre agence CRMA afin de compléter votre dossier.";
         $toName = trim((string)($assureInfo['assure_prenom'] . ' ' . $assureInfo['assure_nom']));
         $res = pfe_mailer_send($toEmail, $toName, $subject, $html, $text);
         pfe_notification_update_email($conn, $idNotif, [

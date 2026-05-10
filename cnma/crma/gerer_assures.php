@@ -271,11 +271,7 @@ if (isset($_GET['compte'])) {
 <!-- FILTRES -->
 <form method="GET" class="filter-bar">
     <input type="text" name="q" placeholder="Rechercher assuré…" value="<?= htmlspecialchars($filtre_q) ?>">
-    <select name="actif">
-        <option value="">Tous</option>
-        <option value="1" <?= $filtre_actif==='1'?'selected':'' ?>>Actifs</option>
-        <option value="0" <?= $filtre_actif==='0'?'selected':'' ?>>Suspendus</option>
-    </select>
+    <input type="hidden" name="actif" value="1">
     <button type="submit" class="btn btn-outline btn-sm"><i class="fa fa-search"></i> Filtrer</button>
     <a href="gerer_assures.php" class="btn btn-ghost btn-sm"><i class="fa fa-times"></i></a>
 </form>

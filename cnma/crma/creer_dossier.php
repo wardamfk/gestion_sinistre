@@ -206,7 +206,58 @@ if($delai > 5){
         '21'
     )
     ");
+    // 🔥 Refus automatique si hors délai
+if($delai > 5){
+
+    mysqli_query($conn, "
+    INSERT INTO historique
+    (id_dossier, action, date_action, fait_par, ancien_etat, nouvel_etat)
+    VALUES
+    (
+        '$id_dossier',
+        'Refus automatique : déclaration hors délai réglementaire',
+        NOW(),
+        '$cree_par',
+        NULL,
+        '21'
+    )
+    ");
 }
+// 🔥 Notification assuré hors délai
+
+$assureInfo = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT u.id_user AS assure_user_id
+    FROM contrat c
+    JOIN assure a ON c.id_assure = a.id_assure
+    JOIN utilisateur u 
+        ON u.id_personne = a.id_personne
+        AND u.role = 'ASSURE'
+    WHERE c.id_contrat = '$id_contrat'
+    LIMIT 1
+"));
+
+if($assureInfo && !empty($assureInfo['assure_user_id'])){
+
+    $msg = mysqli_real_escape_string(
+        $conn,
+        "Votre dossier n’a pas pu être pris en charge car le délai de déclaration autorisé a été dépassé."
+    );
+
+    mysqli_query($conn, "
+        INSERT INTO notification
+        (id_dossier, id_expediteur, id_destinataire, type, message)
+        VALUES
+        (
+            '$id_dossier',
+            '$cree_par',
+            '{$assureInfo['assure_user_id']}',
+            'refus',
+            '$msg'
+        )
+    ");
+}
+}
+
 // SI EXPERT AFFECTÉ → PASSER EN EXPERTISE
 if($id_expert != "" && $delai <= 5){
     
@@ -236,7 +287,8 @@ if($id_expert != "" && $delai <= 5){
 <head>
     <meta charset="UTF-8">
     <title>Créer dossier</title>
-   
+   <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
     <link rel="stylesheet" href="../css/style_crma.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -259,9 +311,9 @@ if($id_expert != "" && $delai <= 5){
         <h3>Informations sinistre</h3>
 <div class="form-group">
     <label>Assuré</label>
-    <select id="assure_select">
-        <option value="">-- Sélectionner assuré --</option>
-
+<select id="assure_select"
+        name="id_assure"
+        placeholder="Rechercher un assuré...">
         <?php
  $res = mysqli_query($conn, "
     SELECT 
@@ -314,9 +366,12 @@ while($row = mysqli_fetch_assoc($res)){
             
             <div style="display:flex; gap:10px; align-items:center;">
     
-    <select name="id_tiers" required style="flex:1;">
+    <select id="tiers_select"
+        name="id_tiers"
+        required
+        style="flex:1;">
 
-        <option value="">-- Sélectionner tiers --</option>
+        <option value="">-- rechercher tiers --</option>
         <?php
         $res = mysqli_query($conn, "
             SELECT t.id_tiers, p.nom, p.prenom, t.compagnie_assurance
@@ -434,8 +489,11 @@ while($row = mysqli_fetch_assoc($res)){
 
         <div class="form-group">
             <label>Expert</label>
-            <select name="id_expert" required>
-                <option value="">-- Sélectionner expert --</option>
+        <select id="expert_select"
+        name="id_expert"
+        required>
+
+    <option value="">-- Rechercher expert --</option>
                 <?php
                 $res = mysqli_query($conn, "SELECT id_expert, nom, prenom FROM expert");
                 while($row = mysqli_fetch_assoc($res)){
@@ -525,6 +583,13 @@ document.getElementById('contrat_select').addEventListener('change', function() 
 const dateSinistre = document.querySelector('[name="date_sinistre"]');
 const dateDeclaration = document.querySelector('[name="date_declaration"]');
 const alertDelai = document.getElementById('alert-delai');
+new TomSelect("#tiers_select",{
+    create:false,
+    sortField:{
+        field:"text",
+        direction:"asc"
+    }
+});
 
 function verifierDelai(){
 
@@ -552,6 +617,20 @@ function verifierDelai(){
 
 dateSinistre.addEventListener('change', verifierDelai);
 dateDeclaration.addEventListener('change', verifierDelai);
+new TomSelect("#assure_select",{
+    create:false,
+    sortField:{
+        field:"text",
+        direction:"asc"
+    }
+});
+new TomSelect("#expert_select",{
+    create:false,
+    sortField:{
+        field:"text",
+        direction:"asc"
+    }
+});
 </script>
 </body>
 </html>

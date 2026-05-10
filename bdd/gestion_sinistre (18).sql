@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : sam. 09 mai 2026 à 11:52
+-- Généré le : dim. 10 mai 2026 à 08:41
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS `dossier` (
   KEY `cree_par` (`cree_par`),
   KEY `transmis_par` (`transmis_par`),
   KEY `fk_etat_dossier` (`id_etat`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `dossier`
@@ -278,7 +278,8 @@ INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_pa
 (27, 'DOS-CST-2026-0006', '2026-05-08', 11, NULL, NULL, '', 8, 1, 7, '2026-05-05', 'const', 'const', 3, 100100.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
 (28, 'DOS-CST-2026-0007', '2026-05-08', 11, NULL, NULL, '', 15, 1, 7, '2026-05-04', 'CONST', 'CONST', 3, 20498.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
 (29, 'DOS-CST-2026-0008', '2026-05-08', 11, NULL, NULL, '', 8, 1, 8, '2026-05-05', 'const', 'const', 3, NULL, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
-(30, 'DOS-CST-2026-0009', '2026-05-08', 11, NULL, NULL, '', 8, 3, 8, '2026-05-06', 'CONST', 'CONST', 2, 100500.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 2);
+(30, 'DOS-CST-2026-0009', '2026-05-08', 11, NULL, NULL, '', 8, 3, 8, '2026-05-06', 'CONST', 'CONST', 2, 100500.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 2),
+(31, 'DOS-CST-2026-0010', '2026-05-09', 11, NULL, NULL, '', 3, 1, 8, '2026-05-06', 'constantine', 'accident', 3, 550000.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -505,7 +506,7 @@ CREATE TABLE IF NOT EXISTS `historique` (
   KEY `fk_ancien_etat` (`ancien_etat`),
   KEY `fk_nouvel_etat` (`nouvel_etat`),
   KEY `fk_historique_motif` (`id_motif`)
-) ENGINE=InnoDB AUTO_INCREMENT=310 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=314 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `historique`
@@ -791,7 +792,11 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (306, 17, 'Changement d\'état → Repris', '2026-05-09 09:48:55', 9, 4, 15, '', 27),
 (307, 17, 'Transmission automatique CNMA (seuil dépassé)', '2026-05-09 09:49:09', 9, 15, 3, NULL, NULL),
 (308, 17, 'Ajout réserve', '2026-05-09 09:49:09', 9, 15, 3, NULL, NULL),
-(309, 17, 'Demande de complement CNMA', '2026-05-09 09:50:25', 2, 3, 6, 'Complement demande par la CNMA. Motif : Montant à réévaluer', 41);
+(309, 17, 'Demande de complement CNMA', '2026-05-09 09:50:25', 2, 3, 6, 'Complement demande par la CNMA. Motif : Montant à réévaluer', 41),
+(310, 31, 'Création dossier', '2026-05-09 19:01:27', 11, NULL, 2, NULL, NULL),
+(311, 31, 'Affectation expert', '2026-05-09 19:01:27', 11, 2, 9, NULL, NULL),
+(312, 31, 'Transmission automatique CNMA (seuil dépassé)', '2026-05-09 19:01:55', 11, 9, 3, NULL, NULL),
+(313, 31, 'Ajout réserve', '2026-05-09 19:01:55', 11, 9, 3, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -840,7 +845,6 @@ INSERT INTO `motif` (`id_motif`, `id_etat`, `nom_motif`, `message_assure`) VALUE
 (44, 6, 'Coordonnées tiers manquantes', NULL),
 (45, 6, 'Rapport d’expertise manquant', NULL),
 (46, 5, 'Sinistre non couvert par le contrat', 'Ce type d’incident n’est pas couvert par votre contrat d’assurance.'),
-(48, 5, 'Déclaration hors délai', 'Votre déclaration a été faite après le délai autorisé.'),
 (50, 5, 'Montant du dommage inférieur à la franchise', 'Le montant des dommages est inférieur à la franchise.');
 
 -- --------------------------------------------------------
@@ -1102,7 +1106,7 @@ CREATE TABLE IF NOT EXISTS `reserve` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `cree_par` (`cree_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reserve`
@@ -1199,7 +1203,9 @@ INSERT INTO `reserve` (`id_reserve`, `id_dossier`, `id_garantie`, `montant`, `da
 (105, 30, 1, 100.00, '2026-05-08', 'ajustement', 11, '2026-05-08', '', 'actif'),
 (106, 30, 1, 200.00, '2026-05-08', 'ajustement', 11, '2026-05-08', '', 'actif'),
 (107, 30, 1, 100.00, '2026-05-08', 'ajustement', 11, '2026-05-08', '', 'actif'),
-(108, 17, 1, 100000.00, '2026-05-09', 'ajustement', 9, '2026-05-09', '', 'actif');
+(108, 17, 1, 100000.00, '2026-05-09', 'ajustement', 9, '2026-05-09', '', 'actif'),
+(109, 31, 1, 100000.00, '2026-05-09', 'initiale', NULL, NULL, NULL, 'actif'),
+(110, 31, 1, 450000.00, '2026-05-09', 'ajustement', 11, '2026-05-09', '', 'actif');
 
 -- --------------------------------------------------------
 
