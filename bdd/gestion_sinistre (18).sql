@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : dim. 10 mai 2026 à 08:41
+-- Généré le : sam. 23 mai 2026 à 16:45
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -71,20 +71,21 @@ CREATE TABLE IF NOT EXISTS `assure` (
   `chauffeur_type_permis` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id_assure`),
   UNIQUE KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `assure`
 --
 
 INSERT INTO `assure` (`id_assure`, `id_personne`, `date_creation`, `actif`, `num_permis`, `date_delivrance_permis`, `lieu_delivrance_permis`, `type_permis`, `piece_identite`, `chauffeur_nom`, `chauffeur_prenom`, `chauffeur_permis`, `chauffeur_type_permis`) VALUES
-(2, 7, '2026-03-24', 1, '', '0000-00-00', '<br /><font size=\'1\'><table class=\'xdebug-error xe-deprecated\' dir=\'ltr\' border=\'1\' cellspacing=\'0\' ', 'A', NULL, NULL, NULL, NULL, NULL),
-(3, 2, '2026-03-24', 1, '234568', '0000-00-00', '', 'A', NULL, NULL, NULL, NULL, NULL),
-(4, 19, '2026-04-12', 1, '234567', '2026-02-05', 'LOIN', 'B', NULL, NULL, NULL, NULL, NULL),
+(2, 7, '2026-03-24', 1, 'A09065420', '0000-00-00', '<br /><font size=\'1\'><table class=\'xdebug-error xe-deprecated\' dir=\'ltr\' border=\'1\' cellspacing=\'0\' ', 'A', NULL, NULL, NULL, NULL, NULL),
+(3, 2, '2026-03-24', 1, 'H09065422', '0000-00-00', '', 'A', NULL, NULL, NULL, NULL, NULL),
+(4, 19, '2026-04-12', 1, 'A09555422', '2026-02-05', 'LOIN', 'B', NULL, NULL, NULL, NULL, NULL),
 (8, 32, '2026-05-04', 1, 'A09065422', '2020-05-05', 'biar', 'B', NULL, NULL, NULL, NULL, NULL),
 (9, 34, '2026-05-06', 1, 'ET1637897', '2024-05-07', 'kouba', 'B', NULL, NULL, NULL, NULL, NULL),
 (10, 36, '2026-05-07', 1, NULL, NULL, NULL, NULL, NULL, 'maleki', 'malek', 'ALG987654', 'C'),
-(11, 37, '2026-05-07', 1, 'HB1567783', '2023-05-06', 'kouba', 'B', NULL, NULL, NULL, NULL, NULL);
+(11, 37, '2026-05-07', 1, 'HB1567783', '2023-05-06', 'kouba', 'B', NULL, NULL, NULL, NULL, NULL),
+(12, 38, '2026-05-23', 1, 'AP134578', '2022-02-22', 'Cherchell', 'B', NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -118,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `contrat` (
   KEY `id_assure` (`id_assure`),
   KEY `fk_contrat_vehicule` (`id_vehicule`),
   KEY `fk_contrat_agence` (`id_agence`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `contrat`
@@ -131,7 +132,8 @@ INSERT INTO `contrat` (`id_contrat`, `numero_police`, `id_assure`, `date_effet`,
 (4, 'CRMA-ALG-2026-003', 8, '2026-05-07', '2026-08-07', 19000.00, 0.00, 0.00, 19500.00, 500.00, 23305.00, 'actif', '2026-05-06', 3, 1, 3, 1400000.00, 0.19, 100.00),
 (6, 'CRMA-CST-2026-001', 9, '2026-05-07', '2026-08-07', 14500.00, 0.00, 400.00, 15400.00, 500.00, 18476.00, 'actif', '2026-05-06', 6, 3, 3, 1200000.00, 0.19, 150.00),
 (7, 'CRMA-CST-2026-002', 10, '2026-05-08', '2026-08-08', 11500.00, 5000.00, 0.00, 7000.00, 500.00, 8430.00, 'actif', '2026-05-07', 7, 3, 3, 8490000.00, 0.19, 100.00),
-(8, 'CRMA-CST-2026-003', 4, '2026-05-08', '2026-11-08', 21000.00, 2000.00, 0.00, 19500.00, 500.00, 23305.00, 'actif', '2026-05-07', 8, 3, 6, 2000000.00, 0.19, 100.00);
+(8, 'CRMA-CST-2026-003', 4, '2026-05-08', '2026-11-08', 21000.00, 2000.00, 0.00, 19500.00, 500.00, 23305.00, 'actif', '2026-05-07', 8, 3, 6, 2000000.00, 0.19, 100.00),
+(9, 'CRMA-OUA-2026-001', 12, '2026-05-24', '2027-05-24', 15000.00, 0.00, 0.00, 15500.00, 500.00, 18545.00, 'actif', '2026-05-23', 9, 5, 12, 3000000.00, 0.19, 100.00);
 
 -- --------------------------------------------------------
 
@@ -159,12 +161,15 @@ INSERT INTO `contrat_garantie` (`id_contrat`, `id_garantie`) VALUES
 (6, 1),
 (7, 1),
 (8, 1),
+(9, 1),
 (1, 2),
 (3, 2),
+(9, 2),
 (3, 3),
 (4, 3),
 (7, 3),
 (8, 3),
+(9, 3),
 (6, 4),
 (8, 4),
 (6, 5),
@@ -172,6 +177,7 @@ INSERT INTO `contrat_garantie` (`id_contrat`, `id_garantie`) VALUES
 (4, 7),
 (6, 7),
 (8, 7),
+(9, 7),
 (4, 8),
 (8, 8);
 
@@ -193,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `document` (
   KEY `id_dossier` (`id_dossier`),
   KEY `upload_par` (`upload_par`),
   KEY `fk_type_document` (`id_type_document`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `document`
@@ -211,7 +217,10 @@ INSERT INTO `document` (`id_document`, `id_dossier`, `nom_fichier`, `date_upload
 (17, 13, 'BDAU9862.JPG', '2026-04-27', 9, 1),
 (18, 14, 'BDAU9862.JPG', '2026-04-27', 9, 1),
 (19, 15, 'BDAU9862.JPG', '2026-04-27', 9, 1),
-(21, 17, 'BDAU9862.JPG', '2026-04-27', 9, 1);
+(21, 17, 'BDAU9862.JPG', '2026-04-27', 9, 1),
+(23, 33, 'WhatsApp Image 2026-05-23 at 11.42.41.jpeg', '2026-05-23', 12, 3),
+(24, 34, 'WhatsApp Image 2026-05-23 at 11.42.41.jpeg', '2026-05-23', 12, 1),
+(25, 35, 'WhatsApp Image 2026-05-23 at 11.42.41.jpeg', '2026-05-23', 12, 3);
 
 -- --------------------------------------------------------
 
@@ -248,24 +257,24 @@ CREATE TABLE IF NOT EXISTS `dossier` (
   KEY `cree_par` (`cree_par`),
   KEY `transmis_par` (`transmis_par`),
   KEY `fk_etat_dossier` (`id_etat`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `dossier`
 --
 
 INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_par`, `date_transmission`, `transmis_par`, `info_complementaire`, `id_etat`, `id_contrat`, `id_tiers`, `date_sinistre`, `lieu_sinistre`, `description`, `delai_declaration`, `total_reserve`, `statut_validation`, `date_validation`, `date_refus`, `date_cloture`, `commentaire_cnma`, `valide_par`, `id_expert`) VALUES
-(4, 'DOS-ALG-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 8, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-05', NULL, '2026-04-03', NULL, NULL, 2),
+(4, 'DOS-ALG-2026-0001', '2026-03-30', 9, NULL, NULL, 'HH', 14, 1, 5, '2026-03-14', 'ALGER', 'Accident matériel', 4, 5350.00, 'valide', '2026-04-05', NULL, '2026-05-23', NULL, NULL, 2),
 (5, 'DOS-ALG-2026-0002', '2026-03-30', 9, '2026-04-30', 9, 'HKJ', 5, 2, 5, '2026-03-14', 'ALGER', 'Accident matériel', 7, 5555.00, 'refuse', NULL, '2026-04-30', NULL, NULL, NULL, NULL),
 (6, 'DOS-ALG-2026-0003', '2026-03-30', 9, '2026-04-19', 9, '', 2, 1, 7, '2026-03-06', 'ALGER', 'ACCIDE', 20, 700867.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
 (7, 'DOS-ALG-2026-0004', '2026-03-31', 9, '2026-04-30', 9, '', 6, 1, 5, '2026-03-12', 'ALGER', 'ACCCIDENT', 2, 5600290.00, 'non_soumis', '2026-04-02', NULL, NULL, NULL, 2, 1),
-(8, 'DOS-ALG-2026-0005', '2026-03-31', 9, NULL, NULL, '', 8, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, NULL, NULL, NULL, 2),
-(9, 'DOS-ALG-2026-0006', '2026-04-02', 9, '2026-04-19', 9, '', 7, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 649155.00, 'valide', '2026-04-19', NULL, NULL, NULL, 2, 2),
+(8, 'DOS-ALG-2026-0005', '2026-03-31', 9, NULL, NULL, '', 19, 2, 5, '2026-03-03', 'ALGER', 'S', 16, 11991.00, 'valide', NULL, NULL, '2026-05-23', NULL, NULL, 2),
+(9, 'DOS-ALG-2026-0006', '2026-04-02', 9, '2026-04-19', 9, '', 8, 1, 5, '2026-04-14', 'ALGER', 'ASCC', 2, 649155.00, 'valide', '2026-04-19', NULL, NULL, NULL, 2, 2),
 (10, 'DOS-ALG-2026-0007', '2026-04-02', 9, NULL, NULL, '', 6, 2, 6, '2026-03-30', 'ALGER', 'JK', 2, 500100.00, 'non_soumis', '2026-04-04', NULL, NULL, NULL, NULL, 1),
-(11, 'DOS-ALG-2026-0008', '2026-04-02', 9, NULL, NULL, '', 8, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10500.00, 'valide', '2026-04-24', NULL, NULL, NULL, NULL, 5),
+(11, 'DOS-ALG-2026-0008', '2026-04-02', 9, NULL, NULL, '', 14, 1, 7, '2026-04-08', 'BIRTOTA', 'BR', 3, 10500.00, 'valide', '2026-04-24', NULL, '2026-05-23', NULL, NULL, 5),
 (12, 'DOS-ORA-2026-0009', '2026-04-03', 10, NULL, NULL, '', 9, 1, 5, '2026-03-30', 'ALGER', 'HG', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 4),
 (13, 'DOS-ALG-2026-0010', '2026-04-27', 9, NULL, NULL, 'S', 15, 1, 8, '2026-04-21', 'ALGER', 'ACCIDENT', 3, 2500.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 4),
-(14, 'DOS-ALG-2026-0011', '2026-04-27', 9, NULL, NULL, 'BNB', 7, 2, 6, '2026-04-27', 'ALGER', 'ACCIENT', 2, 0.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
+(14, 'DOS-ALG-2026-0011', '2026-04-27', 9, NULL, NULL, 'BNB', 14, 2, 6, '2026-04-27', 'ALGER', 'ACCIENT', 2, 0.00, 'non_soumis', NULL, NULL, '2026-05-23', NULL, NULL, 3),
 (15, 'DOS-ALG-2026-0012', '2026-04-27', 9, NULL, NULL, '', 14, 1, 5, '2026-04-15', 'ALGER', 'ACCIDNT', 12, NULL, 'non_soumis', NULL, NULL, '2026-04-29', NULL, NULL, 2),
 (17, 'DOS-ALG-2026-0014', '2026-04-27', 9, NULL, NULL, '', 6, 2, 5, '2026-04-23', 'ALGER', 'ACIDENT', 4, 599500.00, 'non_soumis', '2026-05-08', NULL, NULL, NULL, 2, 2),
 (18, 'DOS-ORA-2026-0015', '2026-05-01', 10, NULL, NULL, 'ACCIDENTS', 7, 1, 5, '2026-04-22', 'ALGER', 'HVHN', 1, 100100.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
@@ -276,10 +285,14 @@ INSERT INTO `dossier` (`id_dossier`, `numero_dossier`, `date_creation`, `cree_pa
 (25, 'DOS-CST-2026-0004', '2026-05-08', 11, NULL, NULL, '', 8, 1, 7, '2026-05-05', 'CONSTATINE', 'ACCIDENT', 4, 31900.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
 (26, 'DOS-CST-2026-0005', '2026-05-08', 11, NULL, NULL, '', 8, 1, 6, '2026-05-05', 'CONST', 'CONST', 3, 11000.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
 (27, 'DOS-CST-2026-0006', '2026-05-08', 11, NULL, NULL, '', 8, 1, 7, '2026-05-05', 'const', 'const', 3, 100100.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
-(28, 'DOS-CST-2026-0007', '2026-05-08', 11, NULL, NULL, '', 15, 1, 7, '2026-05-04', 'CONST', 'CONST', 3, 20498.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
+(28, 'DOS-CST-2026-0007', '2026-05-08', 11, NULL, NULL, '', 8, 1, 7, '2026-05-04', 'CONST', 'CONST', 3, 20498.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 3),
 (29, 'DOS-CST-2026-0008', '2026-05-08', 11, NULL, NULL, '', 8, 1, 8, '2026-05-05', 'const', 'const', 3, NULL, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
 (30, 'DOS-CST-2026-0009', '2026-05-08', 11, NULL, NULL, '', 8, 3, 8, '2026-05-06', 'CONST', 'CONST', 2, 100500.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 2),
-(31, 'DOS-CST-2026-0010', '2026-05-09', 11, NULL, NULL, '', 3, 1, 8, '2026-05-06', 'constantine', 'accident', 3, 550000.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1);
+(31, 'DOS-CST-2026-0010', '2026-05-09', 11, NULL, NULL, '', 6, 1, 8, '2026-05-06', 'constantine', 'accident', 3, 550000.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
+(32, 'DOS-OUA-2026-0001', '2026-05-23', 12, NULL, NULL, 'pas de blesses', 8, 9, 9, '2026-05-13', 'tipaza', 'accident a tipaza ', 3, NULL, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 1),
+(33, 'DOS-OUA-2026-0002', '2026-05-23', 12, NULL, NULL, 'pas de blesses', 14, 9, 6, '2026-05-13', 'tipaza', 'accident a tipaza ', 3, 101100.00, 'non_soumis', NULL, NULL, '2026-05-23', NULL, NULL, 1),
+(34, 'DOS-OUA-2026-0003', '2026-05-23', 12, NULL, NULL, 'accident ', 8, 6, 6, '2026-05-12', 'ourgla', 'accident', 4, 20099.00, 'non_soumis', NULL, NULL, NULL, NULL, NULL, 2),
+(35, 'DOS-OUA-2026-0004', '2026-05-23', 12, NULL, NULL, 'accident', 5, 3, 5, '2026-05-27', 'ouergla', 'acc', 4, 6019999.00, 'refuse', NULL, '2026-05-23', NULL, NULL, NULL, 3);
 
 -- --------------------------------------------------------
 
@@ -299,14 +312,15 @@ CREATE TABLE IF NOT EXISTS `encaissement` (
   PRIMARY KEY (`id_encaissement`),
   KEY `id_dossier` (`id_dossier`),
   KEY `fk_encaissement_tiers` (`id_tiers`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `encaissement`
 --
 
 INSERT INTO `encaissement` (`id_encaissement`, `id_dossier`, `montant`, `date_encaissement`, `id_tiers`, `type`, `commentaire`) VALUES
-(1, 11, 10.00, '2026-04-21', 7, 'recours', '');
+(1, 11, 10.00, '2026-04-21', 7, 'recours', ''),
+(2, 32, 100.00, '2026-05-23', 9, 'recours', '');
 
 -- --------------------------------------------------------
 
@@ -399,7 +413,7 @@ CREATE TABLE IF NOT EXISTS `expertise` (
   PRIMARY KEY (`id_expertise`),
   KEY `id_dossier` (`id_dossier`),
   KEY `id_expert` (`id_expert`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `expertise`
@@ -426,7 +440,9 @@ INSERT INTO `expertise` (`id_expertise`, `id_dossier`, `id_expert`, `date_expert
 (25, 24, 1, '2026-05-07', 'BDAU9862.JPG', 10000.00, ''),
 (26, 25, 1, '2026-05-08', 'BDAU9862.JPG', 1000.00, ''),
 (27, 25, 1, '2026-05-07', 'BDAU9862.JPG', 10000.00, ''),
-(28, 27, 1, '2026-05-07', '', 1000.00, '');
+(28, 27, 1, '2026-05-07', '', 1000.00, ''),
+(29, 33, 1, '2026-05-22', 'WhatsApp Image 2026-05-23 at 11.42.41.jpeg', 100.00, ''),
+(30, 32, 1, '2026-05-21', 'WhatsApp Image 2026-05-23 at 11.42.41.jpeg', 100.00, '');
 
 -- --------------------------------------------------------
 
@@ -506,7 +522,7 @@ CREATE TABLE IF NOT EXISTS `historique` (
   KEY `fk_ancien_etat` (`ancien_etat`),
   KEY `fk_nouvel_etat` (`nouvel_etat`),
   KEY `fk_historique_motif` (`id_motif`)
-) ENGINE=InnoDB AUTO_INCREMENT=314 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=363 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `historique`
@@ -796,7 +812,56 @@ INSERT INTO `historique` (`id_historique`, `id_dossier`, `action`, `date_action`
 (310, 31, 'Création dossier', '2026-05-09 19:01:27', 11, NULL, 2, NULL, NULL),
 (311, 31, 'Affectation expert', '2026-05-09 19:01:27', 11, 2, 9, NULL, NULL),
 (312, 31, 'Transmission automatique CNMA (seuil dépassé)', '2026-05-09 19:01:55', 11, 9, 3, NULL, NULL),
-(313, 31, 'Ajout réserve', '2026-05-09 19:01:55', 11, 9, 3, NULL, NULL);
+(313, 31, 'Ajout réserve', '2026-05-09 19:01:55', 11, 9, 3, NULL, NULL),
+(314, 33, 'Création dossier', '2026-05-23 11:43:38', 12, NULL, 2, NULL, NULL),
+(315, 33, 'Affectation expert', '2026-05-23 11:43:38', 12, 2, 9, NULL, NULL),
+(316, 34, 'Création dossier', '2026-05-23 11:46:19', 12, NULL, 2, NULL, NULL),
+(317, 34, 'Affectation expert', '2026-05-23 11:46:19', 12, 2, 9, NULL, NULL),
+(318, 35, 'Création dossier', '2026-05-23 11:49:54', 12, NULL, 2, NULL, NULL),
+(319, 35, 'Affectation expert', '2026-05-23 11:49:54', 12, 2, 9, NULL, NULL),
+(320, 33, 'Ajout expertise', '2026-05-23 11:55:11', 12, 9, 9, NULL, NULL),
+(321, 33, 'Ajout réserve', '2026-05-23 11:55:52', 12, 9, 9, NULL, NULL),
+(322, 33, 'Règlement total', '2026-05-23 11:56:50', 12, 9, 8, NULL, NULL),
+(323, 33, 'Règlement total', '2026-05-23 11:56:57', 12, 8, 8, NULL, NULL),
+(324, 33, 'Règlement disponible', '2026-05-23 11:58:24', 12, 8, 8, NULL, NULL),
+(325, 33, 'Règlement disponible', '2026-05-23 11:58:35', 12, 8, 8, NULL, NULL),
+(326, 33, 'Remise totale des règlements à l’assuré', '2026-05-23 11:58:49', 12, NULL, NULL, NULL, NULL),
+(327, 33, 'Changement d\'état → Clôturé', '2026-05-23 12:02:08', 12, 8, 14, '', NULL),
+(328, 32, 'Ajout expertise', '2026-05-23 12:04:17', 12, 2, 2, NULL, NULL),
+(329, 32, 'Règlement partiel', '2026-05-23 12:05:20', 12, 2, 7, NULL, NULL),
+(330, 32, 'Règlement total', '2026-05-23 12:14:49', 12, 7, 8, NULL, NULL),
+(331, 34, 'Ajout réserve', '2026-05-23 12:16:01', 12, 9, 9, NULL, NULL),
+(332, 34, 'Règlement partiel', '2026-05-23 12:16:25', 12, 9, 7, NULL, NULL),
+(333, 35, 'Transmission automatique CNMA (seuil dépassé)', '2026-05-23 12:17:44', 12, 9, 3, NULL, NULL),
+(334, 35, 'Ajout réserve', '2026-05-23 12:17:44', 12, 9, 3, NULL, NULL),
+(335, 31, 'Demande de complement CNMA', '2026-05-23 12:19:39', 2, 3, 6, 'Complement demande par la CNMA. Motif : PV de police manquant', 35),
+(336, 35, 'Refus dossier CNMA', '2026-05-23 12:23:31', 2, 3, 5, 'Refus CNMA. Motif : Sinistre non couvert par le contrat', 46),
+(337, 34, 'Règlement total', '2026-05-23 12:26:58', 12, 7, 8, NULL, NULL),
+(338, 34, 'Règlement disponible', '2026-05-23 12:27:09', 12, 8, 8, NULL, NULL),
+(339, 34, 'Règlement disponible', '2026-05-23 12:27:12', 12, 8, 8, NULL, NULL),
+(340, 34, 'Remise totale des règlements à l’assuré', '2026-05-23 12:27:56', 12, NULL, NULL, NULL, NULL),
+(341, 28, 'Changement d\'état → Règlement définitif amiable', '2026-05-23 12:30:22', 11, 15, 8, '', NULL),
+(342, 14, 'Changement d\'état → Classé sans suite', '2026-05-23 12:32:06', 9, 7, 11, '', 21),
+(343, 32, 'Encaissement enregistré — recours', '2026-05-23 15:56:59', 12, 8, 8, NULL, NULL),
+(344, 14, 'Règlement disponible', '2026-05-23 16:41:36', 9, 11, 8, NULL, NULL),
+(345, 14, 'Règlement disponible', '2026-05-23 16:41:50', 9, 8, 8, NULL, NULL),
+(346, 14, 'Changement d\'état → Clôturé', '2026-05-23 16:43:12', 9, 8, 14, '', NULL),
+(347, 9, 'Règlement total', '2026-05-23 16:45:06', 9, 7, 8, NULL, NULL),
+(348, 9, 'Règlement disponible', '2026-05-23 16:45:15', 9, 8, 8, NULL, NULL),
+(349, 9, 'Remise totale des règlements à l’assuré', '2026-05-23 16:47:24', 9, NULL, NULL, NULL, NULL),
+(350, 4, 'Remise totale des règlements à l’assuré', '2026-05-23 16:48:54', 9, NULL, NULL, NULL, NULL),
+(351, 4, 'Changement d\'état → Clôturé', '2026-05-23 16:49:10', 9, 8, 14, '', NULL),
+(352, 8, 'Règlement disponible', '2026-05-23 16:49:56', 9, 8, 8, NULL, NULL),
+(353, 14, 'Remise totale des règlements à l’assuré', '2026-05-23 17:11:51', 9, NULL, NULL, NULL, NULL),
+(354, 8, 'Remise totale des règlements à l’assuré', '2026-05-23 17:12:21', 9, NULL, NULL, NULL, NULL),
+(355, 11, 'Règlement disponible', '2026-05-23 17:12:51', 9, 8, 8, NULL, NULL),
+(356, 11, 'Règlement disponible', '2026-05-23 17:12:55', 9, 8, 8, NULL, NULL),
+(357, 11, 'Remise totale des règlements à l’assuré', '2026-05-23 17:13:07', 9, NULL, NULL, NULL, NULL),
+(358, 11, 'Changement d\'état → Clôturé', '2026-05-23 17:13:17', 9, 8, 14, '', NULL),
+(359, 8, 'Règlement disponible', '2026-05-23 17:13:31', 9, 8, 8, NULL, NULL),
+(360, 8, 'Règlement disponible', '2026-05-23 17:13:34', 9, 8, 8, NULL, NULL),
+(361, 8, 'Remise totale des règlements à l’assuré', '2026-05-23 17:13:46', 9, NULL, NULL, NULL, NULL),
+(362, 8, 'Changement d\'état → Classé après recours abouti', '2026-05-23 17:14:15', 9, 8, 19, '', 33);
 
 -- --------------------------------------------------------
 
@@ -875,7 +940,7 @@ CREATE TABLE IF NOT EXISTS `notification` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_expediteur` (`id_expediteur`),
   KEY `id_destinataire` (`id_destinataire`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `notification`
@@ -892,7 +957,7 @@ INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `i
 (8, 9, 2, 9, 'validation', 'Le dossier DOS-2026-0006 a été VALIDÉ par la CNMA. Vous pouvez procéder au règlement.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-19 10:35:17', 0),
 (9, 13, 9, 13, 'cloture', 'Votre dossier DOS-2026-0010 a changé d\'état : Classé sans suite. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-28 16:26:11', 0),
 (10, 6, 2, 9, 'complement', 'Complément demandé pour le dossier DOS-2026-0003. Veuillez compléter les documents manquants et re-transmettre.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-28 19:23:42', 0),
-(11, 15, 9, 13, 'cloture', 'Votre dossier DOS-2026-0012 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-29 14:35:40', 0),
+(11, 15, 9, 13, 'cloture', 'Votre dossier DOS-2026-0012 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-29 14:35:40', 1),
 (12, 5, 2, 9, 'refus', 'Le dossier DOS-2026-0002 a ete refuse par la CNMA. Motif : Sinistre non couvert par le contrat', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-30 15:38:54', 1),
 (13, 5, 2, 8, 'refus', 'Ce type d’incident n’est pas couvert par votre contrat d’assurance.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-30 15:38:54', 1),
 (14, 7, 2, 9, 'complement', 'Complement demande pour le dossier DOS-2026-0004. Motif : Montant à réévaluer', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-04-30 15:41:36', 0),
@@ -911,13 +976,29 @@ INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `i
 (29, 28, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0007', '<!doctype html><html lang=\"fr\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Paiement de votre dossier sinistre — DOS-CST-2026-0007</title><style>body{margin:0;padding:0;background:#f3f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2937;}.container{max-width:640px;margin:0 auto;padding:24px;}.card{background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,0.08);}.header{padding:22px 24px;background:#0b8f3a;color:#ffffff;}.header-title{font-size:18px;line-height:1.3;font-weight:700;margin:0;}.body{padding:24px;}.footer{padding:18px 24px;background:#0b1220;color:#cbd5e1;font-size:12px;line-height:1.6;}.muted{color:#64748b;font-size:13px;line-height:1.6;margin:0 0 14px;}.divider{height:1px;background:#e5e7eb;margin:18px 0;}.row{display:flex;gap:10px;margin:0 0 10px;}.label{width:170px;min-width:170px;color:#64748b;font-size:13px;}.value{flex:1;font-size:14px;font-weight:600;color:#0f172a;}@media(max-width:520px){.container{padding:14px;}.body{padding:18px;}.row{display:block;}.label{width:auto;min-width:0;margin-bottom:4px;}.value{font-size:14px;}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">Paiement du dossier DOS-CST-2026-0007</div><div class=\"container\"><div class=\"card\"><div style=\"text-align:center;padding:22px 0 10px;\">\n    <img \n        src=\"http://localhost/PfeCnma/cnma/images/logo.webp\"\n        alt=\"CNMA\"\n        style=\"height:70px;object-fit:contain;\"\n    >\n</div><div class=\"header\">\n    <p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0007</p>\n</div><div class=\"body\"><p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0007</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">20 099,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p></div><div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile<br>\n\n</div></div></div></body></html>', 'sent', 1, '2026-05-08 13:12:40', '2026-05-08 12:12:40', NULL, '2026-05-08 13:12:38', 0),
 (30, 28, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0007', '<!doctype html><html lang=\"fr\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Paiement de votre dossier sinistre — DOS-CST-2026-0007</title><style>body{margin:0;padding:0;background:#f3f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2937;}.container{max-width:640px;margin:0 auto;padding:24px;}.card{background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,0.08);}.header{padding:22px 24px;background:#0b8f3a;color:#ffffff;}.header-title{font-size:18px;line-height:1.3;font-weight:700;margin:0;}.body{padding:24px;}.footer{padding:18px 24px;background:#0b1220;color:#cbd5e1;font-size:12px;line-height:1.6;}.muted{color:#64748b;font-size:13px;line-height:1.6;margin:0 0 14px;}.divider{height:1px;background:#e5e7eb;margin:18px 0;}.row{display:flex;gap:10px;margin:0 0 10px;}.label{width:170px;min-width:170px;color:#64748b;font-size:13px;}.value{flex:1;font-size:14px;font-weight:600;color:#0f172a;}@media(max-width:520px){.container{padding:14px;}.body{padding:18px;}.row{display:block;}.label{width:auto;min-width:0;margin-bottom:4px;}.value{font-size:14px;}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">Paiement du dossier DOS-CST-2026-0007</div><div class=\"container\"><div class=\"card\"><div class=\"header\">\n    <p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0007</p>\n</div><div class=\"body\"><p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0007</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">20 199,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p></div><div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile<br>\n\n</div></div></div></body></html>', 'sent', 1, '2026-05-08 13:20:15', '2026-05-08 12:20:15', NULL, '2026-05-08 13:20:13', 0),
 (31, 28, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0007', '<!doctype html><html lang=\"fr\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Paiement de votre dossier sinistre — DOS-CST-2026-0007</title><style>body{margin:0;padding:0;background:#f3f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2937;}.container{max-width:640px;margin:0 auto;padding:24px;}.card{background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,0.08);}.header{padding:22px 24px;background:#0b8f3a;color:#ffffff;}.header-title{font-size:18px;line-height:1.3;font-weight:700;margin:0;}.body{padding:24px;background:#111827;color:#ffffff;}.footer{padding:18px 24px;background:#0b1220;color:#cbd5e1;font-size:12px;line-height:1.6;}.muted{color:#64748b;font-size:13px;line-height:1.6;margin:0 0 14px;}.divider{height:1px;background:#e5e7eb;margin:18px 0;}.row{margin:0 0 14px;}.label{color:#94a3b8;font-size:13px;margin-bottom:4px;}.value{font-size:16px;font-weight:700;color:#ffffff;}@media(max-width:520px){.container{padding:14px;}.body{padding:18px;}.row{display:block;}.label{width:auto;min-width:0;margin-bottom:4px;}.value{font-size:14px;}}</style></head><body><div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">Paiement du dossier DOS-CST-2026-0007</div><div class=\"container\"><div class=\"card\"><div class=\"header\">\n    <p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0007</p>\n</div><div class=\"body\"><p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0007</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">20 398,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p></div><div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile<br>\n\n</div></div></div></body></html>', 'sent', 1, '2026-05-08 13:26:37', '2026-05-08 12:26:37', NULL, '2026-05-08 13:26:34', 0),
-(32, 28, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0007', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-CST-2026-0007</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-CST-2026-0007\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0007</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0007</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">20 498,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-08 13:35:57', '2026-05-08 12:35:57', NULL, '2026-05-08 13:35:54', 0),
-(33, 29, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0008', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-CST-2026-0008</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-CST-2026-0008\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0008</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0008</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">10 000,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-08 13:38:28', '2026-05-08 12:38:28', NULL, '2026-05-08 13:38:25', 0),
+(32, 28, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0007', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-CST-2026-0007</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-CST-2026-0007\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0007</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0007</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">20 498,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-08 13:35:57', '2026-05-08 12:35:57', NULL, '2026-05-08 13:35:54', 1),
+(33, 29, 11, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0008', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-CST-2026-0008</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-CST-2026-0008\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0008</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0008</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">10 000,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-08 13:38:28', '2026-05-08 12:38:28', NULL, '2026-05-08 13:38:25', 1),
 (34, 30, 11, 15, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'moufouki.fadia.enssea@gmail.com', 'Paiement de votre dossier sinistre — DOS-CST-2026-0009', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-CST-2026-0009</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-CST-2026-0009\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-CST-2026-0009</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-CST-2026-0009</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">100 500,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Oran</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-08 13:54:24', '2026-05-08 12:54:24', NULL, '2026-05-08 13:54:22', 0),
 (35, 10, 2, 9, 'complement', 'Complement demande pour le dossier DOS-ALG-2026-0007. Motif : Facture de réparation manquante', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-09 09:38:22', 0),
 (36, 10, 2, 8, 'complement', 'Complément demandé pour votre dossier DOS-ALG-2026-0007. Motif : Facture de réparation manquante. Veuillez transmettre les documents manquants à votre agence CRMA.', 'aida.moufouki@gmail.com', 'Complément demandé pour votre dossier', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Complément demandé pour votre dossier</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nComplément demandé pour DOS-ALG-2026-0007\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Complément demandé pour votre dossier</p>\n</div>\n\n<div class=\"body\">\n<p class=\"muted\">Des informations ou documents supplémentaires sont nécessaires pour traiter votre dossier.</p><div class=\"divider\"></div><div class=\"row\"><div class=\"label\">Numéro dossier</div><div class=\"value\">DOS-ALG-2026-0007</div></div><div class=\"row\"><div class=\"label\">Motif du complément</div><div class=\"value\">Facture de réparation manquante</div></div><div class=\"divider\"></div><p style=\"margin:0;font-size:14px;line-height:1.7\">Merci de transmettre les documents manquants à votre agence CRMA afin d’accélérer le traitement.</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'failed', 1, '2026-05-09 09:38:22', NULL, 'SMTP Error: Could not connect to SMTP host. Failed to connect to server', '2026-05-09 09:38:22', 0),
 (37, 17, 2, 9, 'complement', 'Complement demande pour le dossier DOS-ALG-2026-0014. Motif : Montant à réévaluer', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-09 09:50:25', 0),
-(38, 17, 2, 8, 'complement', 'Complément demandé pour votre dossier DOS-ALG-2026-0014. Motif : Montant à réévaluer. Veuillez transmettre les documents manquants à votre agence CRMA.', 'aida.moufouki@gmail.com', 'Complément demandé pour votre dossier', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Complément demandé pour votre dossier</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nComplément demandé pour DOS-ALG-2026-0014\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Complément demandé pour votre dossier</p>\n</div>\n\n<div class=\"body\">\n<p class=\"muted\">Des informations ou documents supplémentaires sont nécessaires pour traiter votre dossier.</p><div class=\"divider\"></div><div class=\"row\"><div class=\"label\">Numéro dossier</div><div class=\"value\">DOS-ALG-2026-0014</div></div><div class=\"row\"><div class=\"label\">Motif du complément</div><div class=\"value\">Montant à réévaluer</div></div><div class=\"divider\"></div><p style=\"margin:0;font-size:14px;line-height:1.7\">Merci de transmettre les documents manquants à votre agence CRMA afin d’accélérer le traitement.</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-09 09:50:28', '2026-05-09 08:50:28', NULL, '2026-05-09 09:50:25', 0);
+(38, 17, 2, 8, 'complement', 'Complément demandé pour votre dossier DOS-ALG-2026-0014. Motif : Montant à réévaluer. Veuillez transmettre les documents manquants à votre agence CRMA.', 'aida.moufouki@gmail.com', 'Complément demandé pour votre dossier', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Complément demandé pour votre dossier</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nComplément demandé pour DOS-ALG-2026-0014\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Complément demandé pour votre dossier</p>\n</div>\n\n<div class=\"body\">\n<p class=\"muted\">Des informations ou documents supplémentaires sont nécessaires pour traiter votre dossier.</p><div class=\"divider\"></div><div class=\"row\"><div class=\"label\">Numéro dossier</div><div class=\"value\">DOS-ALG-2026-0014</div></div><div class=\"row\"><div class=\"label\">Motif du complément</div><div class=\"value\">Montant à réévaluer</div></div><div class=\"divider\"></div><p style=\"margin:0;font-size:14px;line-height:1.7\">Merci de transmettre les documents manquants à votre agence CRMA afin d’accélérer le traitement.</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-09 09:50:28', '2026-05-09 08:50:28', NULL, '2026-05-09 09:50:25', 0),
+(39, 33, 12, 16, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'meklatimeriem85@gmail.com', 'Paiement de votre dossier sinistre — DOS-OUA-2026-0002', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-OUA-2026-0002</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-OUA-2026-0002\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-OUA-2026-0002</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-OUA-2026-0002</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">120 000,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Ouargla</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 11:56:57', '2026-05-23 10:56:57', NULL, '2026-05-23 11:56:50', 0),
+(40, 33, 12, 16, 'cloture', 'Votre dossier DOS-OUA-2026-0002 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 12:02:08', 0);
+INSERT INTO `notification` (`id_notification`, `id_dossier`, `id_expediteur`, `id_destinataire`, `type`, `message`, `email_to`, `email_subject`, `email_body_html`, `email_status`, `email_attempts`, `email_last_attempt_at`, `email_sent_at`, `email_error`, `date_notification`, `lu`) VALUES
+(41, 32, 12, 16, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'meklatimeriem85@gmail.com', 'Paiement de votre dossier sinistre — DOS-OUA-2026-0001', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-OUA-2026-0001</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-OUA-2026-0001\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-OUA-2026-0001</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-OUA-2026-0001</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">102 000,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Ouargla</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 12:14:53', '2026-05-23 11:14:53', NULL, '2026-05-23 12:14:49', 0),
+(42, 31, 2, 11, 'complement', 'Complement demande pour le dossier DOS-CST-2026-0010. Motif : PV de police manquant', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 12:19:39', 0),
+(43, 31, 2, 13, 'complement', 'Des documents ou informations complémentaires sont nécessaires pour votre dossier DOS-CST-2026-0010. Merci de contacter votre agence CRMA afin de compléter votre dossier.', 'warda.moufouki@esst-sup.com', 'Complément demandé pour votre dossier', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Complément demandé pour votre dossier</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nComplément demandé pour DOS-CST-2026-0010\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Complément demandé pour votre dossier</p>\n</div>\n\n<div class=\"body\">\n<p class=\"muted\">Des informations ou documents supplémentaires sont nécessaires pour traiter votre dossier.</p><div class=\"divider\"></div><div class=\"row\"><div class=\"label\">Numéro dossier</div><div class=\"value\">DOS-CST-2026-0010</div></div><div class=\"divider\"></div><p style=\"margin:0;font-size:14px;line-height:1.7\">\nDes documents ou informations complémentaires sont nécessaires pour poursuivre le traitement de votre dossier.<br><br>\nMerci de contacter votre agence CRMA afin de compléter votre dossier.\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 12:19:44', '2026-05-23 11:19:44', NULL, '2026-05-23 12:19:39', 0),
+(44, 35, 2, 12, 'refus', 'Le dossier DOS-OUA-2026-0004 a ete refuse par la CNMA. Motif : Sinistre non couvert par le contrat', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 12:23:31', 0),
+(45, 35, 2, 15, 'refus', 'Ce type d’incident n’est pas couvert par votre contrat d’assurance.', 'moufouki.fadia.enssea@gmail.com', 'Refus de votre dossier sinistre', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Refus de votre dossier sinistre</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nRefus dossier DOS-OUA-2026-0004\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Refus de votre dossier sinistre</p>\n</div>\n\n<div class=\"body\">\n<p class=\"muted\">Votre dossier a été refusé par la CNMA. Vous trouverez les informations ci-dessous.</p><div class=\"divider\"></div><div class=\"row\"><div class=\"label\">Numéro dossier</div><div class=\"value\">DOS-OUA-2026-0004</div></div><div class=\"row\"><div class=\"label\">Motif du refus</div><div class=\"value\">Sinistre non couvert par le contrat</div></div><div class=\"divider\"></div><p style=\"margin:0;font-size:14px;line-height:1.7\">Ce type d’incident n’est pas couvert par votre contrat d’assurance.</p><div class=\"divider\"></div><p style=\"margin:0;font-size:14px;line-height:1.7\">Pour toute précision, merci de contacter votre agence CRMA.</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 12:23:34', '2026-05-23 11:23:34', NULL, '2026-05-23 12:23:31', 0),
+(46, 34, 12, 14, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'kenza.meklati@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-OUA-2026-0003', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-OUA-2026-0003</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-OUA-2026-0003\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-OUA-2026-0003</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-OUA-2026-0003</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">20 099,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Constantine</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 12:27:01', '2026-05-23 11:27:01', NULL, '2026-05-23 12:26:58', 0),
+(47, 14, 9, 8, 'cloture', 'Votre dossier DOS-ALG-2026-0011 a changé d\'état : Classé sans suite. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 12:32:06', 0),
+(48, 14, 9, 8, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'aida.moufouki@gmail.com', 'Paiement de votre dossier sinistre — DOS-ALG-2026-0011', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-ALG-2026-0011</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-ALG-2026-0011\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-ALG-2026-0011</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-ALG-2026-0011</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">500 001,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 16:41:40', '2026-05-23 15:41:40', NULL, '2026-05-23 16:41:36', 1),
+(49, 14, 9, 8, 'cloture', 'Votre dossier DOS-ALG-2026-0011 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 16:43:12', 1),
+(50, 9, 9, 13, 'reglement', 'Le paiement de votre dossier sinistre est désormais finalisé.', 'warda.moufouki@esst-sup.com', 'Paiement de votre dossier sinistre — DOS-ALG-2026-0006', '\n<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Paiement de votre dossier sinistre — DOS-ALG-2026-0006</title>\n\n<style>\nbody{\n    margin:0;\n    padding:0;\n    background:#f3f5f7;\n    font-family:Arial,Helvetica,sans-serif;\n    color:#1f2937;\n}\n\n.container{\n    max-width:640px;\n    margin:0 auto;\n    padding:24px;\n}\n\n.card{\n    background:#111827;\n    border-radius:14px;\n    overflow:hidden;\n}\n\n.header{\n    padding:22px 24px;\n    background:#0b8f3a;\n    color:#ffffff;\n}\n\n.header-title{\n    font-size:20px;\n    line-height:1.4;\n    font-weight:700;\n    margin:0;\n}\n\n.body{\n    padding:24px;\n    color:#ffffff;\n}\n\n.footer{\n    padding:18px 24px;\n    background:#e5e7eb;\n    color:#374151;\n    font-size:12px;\n    line-height:1.6;\n}\n\n.divider{\n    height:1px;\n    background:#374151;\n    margin:20px 0;\n}\n\n.row{\n    margin-bottom:16px;\n}\n\n.label{\n    color:#9ca3af;\n    font-size:13px;\n    margin-bottom:4px;\n}\n\n.value{\n    font-size:16px;\n    font-weight:700;\n    color:#ffffff;\n}\n\np{\n    color:#ffffff;\n}\n\n@media(max-width:520px){\n    .container{\n        padding:12px;\n    }\n\n    .body{\n        padding:18px;\n    }\n}\n</style>\n\n</head>\n\n<body>\n\n<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent\">\nPaiement du dossier DOS-ALG-2026-0006\n</div>\n\n<div class=\"container\">\n\n<div class=\"card\">\n\n<div class=\"header\">\n<p class=\"header-title\">Paiement de votre dossier sinistre — DOS-ALG-2026-0006</p>\n</div>\n\n<div class=\"body\">\n<p style=\"margin:0 0 14px;font-size:15px;line-height:1.7\">\r\nNous vous informons que le paiement de votre dossier sinistre est désormais finalisé.\r\n</p>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Numéro dossier</div>\r\n    <div class=\"value\">DOS-ALG-2026-0006</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Montant total</div>\r\n    <div class=\"value\">649 155,00 DA</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Statut</div>\r\n    <div class=\"value\">Paiement effectué</div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n    <div class=\"label\">Agence CRMA</div>\r\n    <div class=\"value\">CRMA Alger</div>\r\n</div>\r\n\r\n<div class=\"divider\"></div>\r\n\r\n<p style=\"margin:0;font-size:14px;line-height:1.7\">\r\nVotre dossier a été traité avec succès.\r\nPour toute information complémentaire, veuillez contacter votre agence CRMA.\r\n</p>\n</div>\n\n<div class=\"footer\">\nCRMA / CNMA – Gestion des sinistres automobile\n</div>\n\n</div>\n\n</div>\n\n</body>\n</html>\n', 'sent', 1, '2026-05-23 16:45:11', '2026-05-23 15:45:11', NULL, '2026-05-23 16:45:06', 0),
+(51, 4, 9, 13, 'cloture', 'Votre dossier DOS-ALG-2026-0001 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 16:49:10', 0),
+(52, 11, 9, 13, 'cloture', 'Votre dossier DOS-ALG-2026-0008 a changé d\'état : Clôturé. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 17:13:17', 0),
+(53, 8, 9, 8, 'cloture', 'Votre dossier DOS-ALG-2026-0005 a changé d\'état : Classé après recours abouti. Contactez votre agence pour plus d\'informations.', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, '2026-05-23 17:14:15', 0);
 
 -- --------------------------------------------------------
 
@@ -968,7 +1049,7 @@ CREATE TABLE IF NOT EXISTS `personne` (
   PRIMARY KEY (`id_personne`),
   UNIQUE KEY `num_identite` (`num_identite`),
   UNIQUE KEY `num_identite_2` (`num_identite`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `personne`
@@ -993,7 +1074,8 @@ INSERT INTO `personne` (`id_personne`, `type_personne`, `nom`, `prenom`, `raison
 (34, 'physique', 'meklati', 'kenza', NULL, '063741794', '0541775881', 'kouba', 'kenza.meklati@esst-sup.com', '2003-05-07', 'ALGER', NULL, NULL, NULL, NULL, 'assure'),
 (35, 'physique', 'metlab', 'kenza', NULL, '527368909', '0541775899', 'kouba', 'metlab.kenza@p.com', '1999-05-07', 'ALGER', NULL, NULL, NULL, NULL, 'adversaire'),
 (36, 'morale', NULL, NULL, 'SARL TRANS LOGISTIQUE', NULL, '0541555494', 'Zone industrielle Rouiba Alger', 'contact@translog.dz', NULL, NULL, NULL, '1547689249', NULL, NULL, 'assure'),
-(37, 'physique', 'mbarek', 'amel', NULL, '782829903', '0541-77-54-94', 'kouba', 'amel70@gmail.com', '2000-05-06', 'kouba', NULL, NULL, NULL, NULL, 'assure');
+(37, 'physique', 'mbarek', 'amel', NULL, '782829903', '0541-77-54-94', 'kouba', 'amel70@gmail.com', '2000-05-06', 'kouba', NULL, NULL, NULL, NULL, 'assure'),
+(38, 'physique', 'meklati', 'meriem', NULL, '026578321', '0576-54-73-42', 'tipaza,villa22', 'meklatimeriem85@gmail.com', '2002-04-29', 'Kouba', NULL, NULL, NULL, NULL, 'assure');
 
 -- --------------------------------------------------------
 
@@ -1019,7 +1101,7 @@ CREATE TABLE IF NOT EXISTS `reglement` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `saisi_par` (`saisi_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reglement`
@@ -1027,34 +1109,34 @@ CREATE TABLE IF NOT EXISTS `reglement` (
 
 INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`, `date_reglement`, `mode_paiement`, `saisi_par`, `statut`, `reference_paiement`, `commentaire`) VALUES
 (1, 5, 1, 555.00, '2026-03-31', 'Chèque', 9, 'en_attente', 'CHQ-0002-001', ''),
-(2, 8, NULL, 2000.00, '2026-03-31', 'Chèque', 9, 'en_attente', 'CHQ-0005-002', ''),
-(3, 8, NULL, 6.00, '2026-03-31', 'Chèque', 9, 'en_attente', 'CHQ-0005-003', ''),
-(4, 8, NULL, 1000.00, '2026-04-01', 'Chèque', 9, 'en_attente', 'CHQ-0005-004', ''),
-(5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'disponible', 'CHQ-0005-005', ''),
-(6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'disponible', 'CHQ-0001-006', ''),
-(7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'disponible', 'CHQ-0001-007', ''),
-(11, 11, NULL, 10.00, '2026-04-17', 'Chèque', 9, 'en_attente', 'CHQ-0008-011', ''),
+(2, 8, NULL, 2000.00, '2026-03-31', 'Chèque', 9, 'remis', 'CHQ-0005-002', ''),
+(3, 8, NULL, 6.00, '2026-03-31', 'Chèque', 9, 'remis', 'CHQ-0005-003', ''),
+(4, 8, NULL, 1000.00, '2026-04-01', 'Chèque', 9, 'remis', 'CHQ-0005-004', ''),
+(5, 8, NULL, 8985.00, '2026-04-01', 'Chèque', 9, 'remis', 'CHQ-0005-005', ''),
+(6, 4, NULL, 5050.00, '2026-04-01', 'Chèque', 9, 'remis', 'CHQ-0001-006', ''),
+(7, 4, NULL, 300.00, '2026-04-01', 'Chèque', 9, 'remis', 'CHQ-0001-007', ''),
+(11, 11, NULL, 10.00, '2026-04-17', 'Chèque', 9, 'remis', 'CHQ-0008-011', ''),
 (12, 7, NULL, 300.00, '2026-04-17', 'Chèque', 9, 'en_attente', 'CHQ-0004-012', ''),
 (13, 7, NULL, 600000.00, '2026-04-21', 'Chèque', 9, 'en_attente', 'CHQ-0004-013', ''),
-(14, 11, NULL, 10500.00, '2026-04-24', 'Chèque', 9, 'en_attente', 'CHQ-0008-014', ''),
+(14, 11, NULL, 10500.00, '2026-04-24', 'Chèque', 9, 'remis', 'CHQ-0008-014', ''),
 (15, 7, NULL, 5000000.00, '2026-04-24', 'Chèque', 9, 'en_attente', 'CHQ-0004-015', ''),
 (16, 7, NULL, 10020.00, '2026-04-26', 'Chèque', 9, 'en_attente', 'CHQ-0004-016', ''),
 (17, 13, NULL, 1000.00, '2026-04-27', 'Chèque', 9, 'en_attente', 'CHQ-0010-017', ''),
 (18, 13, NULL, 300.00, '2026-04-27', 'Chèque', 9, 'en_attente', 'CHQ-0010-018', ''),
 (19, 14, NULL, 600.00, '2026-04-27', 'Chèque', 9, 'remis', 'CHQ-0011-019', ''),
-(20, 14, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'disponible', 'CHQ-0011-020', ''),
+(20, 14, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'remis', 'CHQ-0011-020', ''),
 (21, 15, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'remis', 'CHQ-0012-021', ''),
 (23, 17, NULL, 1500.00, '2026-04-27', 'Chèque', 9, 'en_attente', 'CHQ-0014-023', ''),
 (25, 17, NULL, 1.00, '2026-04-30', 'Chèque', 9, 'en_attente', 'CHQ-0014-025', ''),
 (26, 18, NULL, 10000.00, '2026-05-06', 'Chèque', 10, 'en_attente', 'CHQ-0015-026', ''),
 (27, 22, NULL, 1000.00, '2026-05-07', 'Chèque', 11, 'remis', 'CHQ-0001-027', ''),
-(28, 9, NULL, 10000.00, '2026-05-07', 'Chèque', 9, 'disponible', 'CHQ-0006-028', ''),
+(28, 9, NULL, 10000.00, '2026-05-07', 'Chèque', 9, 'remis', 'CHQ-0006-028', ''),
 (29, 24, NULL, 1000.00, '2026-05-07', 'Chèque', 11, 'remis', 'CHQ-0003-029', ''),
-(30, 14, NULL, 1000.00, '2026-05-07', 'Chèque', 9, 'disponible', 'CHQ-0011-030', ''),
-(31, 14, NULL, 10000.00, '2026-05-07', 'Chèque', 9, 'en_attente', 'CHQ-0011-031', ''),
+(30, 14, NULL, 1000.00, '2026-05-07', 'Chèque', 9, 'remis', 'CHQ-0011-030', ''),
+(31, 14, NULL, 10000.00, '2026-05-07', 'Chèque', 9, 'remis', 'CHQ-0011-031', ''),
 (35, 13, NULL, 1100.00, '2026-05-08', 'Chèque', 9, 'en_attente', 'CHQ-0010-035', ''),
 (37, 17, NULL, 500000.00, '2026-05-08', 'Chèque', 9, 'en_attente', 'CHQ-0014-037', ''),
-(38, 14, NULL, 486901.00, '2026-05-08', 'Chèque', 9, 'en_attente', 'CHQ-0011-038', ''),
+(38, 14, NULL, 486901.00, '2026-05-08', 'Chèque', 9, 'remis', 'CHQ-0011-038', ''),
 (39, 25, NULL, 1789.00, '2026-05-08', 'Chèque', 11, 'remis', 'CHQ-0004-039', ''),
 (40, 25, NULL, 400.00, '2026-05-08', 'Chèque', 11, 'remis', 'CHQ-0004-040', ''),
 (41, 25, NULL, 500.00, '2026-05-08', 'Chèque', 11, 'remis', 'CHQ-0004-041', ''),
@@ -1082,7 +1164,14 @@ INSERT INTO `reglement` (`id_reglement`, `id_dossier`, `id_garantie`, `montant`,
 (64, 29, NULL, 10000.00, '2026-05-08', 'Chèque', 11, 'en_attente', 'CHQ-0008-064', ''),
 (65, 30, NULL, 100000.00, '2026-05-08', 'Chèque', 11, 'en_attente', 'CHQ-0009-065', ''),
 (66, 30, NULL, 400.00, '2026-05-08', 'Chèque', 11, 'en_attente', 'CHQ-0009-066', ''),
-(67, 30, NULL, 100.00, '2026-05-08', 'Chèque', 11, 'en_attente', 'CHQ-0009-067', '');
+(67, 30, NULL, 100.00, '2026-05-08', 'Chèque', 11, 'en_attente', 'CHQ-0009-067', ''),
+(68, 33, NULL, 120000.00, '2026-05-23', 'Chèque', 12, 'remis', 'CHQ-0002-068', ''),
+(69, 33, NULL, 120000.00, '2026-05-23', 'Chèque', 12, 'remis', 'CHQ-0002-069', ''),
+(70, 32, NULL, 100.00, '2026-05-23', 'Chèque', 12, 'en_attente', 'CHQ-0001-070', ''),
+(71, 32, NULL, 101900.00, '2026-05-23', 'Chèque', 12, 'en_attente', 'CHQ-0001-071', ''),
+(72, 34, NULL, 100.00, '2026-05-23', 'Chèque', 12, 'remis', 'CHQ-0003-072', ''),
+(73, 34, NULL, 19999.00, '2026-05-23', 'Chèque', 12, 'remis', 'CHQ-0003-073', ''),
+(74, 9, NULL, 639155.00, '2026-05-23', 'Chèque', 9, 'remis', 'CHQ-0006-074', '');
 
 -- --------------------------------------------------------
 
@@ -1106,7 +1195,7 @@ CREATE TABLE IF NOT EXISTS `reserve` (
   KEY `id_dossier` (`id_dossier`),
   KEY `id_garantie` (`id_garantie`),
   KEY `cree_par` (`cree_par`)
-) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `reserve`
@@ -1205,7 +1294,19 @@ INSERT INTO `reserve` (`id_reserve`, `id_dossier`, `id_garantie`, `montant`, `da
 (107, 30, 1, 100.00, '2026-05-08', 'ajustement', 11, '2026-05-08', '', 'actif'),
 (108, 17, 1, 100000.00, '2026-05-09', 'ajustement', 9, '2026-05-09', '', 'actif'),
 (109, 31, 1, 100000.00, '2026-05-09', 'initiale', NULL, NULL, NULL, 'actif'),
-(110, 31, 1, 450000.00, '2026-05-09', 'ajustement', 11, '2026-05-09', '', 'actif');
+(110, 31, 1, 450000.00, '2026-05-09', 'ajustement', 11, '2026-05-09', '', 'actif'),
+(111, 32, 1, 100000.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(112, 32, 2, 1000.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(113, 32, 3, 1000.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(114, 33, 1, 100000.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(115, 33, 2, 1000.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(116, 34, 1, 19999.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(117, 35, 1, 19999.00, '2026-05-23', 'initiale', NULL, NULL, NULL, 'actif'),
+(118, 33, 1, 100.00, '2026-05-23', 'ajustement', 12, '2026-05-23', '', 'actif'),
+(119, 33, 1, 18900.00, '2026-05-23', 'complementaire', 12, '2026-05-23', 'Réserve complémentaire après dépassement règlement', 'actif'),
+(120, 33, 1, 120000.00, '2026-05-23', 'complementaire', 12, '2026-05-23', 'Réserve complémentaire après dépassement règlement', 'actif'),
+(121, 34, 1, 100.00, '2026-05-23', 'ajustement', 12, '2026-05-23', '', 'actif'),
+(122, 35, 1, 6000000.00, '2026-05-23', 'ajustement', 12, '2026-05-23', '', 'actif');
 
 -- --------------------------------------------------------
 
@@ -1254,9 +1355,9 @@ CREATE TABLE IF NOT EXISTS `tiers` (
 
 INSERT INTO `tiers` (`id_tiers`, `id_personne`, `compagnie_assurance`, `numero_police`, `responsable`) VALUES
 (5, 9, 'SAA', 'SAA123456', 'oui'),
-(6, 10, 'CAAR', 'CAAR654321', 'oui'),
-(7, 11, 'GAM', 'GAM456123', 'non'),
-(8, 27, 'SAA', 'saa23E', 'non'),
+(6, 10, 'CAAR', 'CAAR654321', 'non'),
+(7, 11, 'GAM', 'GAM456123', 'oui'),
+(8, 27, 'SAA', 'saa23E', 'oui'),
 (9, 35, 'SAA', 'SAA789090', 'oui');
 
 -- --------------------------------------------------------
@@ -1307,22 +1408,23 @@ CREATE TABLE IF NOT EXISTS `utilisateur` (
   UNIQUE KEY `email` (`email`),
   KEY `id_agence` (`id_agence`),
   KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `utilisateur`
 --
 
 INSERT INTO `utilisateur` (`id_user`, `nom`, `prenom`, `email`, `mot_de_passe`, `role`, `id_agence`, `actif`, `id_personne`, `telephone`) VALUES
-(2, 'Admin CNMA', NULL, 'admin@cnma.dz', '$2y$10$SGV3kl4Q1PAdY6lKs3XTRefMCmq.IYZ2OcmGijgxQ2DhEHnNajrou', 'CNMA', NULL, 1, NULL, '021 74 50 21'),
+(2, 'Admin CNMA', NULL, 'admin@cnma.dz', '$2y$10$wvsSJ.BPqoxL2eEV9xkxyOLsoj6O2yEra5lNGdw6YdISg1etTxRBS', 'CNMA', NULL, 1, NULL, '021 74 50 21'),
 (8, NULL, NULL, 'aida.moufouki@gmail.com', '$2y$10$0s91L7PPUpFwEdwuMKLXS.a2q8UFt5gDmaqRB4ib3FGPfsQBj6Ccq', 'ASSURE', NULL, 1, 7, NULL),
-(9, 'Agent Alger', NULL, 'alger@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 1, 1, NULL, '023321597'),
+(9, 'Agent Alger', NULL, 'alger@crma.dz', '$2y$10$4dIvIsQUP0QVHYqIsHuqgu1.5CJ0NOxjblFKo4XBWMY6QHJ8l1dGW', 'CRMA', 1, 1, NULL, '023321597'),
 (10, 'Agent Oran', NULL, 'oran@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 2, 1, NULL, NULL),
 (11, 'Agent Constantine', NULL, 'constantine@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 3, 1, NULL, NULL),
 (12, 'Agent Ouargla', NULL, 'ouargla@crma.dz', '$2y$10$FAEnhpk92fXUAlWWFD9PqOJqlFMmheWHkpaEoLQsMS4IVAeORR.IS', 'CRMA', 5, 1, NULL, NULL),
 (13, NULL, NULL, 'warda.moufouki@esst-sup.com', '$2y$10$a/lCJPeGNRJS07fCPJA4cOPn5sZtS9i93kyaEZM1qChFjsTWeEJ7C', 'ASSURE', NULL, 1, 2, NULL),
 (14, NULL, NULL, 'kenza.meklati@esst-sup.com', '$2y$10$1jGi4ncSzMA/5foN2avohOG7idTOdkXkp5WgtEsqUX/.1q/YNgYYq', 'ASSURE', NULL, 1, 34, NULL),
-(15, NULL, NULL, 'moufouki.fadia.enssea@gmail.com', '$2y$10$mzYnSGISGS3u/H9M0qkc..A7pM3AGVJKw68SlRjD6e6VzkBrv0hbK', 'ASSURE', NULL, 1, 19, NULL);
+(15, NULL, NULL, 'moufouki.fadia.enssea@gmail.com', '$2y$10$mzYnSGISGS3u/H9M0qkc..A7pM3AGVJKw68SlRjD6e6VzkBrv0hbK', 'ASSURE', NULL, 1, 19, NULL),
+(16, NULL, NULL, 'meklatimeriem85@gmail.com', '$2y$10$hR.NMf5bn7o.pwkVZECWUO/Ie1G.DbGgW.Si2YjaQNdEm6QJ6HKhm', 'ASSURE', NULL, 1, 38, NULL);
 
 -- --------------------------------------------------------
 
@@ -1346,7 +1448,7 @@ CREATE TABLE IF NOT EXISTS `vehicule` (
   PRIMARY KEY (`id_vehicule`),
   UNIQUE KEY `matricule` (`matricule`),
   UNIQUE KEY `numero_chassis` (`numero_chassis`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `vehicule`
@@ -1358,7 +1460,8 @@ INSERT INTO `vehicule` (`id_vehicule`, `marque`, `modele`, `couleur`, `nombre_pl
 (3, 'kia', 'karens', 'BLANC', 7, '5434-115-16', 'CH123454789', 'SER997654321', 2015, 'Tourisme', 'Berline'),
 (6, 'toyota', 'yaris', 'blanc', 5, '00345-116-16', 'VN4653782932', 'SN-4536178913', 2016, 'Tourisme', 'Berline'),
 (7, 'renault', 'premium', 'blanc', 3, '12345-117-02', 'VF633GPA000123456', 'RNL-2026-001', 2009, 'Camion', 'Camion'),
-(8, 'kia', 'picanto', 'blanc', 4, '45526-112-16', 'GH34251678999021', 'SDF1267899991', 2012, 'Tourisme', 'Berline');
+(8, 'kia', 'picanto', 'blanc', 4, '45526-112-16', 'GH34251678999021', 'SDF1267899991', 2012, 'Tourisme', 'Berline'),
+(9, 'renault', 'captur', 'gris', 5, '15673-123-42', 'VF1ABC12345675901', 'SER122456', 2023, 'Tourisme', 'SUV');
 
 --
 -- Contraintes pour les tables déchargées

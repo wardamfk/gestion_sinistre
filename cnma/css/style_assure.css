@@ -25,9 +25,15 @@ border-radius:12px;object-fit:cover}
 .page-heading h2{font-size:22px;font-weight:700;  color: #2f6b4f;display:flex;align-items:center;gap:10px}
 .page-heading h2 i{background:#e3f2fd;  color: #2f6b4f;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .stats-grid{ display:grid;
-  grid-template-columns:repeat(4, 1fr); /* 4 propres */
+  
   gap:14px;
   margin-bottom:20px;}
+  .detail-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:28px;
+    row-gap:24px;
+}
   .stat-card{
   padding:14px 14px;
   border-radius:12px;
@@ -246,4 +252,36 @@ border-radius:12px;object-fit:cover}
 @media (max-width: 420px) {
   .assure-header{padding:0 12px}
   .assure-header .user-info{max-width:60%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+}
+.detail-section-title{
+   
+    color:#1b4332;
+    margin-bottom:22px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:18px;
+    font-weight:700;
+    color:#1b5e20;
+    margin-bottom:18px;
+}
+.total-price{
+    font-size:28px;
+    font-weight:800;
+    color:#0d47a1;
+}
+.detail-separator{
+
+    border-top:1px solid #eceff1;
+    margin-top:24px;
+   padding-top:14px;
+}
+
+.detail-grid{
+    row-gap:24px;
+}
+
+.detail-card{
+      max-width:100%;
+    padding:28px;
 }

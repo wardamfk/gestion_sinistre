@@ -521,7 +521,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/
 <!-- ── TAB: RÈGLEMENTS ── -->
 
 <div id="reglements" class="crma-tab-content">
-     <?php if ($total_disponible >= $total_reserve && $reste <= 0): ?>
+     <?php if ($total_disponible > 0): ?>
 
 <div style="margin-bottom:16px;display:flex;justify-content:flex-end;">
 
@@ -590,6 +590,8 @@ data-url='./modifier_reglement.php?id={$reg['id_reglement']}'>
                         <i class='fa fa-check'></i>
                     </a>";
     }
+
+    // La remise se fait au niveau du dossier (bouton "Confirmer remise totale")
 
 
 

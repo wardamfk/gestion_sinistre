@@ -530,7 +530,7 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
                                 <div class="di-val mono" style="font-weight:700;color:var(--blue-800)"><?= number_format($c['prime_nette'],2,',',' ') ?> DA</div>
                             </div>
                             <div class="detail-item">
-                                <div class="di-label">Taxe (<?= round($TAXE*100) ?>%)</div>
+                                <div class="di-label">TVA (<?= round($TAXE*100) ?>%)</div>
                                 <div class="di-val mono"><?= number_format($c['prime_nette']*$TAXE,2,',',' ') ?> DA</div>
                             </div>
                             <div class="detail-item">
@@ -775,7 +775,7 @@ $numero_police_preview = "CRMA-$code_agence_preview-".date('Y')."-001";
                 <div class="prime-row"><div class="p-label" style="color:var(--amber-600)"><i class="fa fa-plus-circle"></i> Majoration</div><div><input type="number" name="majoration" id="majoration" class="p-input" value="0" min="0" step="1" oninput="recalc()"></div></div>
                 <div class="prime-row"><div class="p-label" style="color:var(--blue-600)"><i class="fa fa-layer-group"></i> Complément</div><div><input type="number" name="complement" id="complement" class="p-input" value="500" min="0" step="1" oninput="recalc()"></div></div>
                 <div class="prime-row" style="background:var(--gray-50)"><div class="p-label" style="font-weight:600"><i class="fa fa-equals"></i> Prime nette</div><div class="p-value" id="disp-nette" style="font-weight:700;color:var(--blue-800)">0 DA</div></div>
-                <div class="prime-row"><div class="p-label" style="color:var(--gray-500)"><i class="fa fa-percent"></i> Taxe (<?= round($TAXE*100) ?>%)</div><div class="p-value" id="disp-taxe">0 DA</div></div>
+                <div class="prime-row"><div class="p-label" style="color:var(--gray-500)"><i class="fa fa-percent"></i> TVA (<?= round($TAXE*100) ?>%)</div><div class="p-value" id="disp-taxe">0 DA</div></div>
               <div class="prime-row">
     <div class="p-label">
         <i class="fa fa-stamp"></i> Timbre
@@ -1080,16 +1080,21 @@ function editVehicule(id) {
 
             <div class="fg">
                 <label>Matricule</label>
-            <input id="matricule" value="${v.matricule}" readonly>
+            <input id="matricule" value="${v.matricule}" required>
             </div>   
                <div class="fg">
     <label>N° Châssis</label>
-<input value="${v.chassis}" readonly>
+<input id="chassis" value="${v.chassis}" readonly>
 </div>
 <div class="fg">  
  <label>N° Série</label>
-<input value="${v.serie}" readonly>     
+<input id="serie" value="${v.serie}" readonly>     
  </div> 
+
+            <!-- Champs conservés (non affichés) pour éviter d’écraser les valeurs en base -->
+            <input type="hidden" id="annee" value="${v.annee || ''}">
+            <input type="hidden" id="nb_places" value="${v.nb_places || ''}">
+            <input type="hidden" id="carrosserie" value="${v.carrosserie || ''}">
 
             <div class="fg">
                 <label>Type</label>
@@ -1117,6 +1122,17 @@ function editVehicule(id) {
 
         </div>
     `;
+
+    // Format matricule (99999-999-99) dans le modal
+    const matEl = document.getElementById("matricule");
+    if (matEl) {
+        matEl.addEventListener("input", function () {
+            let val = (this.value || '').replace(/\D/g, '');
+            if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
+            if (val.length > 9) val = val.slice(0, 9) + '-' + val.slice(9, 11);
+            this.value = val;
+        });
+    }
 }
 
 document.querySelector("[name='matricule']").addEventListener("blur", function () {
@@ -1147,7 +1163,14 @@ function saveVehicule(id) {
             modele: document.getElementById('modele').value,
             couleur: document.getElementById('couleur').value,
             matricule: document.getElementById('matricule').value,
-            type: document.getElementById('type').value
+            type: document.getElementById('type').value,
+
+            // Champs attendus par le backend (on les renvoie pour ne pas écraser en base)
+            annee: document.getElementById('annee')?.value || '',
+            nombre_places: document.getElementById('nb_places')?.value || '',
+            carrosserie: document.getElementById('carrosserie')?.value || '',
+            numero_chassis: document.getElementById('chassis')?.value || '',
+            numero_serie: document.getElementById('serie')?.value || ''
         })
     })
     .then(res => res.text())

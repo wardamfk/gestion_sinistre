@@ -35,7 +35,6 @@ if (isset($_POST['modifier'])) {
 
     $type        = mysqli_real_escape_string($conn, $_POST['type'] ?? '');
     $carrosserie = mysqli_real_escape_string($conn, $_POST['carrosserie'] ?? '');
-}
 
     // CHECK matricule
     $check_mat = mysqli_fetch_assoc(mysqli_query($conn,
@@ -130,7 +129,7 @@ button {
 
 <div>
 <label>Matricule</label>
-<input type="text" name="matricule" value="<?= $v['matricule'] ?>" required>
+<input type="text" name="matricule" value="<?= $v['matricule'] ?>" required >
 </div>
 
 <div>

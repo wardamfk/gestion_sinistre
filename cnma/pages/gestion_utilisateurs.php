@@ -115,8 +115,8 @@ $nb_actifs = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as n FROM u
         .main-layout { display: grid; grid-template-columns: 420px 1fr; gap: 24px; align-items: start; }
         .form-sticky { position: sticky; top: 85px; }
         .user-table-wrap { overflow-x: auto; }
-        .pwd-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; }
-        .pwd-modal.open { display:flex; }
+        .pwd-modal, .confirm-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; }
+        .pwd-modal.open, .confirm-modal.open { display:flex; }
         .pwd-box { background:white; border-radius:14px; padding:30px; width:420px; box-shadow:0 10px 40px rgba(0,0,0,0.2); }
         .pwd-box h3 { margin-bottom:20px; color:#1a237e; }
         .user-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
@@ -327,7 +327,7 @@ $wilaya = $u['wilaya_user'] ?? $u['wilaya_assure'] ?? '';
         <?php if($u['actif'] == 1): ?>
             <a href="gestion_utilisateurs.php?toggle=1&uid=<?php echo $u['id_user']; ?>"
                class="cnma-btn sm danger"
-               onclick="return confirm('Désactiver ce compte ?')">
+               onclick="openConfirmModal(this, 'Désactiver ce compte ?'); return false;">
                 <i class="fa fa-ban"></i> Désactiver
             </a>
         <?php else: ?>
@@ -350,6 +350,22 @@ $wilaya = $u['wilaya_user'] ?? $u['wilaya_assure'] ?? '';
                 </table>
             </div>
             <p style="color:#90a4ae; font-size:12px; margin-top:10px;"><?php echo $count; ?> compte(s) affiché(s)</p>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMATION -->
+<div class="confirm-modal" id="confirmModal">
+    <div class="pwd-box">
+        <h3><i class="fa fa-exclamation-triangle" style="color:#d84315;"></i> Confirmer l'action</h3>
+        <p id="confirmText" style="color:#546e7a; margin-bottom:20px; font-size:14px;"></p>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button type="button" class="cnma-btn danger" id="confirmYes" style="flex:1; justify-content:center; padding:12px;">
+                <i class="fa fa-check"></i> Oui, confirmer
+            </button>
+            <button type="button" class="cnma-btn secondary" onclick="closeConfirm()" style="padding:12px 18px;">
+                Annuler
+            </button>
         </div>
     </div>
 </div>
@@ -414,8 +430,34 @@ function closePwd() {
     document.getElementById('pwdModal').classList.remove('open');
 }
 
+function openConfirmModal(element, message) {
+    const href = element.getAttribute('href');
+    const confirmModal = document.getElementById('confirmModal');
+    confirmModal.dataset.targetHref = href;
+    document.getElementById('confirmText').textContent = message;
+    confirmModal.classList.add('open');
+}
+
+function closeConfirm() {
+    const confirmModal = document.getElementById('confirmModal');
+    confirmModal.classList.remove('open');
+    confirmModal.dataset.targetHref = '';
+}
+
+const confirmYes = document.getElementById('confirmYes');
+confirmYes.addEventListener('click', function() {
+    const confirmModal = document.getElementById('confirmModal');
+    const targetHref = confirmModal.dataset.targetHref;
+    if(targetHref) {
+        window.location.href = targetHref;
+    }
+});
+
 document.getElementById('pwdModal').addEventListener('click', function(e) {
     if(e.target === this) closePwd();
+});
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if(e.target === this) closeConfirm();
 });
 
 toggleAgence();

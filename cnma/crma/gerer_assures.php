@@ -203,11 +203,11 @@ if (isset($_POST['creer_compte'])) {
 
 /* ======= DONNÉES LISTE ======= */
 $filtre_q     = $_GET['q'] ?? '';
-$filtre_actif = $_GET['actif'] ?? '';
+
 
 $where = "WHERE 1=1";
 if ($filtre_q)             $where .= " AND (p.nom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%' OR p.prenom LIKE '%".mysqli_real_escape_string($conn,$filtre_q)."%')";
-if ($filtre_actif !== '')  $where .= " AND a.actif=".intval($filtre_actif);
+
 
 $assures = mysqli_query($conn, "
     SELECT a.*,p.nom,p.prenom,p.telephone,p.email,p.adresse,p.num_identite,nif,type_personne,p.raison_sociale,
@@ -460,7 +460,7 @@ if (isset($_GET['compte'])) {
  <input type="text"
        name="telephone"
        id="telephone"
-       maxlength="12"
+       maxlength="13"
        placeholder="0550-12-34-56">
               
     </div>
@@ -495,13 +495,7 @@ if (isset($_GET['compte'])) {
                 <label>Date de création</label>
                 <input type="date" name="date_creation" value="<?= date('Y-m-d') ?>" required>
             </div>
-            <div class="form-group">
-                <label>Statut</label>
-                <select name="actif">
-                    <option value="1">Actif</option>
-                    <option value="0">Suspendu</option>
-                </select>
-            </div>
+                <!-- Champ Statut supprimé -->
         </div>
 
   <div id="permis_fields">

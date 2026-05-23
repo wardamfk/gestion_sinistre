@@ -6,6 +6,7 @@ if ($_SESSION['role'] != 'CRMA') { header('Location: ../pages/login.php'); exit(
 
 $id_user  = $_SESSION['id_user'];
 $id_agence= $_SESSION['id_agence'];
+$wilaya   = $_SESSION['wilaya'] ?? '';
 
 // Stats dossiers
 $total    = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM dossier WHERE cree_par='$id_user'"))['n'];
@@ -82,16 +83,27 @@ $nb_notifs = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) n FROM notif
 
 
 $nb_cheques_attente = mysqli_fetch_assoc(mysqli_query($conn,"
-SELECT COUNT(*) as n 
-FROM reglement 
-WHERE statut='disponible'
-"))['n'];
-$cheques = mysqli_query($conn,"
-SELECT d.numero_dossier, d.id_dossier, r.montant
+SELECT COUNT(DISTINCT d.id_dossier) as n
 FROM reglement r
 JOIN dossier d ON r.id_dossier = d.id_dossier
+JOIN utilisateur u ON d.cree_par = u.id_user
 WHERE r.statut='disponible'
-ORDER BY r.id_reglement DESC
+  AND u.id_agence = '$id_agence'
+"))['n'];
+$cheques = mysqli_query($conn,"
+SELECT
+    d.numero_dossier,
+    d.id_dossier,
+    COUNT(*) AS nb_cheques,
+    IFNULL(SUM(r.montant),0) AS montant_total,
+    MAX(r.id_reglement) AS last_reg
+FROM reglement r
+JOIN dossier d ON r.id_dossier = d.id_dossier
+JOIN utilisateur u ON d.cree_par = u.id_user
+WHERE r.statut='disponible'
+  AND u.id_agence = '$id_agence'
+GROUP BY d.id_dossier
+ORDER BY last_reg DESC
 LIMIT 5
 ");
 
@@ -212,8 +224,8 @@ $etat_badge_map = [
 
         <div style="font-size:13px;color:#555;margin-top:5px;">
             <?= $nb_cheques_attente > 0 
-                ? "À remettre "
-                : "Aucun chèque en attente" ?>
+                ? "Dossiers à remettre "
+                : "Aucun dossier en attente" ?>
         </div>
 
         <?php if($nb_cheques_attente > 0): ?>
@@ -230,7 +242,8 @@ $etat_badge_map = [
         <thead>
             <tr>
                 <th>Dossier</th>
-                <th>Montant</th>
+                <th>Nb</th>
+                <th>Total</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -245,13 +258,21 @@ $etat_badge_map = [
                 </a>
             </td>
 
-            <td><?= number_format($row['montant'],2,',',' ') ?> DA</td>
+            <td style="width:80px;"><?= intval($row['nb_cheques']) ?></td>
+            <td><?= number_format($row['montant_total'],2,',',' ') ?> DA</td>
 
             <td>
-                <a href="voir_dossier.php?id=<?= $row['id_dossier'] ?>&tab=reglements"
-                   class="btn btn-primary btn-xs">
-                   Voir
-                </a>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <a href="voir_dossier.php?id=<?= $row['id_dossier'] ?>&tab=reglements"
+                       class="btn btn-primary btn-xs">
+                       Voir
+                    </a>
+                    <a href="confirmer_remise_totale.php?id=<?= $row['id_dossier'] ?>"
+                       onclick="confirmAction(event,'Confirmer la remise totale des règlements disponibles de ce dossier ? (tous les chèques disponibles passeront à REMIS)',this.href)"
+                       class="btn btn-success btn-xs">
+                       Remis
+                    </a>
+                </div>
             </td>
         </tr>
         <?php endwhile; ?>

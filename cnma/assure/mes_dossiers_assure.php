@@ -19,19 +19,26 @@ $assure = mysqli_fetch_assoc(mysqli_query($conn,
 $id_assure = $assure ? $assure['id_assure'] : 0;
 
 $etat_map = [
-    1=>'En cours de déclaration',
+    1=>'En cours',
     2=>'En cours de traitement',
-    3=>'En cours de validation',
+    3=>'En cours de traitement',
     4=>'Dossier accepté',
     5=>'Dossier refusé',
     6=>'Documents manquants',
     7=>'Paiement partiel',
     8=>'Paiement effectué',
-    9=>'En cours de traitement',
+    9=>'Expertise en cours',
     11=>'Classé sans suite',
     12=>'Classé',
     13=>'En attente',
-    14=>'Dossier clôturé'
+    14=>'Dossier clôturé',
+    15=>'Dossier repris',
+    16=>'Expertise en cours',
+    17=>'Paiement effectué',
+    18=>'En cours',
+    19=>'Classé',
+    20=>'En cours de traitement',
+    21=>'refusé (hors délai)'
 ];
 
 $etat_class_map = [

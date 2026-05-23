@@ -1,0 +1,20 @@
+{
+  "name": "pfecnma",
+  "version": "1.0.0",
+  "description": "Application web développée en PHP/MySQL permettant la gestion complète des sinistres automobiles.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wardamfk/gestion_sinistre.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wardamfk/gestion_sinistre/issues"
+  },
+  "homepage": "https://github.com/wardamfk/gestion_sinistre#readme"
+}

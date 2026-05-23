@@ -133,7 +133,7 @@ VALUES
         <label>Date expiration</label>
         <input type="date" name="date_expiration">
 
-        <label>Prime base</label>
+        <label>Prime de base</label>
         <input type="number" step="0.01" name="prime_base">
 
         <label>Réduction</label>
@@ -148,7 +148,7 @@ VALUES
         <label>Complément</label>
         <input type="number" step="0.01" name="complement">
 
-        <label>Total taxes</label>
+        <label>Tva</label>
         <input type="number" step="0.01"name="total_taxes" readonly>
 
         <label>Total timbres</label>
